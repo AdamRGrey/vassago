@@ -13,14 +13,13 @@ namespace silverworker_discord
     class Program
     {
         private DiscordSocketClient _client;
-        private Random r = new Random();
 
         IConfigurationRoot config = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", true, true)
             .Build();
             
-        int initNonce;
-        private ISocketMessageChannel targetChannel = null;
+        private ISocketMessageChannel botChatterChannel = null;
+        private ISocketMessageChannel announcementChannel = null;
 
         public static void Main(string[] args)
             => new Program().MainAsync().GetAwaiter().GetResult();
@@ -31,7 +30,6 @@ namespace silverworker_discord
         }
         public async Task MainAsync()
         {
-            initNonce = r.Next();
             _client = new DiscordSocketClient();
 
             _client.Log += Log;
@@ -42,12 +40,11 @@ namespace silverworker_discord
             _client.MessageReceived += MessageReceived;
             _client.UserJoined += UserJoined;
 
-            _client.Ready += () =>
-            {
-                Console.WriteLine("Bot is connected! this is the dumbest.");
-                var wh = new Discord.Webhook.DiscordWebhookClient(config["initWebhook"]);
-                return wh.SendMessageAsync(initNonce.ToString(), username: "silver loop");
-            };
+            _client.Ready += () => Task.Run(() =>{
+                Console.WriteLine("Bot is connected!");
+                botChatterChannel = _client.GetChannel(ulong.Parse(config["botChatterChannel"])) as ISocketMessageChannel;
+                announcementChannel = _client.GetChannel(ulong.Parse(config["announcementChannel"])) as ISocketMessageChannel;
+                });
             // Block this task until the program is closed.
             await Task.Delay(-1);
         }
@@ -59,24 +56,16 @@ namespace silverworker_discord
             if (message.Author.Id == _client.CurrentUser.Id) return;
 
             Console.WriteLine($"{message.Channel}, {message.Content}, {message.Id}");
-            if(targetChannel == null && 
-                message.Author.Username == "silver loop" && message.Content == initNonce.ToString())
+            if (message.Channel.Id == botChatterChannel.Id)
             {
-                targetChannel = message.Channel;
-                Task.WaitAll(message.DeleteAsync(), targetChannel.SendMessageAsync("this initialization is nonsense lol"));
-            }
-            else if (message.Channel.Id != targetChannel.Id)
-            {
-                return;
-            }
-
-            if(message.Attachments?.Count > 0)
-            {
-                Console.WriteLine(message.Attachments.Count);
-                foreach (var att in message.Attachments)
+                if(message.Attachments?.Count > 0)
                 {
-                    Console.WriteLine(att.Url);
-                    await WebRequest.Create("http://192.168.1.151:3001/shortcuts?display_url=" + att.Url).GetResponseAsync();
+                    Console.WriteLine(message.Attachments.Count);
+                    foreach (var att in message.Attachments)
+                    {
+                        Console.WriteLine(att.Url);
+                        await WebRequest.Create("http://192.168.1.151:3001/shortcuts?display_url=" + att.Url).GetResponseAsync();
+                    }
                 }
             }
         }
