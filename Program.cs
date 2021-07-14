@@ -76,6 +76,11 @@ namespace silverworker_discord
                     await WebRequest.Create("http://192.168.1.151:3001/shortcuts?display_url=/twitchery/placeholder.png").GetResponseAsync();
                 }
                 break;
+                case "literally nothing":
+                {
+                    //not even acknowledgement
+                }
+                break;
                 default:
                 {
                     await botChatterChannel.SendMessageAsync("... dafuq?");
