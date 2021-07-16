@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace silverworker_discord
 {
@@ -50,45 +52,6 @@ namespace silverworker_discord
             await Task.Delay(-1);
         }
 
-        private async Task redeemReward(string rewardName, string username, string text)
-        {
-            switch(rewardName)
-            {
-                case "the seAL OF ORICHALCOS":
-                {
-                    Console.WriteLine("going to throw up THE SEAL OF ORICHALCOS");
-                    await WebRequest.Create("http://192.168.1.151:3001/shortcuts?display_url=/twitchery/SEAL.mp4").GetResponseAsync();
-                }
-                break;
-                case "Timeout":
-                case "healthpack":
-                case "Way of Anne":
-                case "Treasure Token":
-                case "Platz Eins":
-                case "Proliferate":
-                case "go fish":
-                case "clear your mind":
-                case "Banna Deck":
-                case "SPEHSS MEHREENS":
-                case "wrath of gob":
-                {
-                    Console.WriteLine("need thing");
-                    await WebRequest.Create("http://192.168.1.151:3001/shortcuts?display_url=/twitchery/placeholder.png").GetResponseAsync();
-                }
-                break;
-                case "literally nothing":
-                {
-                    //not even acknowledgement
-                }
-                break;
-                default:
-                {
-                    await botChatterChannel.SendMessageAsync("... dafuq?");
-                    break;
-                }
-            }
-        }
-
         private async Task MessageReceived(SocketMessage messageParam)
         {
             var message = messageParam as SocketUserMessage;
@@ -117,7 +80,22 @@ namespace silverworker_discord
                             textData = components[1].Substring(components[1].IndexOf(":")).Trim();
                         }
                         Console.WriteLine($"user: {redeemer} redeems {rewardName}, text data? {textData}");
-                        await redeemReward(rewardName, redeemer, textData);
+                        
+                        var redemptionSerialized = Encoding.ASCII.GetBytes(
+                            JsonConvert.SerializeObject(new {
+                                redeemer = redeemer,
+                                rewardName = rewardName,
+                                textData = textData
+                            }, Formatting.None));
+                        var wr = WebRequest.Create("http://192.168.1.151:3001/shortcuts/redeemReward");
+                        wr.Method = "POST";
+                        wr.ContentType = "application/json";
+                        wr.ContentLength = redemptionSerialized.Length;
+                        using(var postStream = wr.GetRequestStream())
+                        {
+                            postStream.Write(redemptionSerialized);
+                        }
+                        await wr.GetResponseAsync();
                     }
                 }
             }
