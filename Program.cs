@@ -127,24 +127,40 @@ namespace silverworker_discord
                         {
                             if (link.Host == "vm.tiktok.com")
                             {
-                                detiktokify(link, message.Channel);
+                                detiktokify(link, message);
                             }
                         }
                     }
                 }
             }
         }
-        private async void detiktokify(Uri link, ISocketMessageChannel channel)
+        private async void detiktokify(Uri link, SocketUserMessage message)
         {
             var ytdl = new YoutubeDLSharp.YoutubeDL();
-            ytdl.YoutubeDLPath = config["ytdl"];
+            ytdl.YoutubeDLPath = "youtube-dl";
             ytdl.FFmpegPath = "ffmpeg";
             ytdl.OutputFolder = "";
             ytdl.OutputFileTemplate = "tiktokbad.%(ext)s";
             var res = await ytdl.RunVideoDownload(link.ToString());
-            string path = res.Data;
-            await channel.SendFileAsync(path);
-            File.Delete(path);
+            if(!res.Success)
+            {
+                Console.Error.WriteLine("tried to dl, failed. \n" + res.ErrorOutput);
+                message.AddReactionAsync(new Emoji("👎"));
+            }
+            else
+            {
+                string path = res.Data;
+                if(File.Exists(path))
+                {
+                    await message.Channel.SendFileAsync(path);
+                    File.Delete(path);
+                }
+                else
+                {
+                    Console.Error.WriteLine("idgi but something happened.");
+                    message.AddReactionAsync(new Emoji("👎"));
+                }
+            }
         }
         private Task UserJoined(SocketGuildUser arg)
         {
