@@ -1,4 +1,5 @@
-﻿using System;
+﻿//https://discord.com/api/oauth2/authorize?client_id={application id}&permissions=0&scope=bot%20applications.commands
+using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
