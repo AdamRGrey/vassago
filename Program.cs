@@ -119,7 +119,6 @@ namespace silverworker_discord
                 {
                     //any channel, from a user
                     var wordLikes = message.Content.Split(' ', StringSplitOptions.TrimEntries);
-                    Console.WriteLine($"{wordLikes.Count()} word-like things");
                     var links = wordLikes?.Where(wl => Uri.IsWellFormedUriString(wl, UriKind.Absolute)).Select(wl => new Uri(wl));
                     if (links != null && links.Count() > 0)
                     {
