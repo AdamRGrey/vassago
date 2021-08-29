@@ -139,7 +139,7 @@ namespace silverworker_discord
             var ytdl = new YoutubeDLSharp.YoutubeDL();
             ytdl.YoutubeDLPath = config["ytdl"];
             ytdl.FFmpegPath = "ffmpeg";
-            ytdl.OutputFolder = "./";
+            ytdl.OutputFolder = config["content_wasteland"];
             var res = await ytdl.RunVideoDownload(link.ToString());
             string path = res.Data;
             await channel.SendFileAsync(path);
