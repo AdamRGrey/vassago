@@ -144,7 +144,7 @@ namespace silverworker_discord
             var res = await ytdl.RunVideoDownload(link.ToString());
             if(!res.Success)
             {
-                Console.Error.WriteLine("tried to dl, failed. \n" + res.ErrorOutput);
+                Console.Error.WriteLine("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
                 message.AddReactionAsync(new Emoji("👎"));
             }
             else
