@@ -40,7 +40,6 @@ namespace silverworker_discord
             await _client.LoginAsync(TokenType.Bot, config["token"]);
             await _client.StartAsync();
 
-
             _client.Ready += () => Task.Run(() =>
             {
                 Console.WriteLine("Bot is connected! going to sign up for message received and user joined in client ready");
@@ -152,7 +151,14 @@ namespace silverworker_discord
                 string path = res.Data;
                 if(File.Exists(path))
                 {
-                    await message.Channel.SendFileAsync(path);
+                    try
+                    {
+                        await message.Channel.SendFileAsync(path);
+                    }
+                    catch(Exception e)
+                    {
+                        await message.Channel.SendMessageAsync($"aaaadam!\n{JsonConvert.SerializeObject(e)}");
+                    }
                     File.Delete(path);
                 }
                 else
