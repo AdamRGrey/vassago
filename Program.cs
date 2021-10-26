@@ -65,39 +65,16 @@ namespace silverworker_discord
             {
                 if (message.Author.Username == "greasemonkey reward watcher")
                 {
-                    Console.WriteLine("yep");
-                    var redemptionData = message.Content.Split("\n")[1].Substring("data: ".Length);
-
-                    if (message.Content.StartsWith("type: reward-request"))
+                    Console.WriteLine("heard greasemonkey, this is bananas");
+                    var type = message.Content.Split("\n")[0].Substring("type: ".Length);
+                    var subData = message.Content.Split("\n")[1].Substring("data: ".Length);
+                    try
                     {
-                        var components = redemptionData.Split("•");
-                        Console.WriteLine($"{components.Length} components:");
-                        var rewardName = components[0].Trim();
-                        var redeemer = components[1].Trim();
-                        var textData = "";
-                        if (components[1].Contains(":"))
-                        {
-                            redeemer = components[1].Substring(0, components[1].IndexOf(":")).Trim();
-                            textData = components[1].Substring(components[1].IndexOf(":")).Trim();
-                        }
-                        Console.WriteLine($"user: {redeemer} redeems {rewardName}, text data? {textData}");
-
-                        var redemptionSerialized = Encoding.ASCII.GetBytes(
-                            JsonConvert.SerializeObject(new
-                            {
-                                redeemer = redeemer,
-                                rewardName = rewardName,
-                                textData = textData
-                            }, Formatting.None));
-                        var wr = WebRequest.Create("http://192.168.1.151:3001/shortcuts/redeemReward");
-                        wr.Method = "POST";
-                        wr.ContentType = "application/json";
-                        wr.ContentLength = redemptionSerialized.Length;
-                        using (var postStream = wr.GetRequestStream())
-                        {
-                            postStream.Write(redemptionSerialized);
-                        }
-                        await wr.GetResponseAsync();
+                        await twitchery.twitcherize(type, subData);
+                    }
+                    catch(Exception e)
+                    {
+                        await message.Channel.SendMessageAsync($"aaaadam!\n{JsonConvert.SerializeObject(e)}");
                     }
                 }
             }
@@ -144,7 +121,7 @@ namespace silverworker_discord
             if(!res.Success)
             {
                 Console.Error.WriteLine("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
-                message.AddReactionAsync(new Emoji("👎"));
+                await message.AddReactionAsync(new Emoji("👎"));
             }
             else
             {
@@ -164,7 +141,7 @@ namespace silverworker_discord
                 else
                 {
                     Console.Error.WriteLine("idgi but something happened.");
-                    message.AddReactionAsync(new Emoji("👎"));
+                    await message.AddReactionAsync(new Emoji("👎"));
                 }
             }
         }
