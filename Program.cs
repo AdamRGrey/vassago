@@ -23,6 +23,7 @@ namespace silverworker_discord
 
         private ISocketMessageChannel botChatterChannel = null;
         private ISocketMessageChannel announcementChannel = null;
+        private ISocketMessageChannel mtgChannel = null;
 
         public static void Main(string[] args)
             => new Program().MainAsync().GetAwaiter().GetResult();
@@ -45,6 +46,7 @@ namespace silverworker_discord
                 Console.WriteLine("Bot is connected! going to sign up for message received and user joined in client ready");
                 botChatterChannel = _client.GetChannel(ulong.Parse(config["botChatterChannel"])) as ISocketMessageChannel;
                 announcementChannel = _client.GetChannel(ulong.Parse(config["announcementChannel"])) as ISocketMessageChannel;
+                mtgChannel= _client.GetChannel(ulong.Parse(config["mtgChannel"])) as ISocketMessageChannel;
 
                 _client.MessageReceived += MessageReceived;
                 _client.UserJoined += UserJoined;
@@ -92,6 +94,16 @@ namespace silverworker_discord
                         }
                     }
                 }
+                else if(message.Channel.Id == mtgChannel.Id)
+                {
+                    Console.WriteLine("magic channel, checking if card search");
+                    var cardSearch = new Regex("\\[([^\\]]+)\\]").Matches(message.Content);
+                    if(cardSearch.Count > 0)
+                    {
+                        Console.WriteLine($"looks like I should search scryfall for {cardSearch[0]}");
+                        scryfallSearch(cardSearch[0].Value, message);
+                    }
+                }
                 else
                 {
                     //any channel, from a user
@@ -110,6 +122,48 @@ namespace silverworker_discord
                 }
             }
         }
+
+        private async void scryfallSearch(string cardName, SocketUserMessage message)
+        {
+            var request = WebRequest.Create("https://api.scryfall.com/cards/named?fuzzy=" + cardName.Replace(' ', '+'));
+            HttpWebResponse response = request.GetResponse() as HttpWebResponse;
+            if(response.StatusCode == HttpStatusCode.OK)
+            {
+                using (var dataStream = new StreamReader(response.GetResponseStream()))
+                {
+                    string responseFromServer = dataStream.ReadToEnd();
+                    var cardObj = JsonConvert.DeserializeObject<Scryfalltypes.Card>(responseFromServer);
+                    if(cardObj != null){
+                        if(cardObj.image_uris.png == null)
+                        {
+                            await mtgChannel.SendMessageAsync("I know that card, but no image.");
+                        }
+                        else{
+                            using(var cardImgDataStream = WebRequest.Create(cardObj.image_uris.png).GetResponse().GetResponseStream())
+                            {
+                                await mtgChannel.SendFileAsync(cardImgDataStream, $"{cardName}.png");
+                            }
+                        }
+                    }else{
+                        Console.WriteLine($"weird 404 searching for card {cardName}");
+                        await mtgChannel.SendMessageAsync("¯\\_(ツ)_/¯");
+                    }
+                }
+            }
+            else if(response.StatusCode == HttpStatusCode.NotFound)
+            {
+                Console.WriteLine($"regular 404 searching for card {cardName}");
+                await mtgChannel.SendMessageAsync("¯\\_(ツ)_/¯");
+            }
+            else
+            {
+                Console.Error.WriteLine("idgi but something happened.");
+                await message.AddReactionAsync(Emote.Parse("<:problemon:859453047141957643>"));
+            }
+
+            throw new NotImplementedException();
+        }
+
         private async void detiktokify(Uri link, SocketUserMessage message)
         {
             var ytdl = new YoutubeDLSharp.YoutubeDL();
@@ -121,7 +175,7 @@ namespace silverworker_discord
             if(!res.Success)
             {
                 Console.Error.WriteLine("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
-                await message.AddReactionAsync(new Emoji("👎"));
+                await message.AddReactionAsync(Emote.Parse("<:problemon:859453047141957643>"));
             }
             else
             {
@@ -141,7 +195,7 @@ namespace silverworker_discord
                 else
                 {
                     Console.Error.WriteLine("idgi but something happened.");
-                    await message.AddReactionAsync(new Emoji("👎"));
+                    await message.AddReactionAsync(Emote.Parse("<:problemon:859453047141957643>"));
                 }
             }
         }
