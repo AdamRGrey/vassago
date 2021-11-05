@@ -160,8 +160,6 @@ namespace silverworker_discord
                 Console.Error.WriteLine("idgi but something happened.");
                 await message.AddReactionAsync(Emote.Parse("<:problemon:859453047141957643>"));
             }
-
-            throw new NotImplementedException();
         }
 
         private async void detiktokify(Uri link, SocketUserMessage message)
