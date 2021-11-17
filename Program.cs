@@ -94,16 +94,6 @@ namespace silverworker_discord
                         }
                     }
                 }
-                else if (message.Channel.Id == mtgChannel.Id)
-                {
-                    Console.WriteLine("magic channel, checking if card search");
-                    var cardSearch = new Regex("\\[([^\\]]+)\\]").Matches(message.Content);
-                    if (cardSearch.Count > 0)
-                    {
-                        Console.WriteLine($"looks like I should search scryfall for {cardSearch[0]}");
-                        scryfallSearch(cardSearch[0].Value, message);
-                    }
-                }
                 else
                 {
                     //any channel, from a user
@@ -120,47 +110,6 @@ namespace silverworker_discord
                         }
                     }
                 }
-            }
-        }
-
-        private async void scryfallSearch(string cardName, SocketUserMessage message)
-        {
-            try
-            {
-                var request = WebRequest.Create("https://api.scryfall.com/cards/named?fuzzy=" + cardName.Replace(' ', '+'));
-                HttpWebResponse response = request.GetResponse() as HttpWebResponse;
-
-                using (var dataStream = new StreamReader(response.GetResponseStream()))
-                {
-                    string responseFromServer = dataStream.ReadToEnd();
-                    var cardObj = JsonConvert.DeserializeObject<Scryfalltypes.Card>(responseFromServer);
-                    if (cardObj != null)
-                    {
-                        if (cardObj.image_uris.png == null)
-                        {
-                            await mtgChannel.SendMessageAsync("I know that card, but no image.");
-                        }
-                        else
-                        {
-                            using (var cardImgDataStream = WebRequest.Create(cardObj.image_uris.png).GetResponse().GetResponseStream())
-                            {
-                                await mtgChannel.SendFileAsync(cardImgDataStream, $"{cardName}.png");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine($"weird 404 searching for card {cardName}");
-                        await mtgChannel.SendMessageAsync("¯\\_(ツ)_/¯");
-                    }
-                }
-
-            }
-            catch (Exception e)
-            {
-                await mtgChannel.SendMessageAsync("¯\\_(ツ)_/¯");
-                Console.Error.WriteLine("who's fucking idea was it that on 404 you THROW AN EXCEPTION, even though there's a way to read the status code?");
-                Console.Error.Write(e);
             }
         }
 
