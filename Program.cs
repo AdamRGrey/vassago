@@ -78,7 +78,7 @@ namespace silverworker_discord
                     }
                     catch (Exception e)
                     {
-                        await message.Channel.SendMessageAsync($"aaaadam!\n{JsonConvert.SerializeObject(e)}");
+                        await botChatterChannel.SendMessageAsync($"aaaadam!\n{JsonConvert.SerializeObject(e)}");
                     }
                 }
             }
@@ -126,7 +126,7 @@ namespace silverworker_discord
                         }
                         if (appleReactions)
                         {
-                            #pragma warning disable 4014
+                            #pragma warning disable 4014 //the "you're not awaiting this" warning. yeah I know, that's the beauty of an async method lol
                             message.AddReactionAsync(new Emoji("\U0001F34F"));
                             #pragma warning restore 4014
                         }
@@ -168,6 +168,7 @@ namespace silverworker_discord
             {
                 Console.Error.WriteLine("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
                 await message.AddReactionAsync(Emote.Parse("<:problemon:859453047141957643>"));
+                await botChatterChannel.SendMessageAsync("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
             }
             else
             {
@@ -180,7 +181,7 @@ namespace silverworker_discord
                     }
                     catch (Exception e)
                     {
-                        await message.Channel.SendMessageAsync($"aaaadam!\n{JsonConvert.SerializeObject(e)}");
+                        await botChatterChannel.SendMessageAsync($"aaaadam!\n{JsonConvert.SerializeObject(e)}");
                     }
                     File.Delete(path);
                 }
