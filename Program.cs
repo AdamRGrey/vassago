@@ -10,6 +10,8 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Text;
+using ImageMagick;
+using ImageMagick.Formats;
 
 namespace silverworker_discord
 {
@@ -109,10 +111,51 @@ namespace silverworker_discord
                             }
                         }
                     }
+
+                    if (message.Attachments?.Count > 0)
+                    {
+                        Console.WriteLine($"{message.Attachments.Count} attachments");
+                        var appleReactions = false;
+                        foreach (var att in message.Attachments)
+                        {
+                            if (att.Filename?.EndsWith(".heic") == true)
+                            {
+                                deheic(message, att);
+                                appleReactions = true;
+                            }
+                        }
+                        if (appleReactions)
+                        {
+                            #pragma warning disable 4014
+                            message.AddReactionAsync(new Emoji("\U0001F34F"));
+                            #pragma warning restore 4014
+                        }
+                    }
                 }
             }
         }
+        private async void deheic(SocketUserMessage message, Attachment att)
+        {
+            try
+            {
+                var request = WebRequest.Create(att.Url);
+                HttpWebResponse response = request.GetResponse() as HttpWebResponse;
+                using (var convertedStream = new MemoryStream())
+                using (var image = new MagickImage(response.GetResponseStream()))
+                {
+                    image.Write(convertedStream, MagickFormat.Jpeg);
+                    convertedStream.Position = 0;
+                    Console.WriteLine($"converted to stream {convertedStream.Length} bytes long");
+                    await message.Channel.SendFileAsync(convertedStream, "heiccup.jpg", "converted from jpeg-but-apple to jpeg");
+                }
+            }
 
+            catch (Exception e)
+            {
+                await message.Channel.SendMessageAsync("¯\\_(ツ)_/¯");
+                Console.Error.Write(e);
+            }
+        }
         private async void detiktokify(Uri link, SocketUserMessage message)
         {
             var ytdl = new YoutubeDLSharp.YoutubeDL();
