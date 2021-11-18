@@ -10,8 +10,6 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Text;
-using ImageMagick;
-using ImageMagick.Formats;
 
 namespace silverworker_discord
 {
@@ -140,20 +138,31 @@ namespace silverworker_discord
             {
                 var request = WebRequest.Create(att.Url);
                 HttpWebResponse response = request.GetResponse() as HttpWebResponse;
-                using (var convertedStream = new MemoryStream())
-                using (var image = new MagickImage(response.GetResponseStream()))
+                if(!Directory.Exists("tmp"))
                 {
-                    image.Write(convertedStream, MagickFormat.Jpeg);
-                    convertedStream.Position = 0;
-                    Console.WriteLine($"converted to stream {convertedStream.Length} bytes long");
-                    await message.Channel.SendFileAsync(convertedStream, "heiccup.jpg", "converted from jpeg-but-apple to jpeg");
+                    Directory.CreateDirectory("tmp");
+                }
+                using (Stream output = File.OpenWrite("tmp/" + att.Filename))
+                using (Stream input = response.GetResponseStream())
+                {
+                    input.CopyTo(output);
+                }
+                if(ExternalProcess.GoPlz("convert", $"tmp/{att.Filename} tmp/{att.Filename}.jpg"))
+                {
+                    await message.Channel.SendFileAsync($"tmp/{att.Filename}.jpg", "converted from jpeg-but-apple to jpeg");
+                    File.Delete($"tmp/{att.Filename}");
+                    File.Delete($"tmp/{att.Filename}.jpg");   
+                }
+                else
+                {
+                    await botChatterChannel.SendMessageAsync("convert failed :(");
+                    Console.Error.WriteLine("convert failed :(");
                 }
             }
-
             catch (Exception e)
             {
-                await message.Channel.SendMessageAsync("¯\\_(ツ)_/¯");
-                Console.Error.Write(e);
+                await botChatterChannel.SendMessageAsync(JsonConvert.SerializeObject(e, Formatting.Indented));
+                Console.Error.WriteLine(JsonConvert.SerializeObject(e, Formatting.Indented));
             }
         }
         private async void detiktokify(Uri link, SocketUserMessage message)

@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="discord.net" Version="2.4.0" />
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="8.4.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
