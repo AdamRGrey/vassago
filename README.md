@@ -2,6 +2,6 @@
 
 copy appsettings.json and fill it in
 
-# TODO
+# auth link
 
-listen to kafka, send the message back over it
+https://discord.com/oauth2/authorize?client_id=913003037348491264&permissions=274877942784

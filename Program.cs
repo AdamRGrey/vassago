@@ -1,4 +1,4 @@
-﻿//https://discord.com/api/oauth2/authorize?client_id={application id}&permissions=0&scope=bot%20applications.commands
+﻿//https://discord.com/oauth2/authorize?client_id=913003037348491264&permissions=274877942784
 using System;
 using System.IO;
 using System.Linq;
@@ -21,10 +21,6 @@ namespace silverworker_discord
             .AddJsonFile("appsettings.json", true, true)
             .Build();
 
-        private ISocketMessageChannel botChatterChannel = null;
-        private ISocketMessageChannel announcementChannel = null;
-        private ISocketMessageChannel mtgChannel = null;
-
         public static void Main(string[] args)
             => new Program().MainAsync().GetAwaiter().GetResult();
         private Task Log(LogMessage msg)
@@ -44,9 +40,6 @@ namespace silverworker_discord
             _client.Ready += () => Task.Run(() =>
             {
                 Console.WriteLine("Bot is connected! going to sign up for message received and user joined in client ready");
-                botChatterChannel = _client.GetChannel(ulong.Parse(config["botChatterChannel"])) as ISocketMessageChannel;
-                announcementChannel = _client.GetChannel(ulong.Parse(config["announcementChannel"])) as ISocketMessageChannel;
-                mtgChannel = _client.GetChannel(ulong.Parse(config["mtgChannel"])) as ISocketMessageChannel;
 
                 _client.MessageReceived += MessageReceived;
                 _client.UserJoined += UserJoined;
@@ -55,7 +48,9 @@ namespace silverworker_discord
             await Task.Delay(-1);
         }
 
+        #pragma warning disable 1998 //the "it's async but you're not awaiting anything".
         private async Task MessageReceived(SocketMessage messageParam)
+        #pragma warning restore 1998
         {
             var message = messageParam as SocketUserMessage;
             if (message == null) return;
@@ -65,69 +60,40 @@ namespace silverworker_discord
 
             if (message.Author.IsWebhook)
             {
-                if (message.Author.Username == "greasemonkey reward watcher")
-                {
-                    Console.WriteLine("heard greasemonkey, this is bananas");
-                    var type = message.Content.Split("\n")[0].Substring("type: ".Length);
-                    var subData = message.Content.Split("\n")[1].Substring("data: ".Length);
-                    try
-                    {
-                        await twitchery.twitcherize(type, subData);
-                    }
-                    catch (Exception e)
-                    {
-                        await botChatterChannel.SendMessageAsync($"aaaadam!\n{JsonConvert.SerializeObject(e)}");
-                    }
-                }
             }
             else
             {
-                if (message.Channel.Id == botChatterChannel.Id)
+                //any channel, from a user
+                var wordLikes = message.Content.Split(' ', StringSplitOptions.TrimEntries);
+                var links = wordLikes?.Where(wl => Uri.IsWellFormedUriString(wl, UriKind.Absolute)).Select(wl => new Uri(wl));
+                if (links != null && links.Count() > 0)
                 {
-                    if (message.Attachments?.Count > 0)
+                    foreach (var link in links)
                     {
-                        Console.WriteLine(message.Attachments.Count);
-                        foreach (var att in message.Attachments)
+                        if (link.Host == "vm.tiktok.com")
                         {
-                            Console.WriteLine(att.Url);
-                            await WebRequest.Create("http://192.168.1.151:3001/shortcuts?display_url=" + att.Url).GetResponseAsync();
+                            detiktokify(link, message);
                         }
                     }
                 }
-                else
+
+                if (message.Attachments?.Count > 0)
                 {
-                    //any channel, from a user
-                    var wordLikes = message.Content.Split(' ', StringSplitOptions.TrimEntries);
-                    var links = wordLikes?.Where(wl => Uri.IsWellFormedUriString(wl, UriKind.Absolute)).Select(wl => new Uri(wl));
-                    if (links != null && links.Count() > 0)
+                    Console.WriteLine($"{message.Attachments.Count} attachments");
+                    var appleReactions = false;
+                    foreach (var att in message.Attachments)
                     {
-                        foreach (var link in links)
+                        if (att.Filename?.EndsWith(".heic") == true)
                         {
-                            if (link.Host == "vm.tiktok.com")
-                            {
-                                detiktokify(link, message);
-                            }
+                            deheic(message, att);
+                            appleReactions = true;
                         }
                     }
-
-                    if (message.Attachments?.Count > 0)
+                    if (appleReactions)
                     {
-                        Console.WriteLine($"{message.Attachments.Count} attachments");
-                        var appleReactions = false;
-                        foreach (var att in message.Attachments)
-                        {
-                            if (att.Filename?.EndsWith(".heic") == true)
-                            {
-                                deheic(message, att);
-                                appleReactions = true;
-                            }
-                        }
-                        if (appleReactions)
-                        {
-                            #pragma warning disable 4014 //the "you're not awaiting this" warning. yeah I know, that's the beauty of an async method lol
-                            message.AddReactionAsync(new Emoji("\U0001F34F"));
-                            #pragma warning restore 4014
-                        }
+                        #pragma warning disable 4014 //the "you're not awaiting this" warning. yeah I know, that's the beauty of an async method lol
+                        message.AddReactionAsync(new Emoji("\U0001F34F"));
+                        #pragma warning restore 4014
                     }
                 }
             }
@@ -155,13 +121,13 @@ namespace silverworker_discord
                 }
                 else
                 {
-                    await botChatterChannel.SendMessageAsync("convert failed :(");
+                    await message.Channel.SendMessageAsync("convert failed :(");
                     Console.Error.WriteLine("convert failed :(");
                 }
             }
             catch (Exception e)
             {
-                await botChatterChannel.SendMessageAsync(JsonConvert.SerializeObject(e, Formatting.Indented));
+                await message.Channel.SendMessageAsync($"something failed. aaaadam! {JsonConvert.SerializeObject(e, Formatting.Indented)}");
                 Console.Error.WriteLine(JsonConvert.SerializeObject(e, Formatting.Indented));
             }
         }
@@ -177,7 +143,7 @@ namespace silverworker_discord
             {
                 Console.Error.WriteLine("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
                 await message.AddReactionAsync(Emote.Parse("<:problemon:859453047141957643>"));
-                await botChatterChannel.SendMessageAsync("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
+                await message.Channel.SendMessageAsync("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
             }
             else
             {
@@ -190,7 +156,7 @@ namespace silverworker_discord
                     }
                     catch (Exception e)
                     {
-                        await botChatterChannel.SendMessageAsync($"aaaadam!\n{JsonConvert.SerializeObject(e)}");
+                        await message.Channel.SendMessageAsync($"aaaadam!\n{JsonConvert.SerializeObject(e)}");
                     }
                     File.Delete(path);
                 }
