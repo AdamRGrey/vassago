@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
@@ -10,6 +12,7 @@ namespace silverworker_discord
 {
     public static class Features
     {
+        public static Random r = new Random();
         public static async void detiktokify(Uri link, SocketUserMessage message)
         {
             var ytdl = new YoutubeDLSharp.YoutubeDL();
@@ -52,7 +55,7 @@ namespace silverworker_discord
             {
                 var request = WebRequest.Create(att.Url);
                 HttpWebResponse response = request.GetResponse() as HttpWebResponse;
-                if(!Directory.Exists("tmp"))
+                if (!Directory.Exists("tmp"))
                 {
                     Directory.CreateDirectory("tmp");
                 }
@@ -61,11 +64,11 @@ namespace silverworker_discord
                 {
                     input.CopyTo(output);
                 }
-                if(ExternalProcess.GoPlz("convert", $"tmp/{att.Filename} tmp/{att.Filename}.jpg"))
+                if (ExternalProcess.GoPlz("convert", $"tmp/{att.Filename} tmp/{att.Filename}.jpg"))
                 {
                     await message.Channel.SendFileAsync($"tmp/{att.Filename}.jpg", "converted from jpeg-but-apple to jpeg");
                     File.Delete($"tmp/{att.Filename}");
-                    File.Delete($"tmp/{att.Filename}.jpg");   
+                    File.Delete($"tmp/{att.Filename}.jpg");
                 }
                 else
                 {
@@ -87,22 +90,51 @@ namespace silverworker_discord
             SvgQRCode qrCode = new SvgQRCode(qrCodeData);
             string qrCodeAsSvg = qrCode.GetGraphic(20);
             int todaysnumber = Shared.r.Next();
-            if(!Directory.Exists("tmp"))
+            if (!Directory.Exists("tmp"))
             {
                 Directory.CreateDirectory("tmp");
             }
             File.WriteAllText($"tmp/qr{todaysnumber}.svg", qrCodeAsSvg);
-            if(ExternalProcess.GoPlz("convert", $"tmp/qr{todaysnumber}.svg tmp/qr{todaysnumber}.png"))
+            if (ExternalProcess.GoPlz("convert", $"tmp/qr{todaysnumber}.svg tmp/qr{todaysnumber}.png"))
             {
                 await message.Channel.SendFileAsync($"tmp/qr{todaysnumber}.png");
                 File.Delete($"tmp/qr{todaysnumber}.svg");
-                File.Delete($"tmp/qr{todaysnumber}.png"); 
+                File.Delete($"tmp/qr{todaysnumber}.png");
             }
             else
             {
                 await message.Channel.SendMessageAsync("convert failed :( aaaaaaadam!");
                 Console.Error.WriteLine($"convert failed :( qr{todaysnumber}");
             }
+        }
+        public static async void Joke(SocketUserMessage message)
+        {
+            var jokes = File.ReadAllLines("jokes.txt");
+            var thisJoke = jokes[r.Next(jokes.Length)];
+            if (thisJoke.Contains("?") && !thisJoke.EndsWith('?'))
+            {
+#pragma warning disable 4014
+                Task.Run(async () =>
+                {
+                    var firstIndexAfterQuestionMark = thisJoke.LastIndexOf('?') + 1;
+                    var straightline = thisJoke.Substring(0, firstIndexAfterQuestionMark);
+                    var punchline = thisJoke.Substring(firstIndexAfterQuestionMark, thisJoke.Length - firstIndexAfterQuestionMark);
+                    Task.WaitAll(message.Channel.SendMessageAsync(straightline));
+                    Thread.Sleep(TimeSpan.FromSeconds(r.Next(5, 30)));
+                    var myOwnMsg = await message.Channel.SendMessageAsync(punchline);
+                    if (r.Next(8) == 0)
+                    {
+                        await myOwnMsg.AddReactionAsync(new Emoji("\U0001F60E")); //smiling face with sunglasses
+                    }
+                });
+#pragma warning restore 4014
+            }
+            else
+            {
+                await message.Channel.SendMessageAsync(thisJoke);
+            }
+
+
         }
     }
 }

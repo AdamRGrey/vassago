@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 
 namespace silverworker_discord
 {
@@ -59,7 +60,7 @@ namespace silverworker_discord
                     errorFilename = $"{dumpDir}/error{i}.err";
                 }
                 File.WriteAllText(outputFilename, outputData.ToString());
-                File.WriteAllText(errorFilename, errorFilename.ToString());
+                File.WriteAllText(errorFilename, JsonConvert.SerializeObject(e, Formatting.Indented));
                 return false;
             }
             return true;
