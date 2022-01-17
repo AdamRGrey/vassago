@@ -128,6 +128,15 @@ namespace silverworker_discord
                     {
                         var outgoingMessage = await message.Channel.SendMessageAsync("I believed you for a second, but then you assured me you's a \uD83C\uDDE7   \uD83C\uDDEE   \uD83C\uDDF9   \uD83C\uDDE8   \uD83C\uDDED");
                     }
+                    if (Regex.IsMatch(msgText, "\\bskynet\\b", RegexOptions.IgnoreCase))
+                    {
+                        Features.Skynet(message);
+                    }
+                    if (Regex.IsMatch(msgText, "\\bi need (an? )?(peptalk|inspiration|ego-?boost)\\b", RegexOptions.IgnoreCase))
+                    {
+                        Console.WriteLine("peptalk");
+                        Features.peptalk(message);
+                    }
                     if (Regex.IsMatch(msgText, "\\bwish me luck\\b", RegexOptions.IgnoreCase))
                     {
                         if (r.Next(20) == 0)
