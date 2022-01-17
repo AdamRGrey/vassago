@@ -17,7 +17,7 @@ namespace silverworker_discord
         public static async void detiktokify(Uri link, SocketUserMessage message)
         {
             var ytdl = new YoutubeDLSharp.YoutubeDL();
-            ytdl.YoutubeDLPath = "youtube-dl";
+            ytdl.YoutubeDLPath = "yt-dlp";
             ytdl.FFmpegPath = "ffmpeg";
             ytdl.OutputFolder = "";
             ytdl.OutputFileTemplate = "tiktokbad.%(ext)s";
