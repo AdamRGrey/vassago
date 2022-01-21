@@ -40,7 +40,7 @@ namespace silverworker_discord
             {
                 if (currentProc.ProcessName == process.ProcessName && currentProc.Id != process.Id)
                 {
-                    Console.Error.WriteLine($"Another instance of this process is already running: {process.Id}");
+                    Console.Error.WriteLine($"{DateTime.Now} - Another instance of this process is already running: {process.Id}");
                     return;
                 }
             }
@@ -77,6 +77,16 @@ namespace silverworker_discord
 
             if (message.Author.IsWebhook || message.Author.IsBot)
             {
+                if(message.Author.Id == 159985870458322944) //MEE6
+                {
+                    var contentWithoutMnetion = Regex.Replace(message.Content, "<[^>]*>", "");
+                    if(contentWithoutMnetion.Contains("you just advanced"))
+                    {
+                        var newText = Regex.Replace(message.Content, "<[^>]*>", message.Author.Username);
+                        newText = Regex.Replace(message.Content, "level [\\d]+", "level -1");
+                        Features.mock(newText, message);
+                    }
+                }
             }
             else
             {

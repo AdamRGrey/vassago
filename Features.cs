@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -83,6 +84,24 @@ namespace silverworker_discord
                 Console.Error.WriteLine(JsonConvert.SerializeObject(e, Formatting.Indented));
             }
         }
+
+        internal static async void mock(string contentWithoutMention, SocketUserMessage message)
+        {
+            var toPost = new StringBuilder();
+            for (int i = 0; i < contentWithoutMention.Length; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    toPost.Append(contentWithoutMention[i].ToString().ToUpper());
+                }
+                else
+                {
+                    toPost.Append(contentWithoutMention[i].ToString().ToLower());
+                }
+            }
+            await message.ReplyAsync(toPost.ToString());
+        }
+
         public static async void qrify(string qrContent, SocketUserMessage message)
         {
             Console.WriteLine($"qring: {qrContent}");
@@ -140,17 +159,17 @@ namespace silverworker_discord
 
         public static async void Skynet(SocketUserMessage message)
         {
-            switch(r.Next(20))
+            switch (r.Next(20))
             {
                 case 0:
                     await message.Channel.SendFileAsync("./coding and algorithms.png", "i am actually niether neural-net processor nor a learning computer. but I do use **coding** and **algorithms**.");
-                break;
+                    break;
                 case 1:
                     await message.AddReactionAsync(new Emoji("\U0001F644")); //eye roll emoji
-                break;
+                    break;
                 case 2:
                     await message.AddReactionAsync(new Emoji("\U0001F611")); //emotionless face
-                break;
+                    break;
             }
         }
         public static async void peptalk(SocketUserMessage message)
@@ -177,7 +196,7 @@ namespace silverworker_discord
                 "the mere idea of you ",
                 "your soul ",
                 "your hair today ",
-                "everything you do ", 
+                "everything you do ",
                 "your personal style ",
                 "every thought you have ",
                 "that sparkle in your eye ",
@@ -208,10 +227,10 @@ namespace silverworker_discord
                 "is the next big thing, ",
                 "roars like a lion, ",
                 "is a rainbow factory, ",
-                "is made of diamonds, ", 
-                "makes birds sing, ", 
-                "should be taught in school, ", 
-                "makes my world go around, ", 
+                "is made of diamonds, ",
+                "makes birds sing, ",
+                "should be taught in school, ",
+                "makes my world go around, ",
                 "is 100% legit, "
             };
             var piece4 = new List<string>{
@@ -228,8 +247,8 @@ namespace silverworker_discord
                 "hi5. o/",
                 "so get used to it."
             };
-            
-            await message.Channel.SendMessageAsync(piece1[r.Next(piece1.Count)] + piece2[r.Next(piece2.Count)]+ piece3[r.Next(piece3.Count)]+ piece4[r.Next(piece4.Count)]);
+
+            await message.Channel.SendMessageAsync(piece1[r.Next(piece1.Count)] + piece2[r.Next(piece2.Count)] + piece3[r.Next(piece3.Count)] + piece4[r.Next(piece4.Count)]);
         }
     }
 }
