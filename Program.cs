@@ -10,6 +10,8 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Text;
+using System.Threading;
+using System.Diagnostics;
 
 namespace silverworker_discord
 {
@@ -31,6 +33,18 @@ namespace silverworker_discord
         }
         public async Task MainAsync()
         {
+            Process[] processes = Process.GetProcesses();
+            Process currentProc = Process.GetCurrentProcess();
+            Console.WriteLine("Current proccess: {0}", currentProc.ProcessName);
+            foreach (Process process in processes)
+            {
+                if (currentProc.ProcessName == process.ProcessName && currentProc.Id != process.Id)
+                {
+                    Console.Error.WriteLine($"Another instance of this process is already running: {process.Id}");
+                    return;
+                }
+            }
+
             _client = new DiscordSocketClient();
 
             _client.Log += Log;
@@ -47,6 +61,7 @@ namespace silverworker_discord
             });
             // Block this task until the program is closed.
             await Task.Delay(-1);
+
         }
 
 #pragma warning disable 4014 //the "you're not awaiting this" warning. yeah I know, that's the beauty of an async method lol
