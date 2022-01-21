@@ -79,11 +79,10 @@ namespace silverworker_discord
             {
                 if(message.Author.Id == 159985870458322944) //MEE6
                 {
-                    var contentWithoutMnetion = Regex.Replace(message.Content, "<[^>]*>", "");
-                    if(contentWithoutMnetion.Contains("you just advanced"))
+                    if(message.Content?.Contains("you just advanced") == true)
                     {
                         var newText = Regex.Replace(message.Content, "<[^>]*>", message.Author.Username);
-                        newText = Regex.Replace(message.Content, "level [\\d]+", "level -1");
+                        newText = Regex.Replace(newText, "level [\\d]+", "level -1");
                         Features.mock(newText, message);
                     }
                 }
