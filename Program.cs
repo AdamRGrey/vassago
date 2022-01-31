@@ -18,6 +18,7 @@ namespace silverworker_discord
     class Program
     {
         private DiscordSocketClient _client;
+        private bool eventsSignedUp = false;
         private Random r = new Random();
 
         IConfigurationRoot config = new ConfigurationBuilder()
@@ -54,10 +55,17 @@ namespace silverworker_discord
 
             _client.Ready += () => Task.Run(() =>
             {
-                Console.WriteLine("Bot is connected! going to sign up for message received and user joined in client ready");
+                if (!eventsSignedUp)
+                {
+                    Console.WriteLine("Bot is connected! going to sign up for message received and user joined in client ready");
 
-                _client.MessageReceived += MessageReceived;
-                _client.UserJoined += UserJoined;
+                    _client.MessageReceived += MessageReceived;
+                    _client.UserJoined += UserJoined;
+                }
+                else
+                {
+                    Console.WriteLine("bot appears to be RE connected, so I'm not going to sign up twice");
+                }
             });
             // Block this task until the program is closed.
             await Task.Delay(-1);
@@ -77,9 +85,9 @@ namespace silverworker_discord
 
             if (message.Author.IsWebhook || message.Author.IsBot)
             {
-                if(message.Author.Id == 159985870458322944) //MEE6
+                if (message.Author.Id == 159985870458322944) //MEE6
                 {
-                    if(message.Content?.Contains("you just advanced") == true)
+                    if (message.Content?.Contains("you just advanced") == true)
                     {
                         var newText = Regex.Replace(message.Content, "<[^>]*>", message.Author.Username);
                         newText = Regex.Replace(newText, "level [\\d]+", "level -1");
