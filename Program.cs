@@ -57,6 +57,7 @@ namespace silverworker_discord
             {
                 if (!eventsSignedUp)
                 {
+                    eventsSignedUp = true;
                     Console.WriteLine("Bot is connected! going to sign up for message received and user joined in client ready");
 
                     _client.MessageReceived += MessageReceived;
