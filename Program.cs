@@ -184,7 +184,7 @@ namespace silverworker_discord
                     }
                     if (msgText.Contains("!qrplz "))
                     {
-                        Features.qrify(msgText.Substring("!qrplz ".Length + msgText.IndexOf("!qrplz ")), message);
+                        Features.qrify(message.Content.Substring("!qrplz ".Length + msgText.IndexOf("!qrplz ")), message);
                     }
                     if (msgText.Contains("!countdown "))
                     {
