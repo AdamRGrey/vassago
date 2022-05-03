@@ -159,7 +159,7 @@ namespace silverworker_discord
 
         public static async void Skynet(SocketUserMessage message)
         {
-            switch (r.Next(20))
+            switch (r.Next(5))
             {
                 case 0:
                     await message.Channel.SendFileAsync("./coding and algorithms.png", "i am actually niether neural-net processor nor a learning computer. but I do use **coding** and **algorithms**.");
