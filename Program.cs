@@ -34,6 +34,7 @@ namespace silverworker_discord
         }
         public async Task MainAsync()
         {
+            #if !DEBUG
             Process[] processes = Process.GetProcesses();
             Process currentProc = Process.GetCurrentProcess();
             Console.WriteLine("Current proccess: {0}", currentProc.ProcessName);
@@ -41,10 +42,11 @@ namespace silverworker_discord
             {
                 if (currentProc.ProcessName == process.ProcessName && currentProc.Id != process.Id)
                 {
-                    Console.Error.WriteLine($"{DateTime.Now} - Another instance of this process is already running: {process.Id}");
+                    Console.Error.WriteLine($"{DateTime.Now} - Another instance of this process is already running: {process.Id} (I'm {currentProc.Id})");
                     return;
                 }
             }
+            #endif
 
             _client = new DiscordSocketClient();
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -130,6 +131,10 @@ namespace silverworker_discord
         public static async void Joke(SocketUserMessage message)
         {
             var jokes = File.ReadAllLines("jokes.txt");
+            jokes = jokes.Where(l => !string.IsNullOrWhiteSpace(l))?.ToArray();
+            if(jokes?.Length == 0){
+                await message.Channel.SendMessageAsync("I don't know any. Adam!");
+            }
             var thisJoke = jokes[r.Next(jokes.Length)];
             if (thisJoke.Contains("?") && !thisJoke.EndsWith('?'))
             {
