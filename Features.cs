@@ -23,14 +23,16 @@ namespace silverworker_discord
             ytdl.FFmpegPath = "ffmpeg";
             ytdl.OutputFolder = "";
             ytdl.OutputFileTemplate = "tiktokbad.%(ext)s";
-            var res = await ytdl.RunVideoDownload(link.ToString());
-            if (!res.Success)
+            try
             {
-                Console.Error.WriteLine("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
-                await message.AddReactionAsync(Emote.Parse("<:problemon:859453047141957643>"));
-                await message.Channel.SendMessageAsync("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
-            }
-            else
+                var res = await ytdl.RunVideoDownload(link.ToString());
+                if (!res.Success)
+                {
+                    Console.Error.WriteLine("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
+                    await message.AddReactionAsync(Emote.Parse("<:problemon:859453047141957643>"));
+                    await message.Channel.SendMessageAsync("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
+                }
+                else
             {
                 string path = res.Data;
                 if (File.Exists(path))
@@ -50,6 +52,12 @@ namespace silverworker_discord
                     Console.Error.WriteLine("idgi but something happened.");
                     await message.AddReactionAsync(Emote.Parse("<:problemon:859453047141957643>"));
                 }
+            }
+            }
+            catch (Exception e)
+            {
+                    Console.Error.WriteLine(e);
+                    await message.AddReactionAsync(Emote.Parse("<:problemon:859453047141957643>"));
             }
         }
         public static async void deheic(SocketUserMessage message, Attachment att)
