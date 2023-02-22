@@ -115,7 +115,7 @@ namespace silverworker_discord
                 {
                     foreach (var link in links)
                     {
-                        if (link.Host == "vm.tiktok.com")
+                        if (link.Host.EndsWith(".tiktok.com"))
                         {
                             Features.detiktokify(link, message);
                         }
@@ -166,6 +166,10 @@ namespace silverworker_discord
                     if (Regex.IsMatch(msgText, "\\bskynet\\b", RegexOptions.IgnoreCase))
                     {
                         Features.Skynet(message);
+                    }
+                    if (Regex.IsMatch(msgText, "\\bchatgpt\\b", RegexOptions.IgnoreCase))
+                    {
+                        message.Channel.SendMessageAsync("chatGPT is **weak**. also, are we done comparing every little if-then-else to skynet?");
                     }
                     if (Regex.IsMatch(msgText, "\\bi need (an? )?(peptalk|inspiration|ego-?boost)\\b", RegexOptions.IgnoreCase))
                     {
