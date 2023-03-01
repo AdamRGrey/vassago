@@ -190,7 +190,7 @@ namespace silverworker_discord
                     }
                     if (Regex.IsMatch(msgText, "\\bgaslight(ing)?\\b", RegexOptions.IgnoreCase))
                     {
-                        message.Channel.SendMessageAsync("that's not what gaslight means. Did you mean \"say something you believe is wrong\"?");
+                        message.Channel.SendMessageAsync("that's not what gaslight means. Did you mean \"say something that (you believe) is wrong\"?");
                     }
                     if (msgText.Contains("!qrplz "))
                     {
