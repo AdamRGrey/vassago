@@ -188,6 +188,10 @@ namespace silverworker_discord
                         }
 
                     }
+                    if (Regex.IsMatch(msgText, "\\bgaslight(ing)?\\b", RegexOptions.IgnoreCase))
+                    {
+                        message.Channel.SendMessageAsync("that's not what gaslight means. Did you mean \"say something you believe is wrong\"?");
+                    }
                     if (msgText.Contains("!qrplz "))
                     {
                         Features.qrify(message.Content.Substring("!qrplz ".Length + msgText.IndexOf("!qrplz ")), message);
@@ -202,7 +206,7 @@ namespace silverworker_discord
                     }
                     if (msgText.Contains("cognitive dissonance") == true)
                     {
-                        message.ReplyAsync("that's not what cognitive dissonance means.");
+                        message.ReplyAsync("that's not what cognitive dissonance means. Did you mean \"hypocrisy\"?");
                     }
                     if (Regex.IsMatch(msgText, "\\bthank (yo)?u\\b", RegexOptions.IgnoreCase) &&
                     (mentionedMe || Regex.IsMatch(msgText, "\\b(sh?tik)?bot\\b", RegexOptions.IgnoreCase)))
