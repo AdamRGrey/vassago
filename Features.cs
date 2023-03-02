@@ -37,14 +37,22 @@ namespace silverworker_discord
                 string path = res.Data;
                 if (File.Exists(path))
                 {
-                    try
+                    var bytesize = new System.IO.FileInfo(path).Length;
+                    if(bytesize < 1024*1024*10)
                     {
-                        await message.Channel.SendFileAsync(path);
+                        try
+                        {
+                            await message.Channel.SendFileAsync(path);
+                        }
+                        catch (Exception e)
+                        {
+                            System.Console.Error.WriteLine(e);
+                            await message.Channel.SendMessageAsync($"aaaadam!\n{e}");
+                        }
                     }
-                    catch (Exception e)
+                    else
                     {
-                        System.Console.Error.WriteLine(JsonConvert.SerializeObject(e));
-                        await message.Channel.SendMessageAsync($"aaaadam!\n{JsonConvert.SerializeObject(e)}");
+                        Console.WriteLine($"file appears too big ({bytesize} bytes ({bytesize / (1024*1024)}MB)), not posting");
                     }
                     File.Delete(path);
                 }
