@@ -43,6 +43,7 @@ namespace silverworker_discord
                     }
                     catch (Exception e)
                     {
+                        System.Console.Error.WriteLine(JsonConvert.SerializeObject(e));
                         await message.Channel.SendMessageAsync($"aaaadam!\n{JsonConvert.SerializeObject(e)}");
                     }
                     File.Delete(path);
