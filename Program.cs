@@ -1,4 +1,4 @@
-﻿//https://discord.com/oauth2/authorize?client_id=913003037348491264&permissions=274877942784
+﻿//https://discord.com/oauth2/authorize?client_id=913003037348491264&permissions=274877942784&scope=bot%20messages.read
 using System;
 using System.IO;
 using System.Linq;
