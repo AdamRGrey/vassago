@@ -204,6 +204,10 @@ namespace silverworker_discord
                     {
                         Features.Joke(message);
                     }
+                    if (Regex.IsMatch(msgText, "!pulse ?check\\b"))
+                    {
+                        message.Channel.SendFileAsync("assets/ekgblip.png");
+                    }
                     if (msgText.Contains("cognitive dissonance") == true)
                     {
                         message.ReplyAsync("that's not what cognitive dissonance means. Did you mean \"hypocrisy\"?");

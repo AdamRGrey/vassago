@@ -18,6 +18,12 @@ namespace silverworker_discord
         public static Random r = new Random();
         public static async void detiktokify(Uri link, SocketUserMessage message)
         {
+            //yes, even if there is a problem later.
+            #pragma warning disable 4014
+            message.AddReactionAsync(Emote.Parse("<:tiktok:1070038619584200884>"));
+            #pragma warning restore 4014
+
+
             var ytdl = new YoutubeDLSharp.YoutubeDL();
             ytdl.YoutubeDLPath = "yt-dlp";
             ytdl.FFmpegPath = "ffmpeg";
@@ -33,7 +39,7 @@ namespace silverworker_discord
                     await message.Channel.SendMessageAsync("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
                 }
                 else
-            {
+                {
                 string path = res.Data;
                 if (File.Exists(path))
                 {
@@ -147,7 +153,7 @@ namespace silverworker_discord
         }
         public static async void Joke(SocketUserMessage message)
         {
-            var jokes = File.ReadAllLines("jokes.txt");
+            var jokes = File.ReadAllLines("assets/jokes.txt");
             jokes = jokes.Where(l => !string.IsNullOrWhiteSpace(l))?.ToArray();
             if(jokes?.Length == 0){
                 await message.Channel.SendMessageAsync("I don't know any. Adam!");
@@ -183,13 +189,13 @@ namespace silverworker_discord
         {
             switch (r.Next(5))
             {
-                case 0:
-                    await message.Channel.SendFileAsync("./coding and algorithms.png", "i am actually niether neural-net processor nor a learning computer. but I do use **coding** and **algorithms**.");
+                default:
+                    await message.Channel.SendFileAsync("assets/coding and algorithms.png", "i am actually niether neural-net processor nor a learning computer. but I do use **coding** and **algorithms**.");
                     break;
-                case 1:
+                case 4:
                     await message.AddReactionAsync(new Emoji("\U0001F644")); //eye roll emoji
                     break;
-                case 2:
+                case 5:
                     await message.AddReactionAsync(new Emoji("\U0001F611")); //emotionless face
                     break;
             }
