@@ -53,8 +53,6 @@ namespace silverworker_discord
 
             _client.Log += Log;
 
-            Console.WriteLine("token, why u null?");
-            Console.WriteLine(config["token"]);
             await _client.LoginAsync(TokenType.Bot, config["token"]);
             await _client.StartAsync();
 

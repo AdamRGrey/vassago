@@ -55,10 +55,17 @@ namespace silverworker_discord.Conversion
             {
                 AddLinearPair(lp.item1, lp.item2, lp.factor);
             }
-            loadCurrency();
+            Task.Run(async () => {
+                while(true)
+                {
+                    loadCurrency();
+                    await Task.Delay(TimeSpan.FromHours(8));
+                }
+            });
         }
         private static void loadCurrency()
         {
+            Console.WriteLine("loading currency exchange data.");
             if (File.Exists(currencyPath))
             {
                 currencyConf = JsonConvert.DeserializeObject<ExchangePairs>(File.ReadAllText(currencyPath));
@@ -112,7 +119,7 @@ namespace silverworker_discord.Conversion
                 }
                 else
                 {
-                    return $"{String.Format("{0:0.####}", accumulator)} {normalizedDestUnit}";
+                    return $"{String.Format("{0:G4}", accumulator)} {normalizedDestUnit}";
                 }
             }
             return "no conversion known";

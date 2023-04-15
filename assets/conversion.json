@@ -1,8 +1,209 @@
 {
     "units":[
         {
-            "canonical": "f",
-            "aliases": ["degrees fahrenheit"]
+            "canonical": "℉",
+            "aliases": [
+                "degrees f",
+                "deg f",
+                "degf",
+                "fahrenheit",
+                "deg fahrenheit",
+                "degrees fahrenheit",
+                "°f",
+                "° f",
+                "℉",
+                "f"
+            ]
+        },
+        {
+            "canonical":"°C",
+            "aliases": [
+                "degrees c",
+                "deg c",
+                "degc",
+                "celsius",
+                "deg celsiu",
+                "degrees celsiu",
+                "°c",
+                "° c",
+                "c"
+            ]
+        },
+        {
+            "canonical":"m",
+            "aliases": [
+                "meter",
+                "metre"
+            ]
+        },
+        {
+            "canonical":"km",
+            "aliases": [
+                "kilometer",
+                "kilometre"
+            ]
+        },
+        {
+            "canonical":"kg",
+            "aliases": [
+                "kilogram",
+                "kilo"
+            ]
+        },
+        {
+            "canonical":"g",
+            "aliases": [
+                "gram"
+            ]
+        },
+        {
+            "canonical":"lb",
+            "aliases": [
+                "pound"
+            ]
+        },
+        {
+            "canonical":"oz",
+            "aliases": [
+                "ounce"
+            ]
+        },
+        {
+            "canonical":"floz",
+            "aliases": [
+                "us fl oz",
+                "us fl ounce",
+                "us fluid ounce",
+                "us fluid oz"
+            ]
+        },
+        {
+            "canonical":"mL",
+            "aliases": [
+                "ml",
+                "milliletre",
+                "millileter"
+            ]
+        },
+        {
+            "canonical":"ft",
+            "aliases": [
+                "'",
+                "feet",
+                "foot"
+            ]
+        },
+        {
+            "canonical":"in",
+            "aliases": [
+                "\"",
+                "inch"
+            ]
+        },
+        {
+            "canonical":"yd",
+            "aliases": [
+                "yard"
+            ]
+        },
+        {
+            "canonical":"hhd",
+            "aliases": [
+                "hogshead"
+            ]
+        },
+        {
+            "canonical":"gal",
+            "aliases": [
+                "gallon"
+            ]
+        },
+        {
+            "canonical":"tbsp",
+            "aliases": [
+                "tablespoon",
+                "table spoon"
+            ]
+        },
+        {
+            "canonical":"tsp",
+            "aliases": [
+                "teaspoon",
+                "tea spoon"
+            ]
+        },
+        {
+            "canonical":"qt",
+            "aliases": [
+                "quart"
+            ]
+        },
+        {
+            "canonical":"ac",
+            "aliases": [
+                "acres"
+            ]
+        },
+        {
+            "canonical":"AU",
+            "aliases": [
+                "au",
+                "astronomical unit"
+            ]
+        },
+        {
+            "canonical":"Pa",
+            "aliases": [
+                "pascal",
+                "pa"
+            ]
+        },
+        {
+            "canonical":"kPa",
+            "aliases": [
+                "kilopascal",
+                "kpa"
+            ]
+        },
+        {
+            "canonical":"atm",
+            "aliases": [
+                "atmosphere"
+            ]
+        },
+        {
+            "canonical":"m^2",
+            "aliases": [
+                "square meter",
+                "meter squared",
+                "meters squared",
+                "sq meter",
+                "sq m",
+                "sqm"
+            ]
+        },
+        {
+            "canonical":"km^2",
+            "aliases": [
+                "square kilometer",
+                "kilometer squared",
+                "kilometers squared",
+                "sq kilometer",
+                "sq km",
+                "sqkm"
+            ]
+        },
+        {
+            "canonical":"ly",
+            "aliases": [
+                "light year"
+            ]
+        },
+        {
+            "canonical":"pc",
+            "aliases": [
+                "parsec"
+            ]
         }
     ],
     "linearPairs":[
