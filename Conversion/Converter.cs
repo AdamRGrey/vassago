@@ -66,6 +66,13 @@ namespace silverworker_discord.Conversion
         private static void loadCurrency()
         {
             Console.WriteLine("loading currency exchange data.");
+            if(currencyConf != null)
+            {
+                knownConversions.RemoveAll(kc => kc.Item1 == currencyConf.Base);
+                knownAliases.Remove(knownAliases.FirstOrDefault(kvp => kvp.Value == currencyConf.Base).Key);
+                foreach (var rate in currencyConf.rates)
+                    knownAliases.Remove(knownAliases.FirstOrDefault(kvp => kvp.Value == rate.Key).Key);
+            }
             if (File.Exists(currencyPath))
             {
                 currencyConf = JsonConvert.DeserializeObject<ExchangePairs>(File.ReadAllText(currencyPath));
