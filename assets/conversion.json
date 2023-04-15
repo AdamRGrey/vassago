@@ -210,6 +210,7 @@
         {"item1":"kg", "item2":"g", "factor":1000},
         {"item1":"lb", "item2":"oz", "factor":16},
         {"item1":"kg", "item2":"lb", "factor":2.204623},
+        {"item1":"kg", "item2":"stone", "factor":0.157473},
 
         {"item1":"km", "item2":"m", "factor":1000},
         {"item1":"mi", "item2":"ft", "factor":5280},
@@ -232,6 +233,7 @@
         {"item1":"hhd", "item2":"gal", "factor":54},
         {"item1":"barrel", "item2":"kilderkin", "factor":2},
         {"item1":"barrel", "item2":"firkin", "factor":4},
+        {"item1":"firkin", "item2":"gal", "factor":10.8},
         {"item1":"pint", "item2":"floz", "factor":16},
         {"item1":"cup", "item2":"floz", "factor":8},
         {"item1":"gill", "item2":"floz", "factor":4},
