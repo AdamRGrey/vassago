@@ -1,0 +1,56 @@
+{
+    "units":[
+        {
+            "canonical": "f",
+            "aliases": ["degrees fahrenheit"]
+        }
+    ],
+    "linearPairs":[
+        {"item1":"kg", "item2":"g", "factor":1000},
+        {"item1":"lb", "item2":"oz", "factor":16},
+        {"item1":"kg", "item2":"lb", "factor":2.204623},
+
+        {"item1":"km", "item2":"m", "factor":1000},
+        {"item1":"mi", "item2":"ft", "factor":5280},
+        {"item1":"m", "item2":"in", "factor":39.37008},
+        {"item1":"m", "item2":"cm", "factor":100},
+        {"item1":"km", "item2":"mi", "factor":0.6213712},
+        {"item1":"ft", "item2":"in", "factor":12},
+        {"item1":"yd", "item2":"ft", "factor":3},
+        {"item1":"chain", "item2":"yd", "factor":22},
+        {"item1":"chain", "item2":"link", "factor":100},
+        {"item1":"furlong", "item2":"mi", "factor":8},
+        {"item1":"rod", "item2":"ft", "factor":16.5},
+        {"item1":"AU", "item2":"ly", "factor": 0.0000158125},
+        {"item1":"ly", "item2":"km", "factor": 946070000000},
+        {"item1":"pc", "item2":"AU", "factor":206266.3},
+
+        {"item1":"floz", "item2":"mL", "factor":29.57344},
+        {"item1":"L", "item2":"mL", "factor":1000},
+        {"item1":"L", "item2":"floz", "factor":33.81402},
+        {"item1":"hhd", "item2":"gal", "factor":54},
+        {"item1":"barrel", "item2":"kilderkin", "factor":2},
+        {"item1":"barrel", "item2":"firkin", "factor":4},
+        {"item1":"pint", "item2":"floz", "factor":16},
+        {"item1":"cup", "item2":"floz", "factor":8},
+        {"item1":"gill", "item2":"floz", "factor":4},
+        {"item1":"tbsp", "item2":"tsp", "factor":3},
+        {"item1":"tbsp", "item2":"floz", "factor":0.5},
+        {"item1":"gal", "item2":"floz", "factor":128},
+        {"item1":"gal", "item2":"qt", "factor":4},
+
+        
+        {"item1":"acre", "item2":"yd^2", "factor":4840},
+        {"item1":"yd^2", "item2":"m^2", "factor":0.836127},
+
+        {"item1":"mph", "item2":"knot", "factor":0.868976},
+        {"item1":"mph", "item2":"kph", "factor":1.609343550606653},
+
+        
+        {"item1":"kPa", "item2":"Pa", "factor":1000},
+        {"item1":"Nm^2", "item2":"Pa", "factor":1},
+        {"item1":"Pa", "item2":"bar", "factor":100},
+        {"item1":"atm", "item2":"Pa", "factor":101325},
+        {"item1":"bar", "item2":"psi", "factor":14.5038}
+    ]
+}

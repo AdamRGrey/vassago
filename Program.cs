@@ -47,11 +47,14 @@ namespace silverworker_discord
                 }
             }
             #endif
+            Conversion.Converter.Load(config["exchangePairsLocation"]);
 
             _client = new DiscordSocketClient();
 
             _client.Log += Log;
 
+            Console.WriteLine("token, why u null?");
+            Console.WriteLine(config["token"]);
             await _client.LoginAsync(TokenType.Bot, config["token"]);
             await _client.StartAsync();
 
@@ -199,6 +202,10 @@ namespace silverworker_discord
                     if (msgText.Contains("!countdown "))
                     {
                         //Features.countdown(msgText.Substring("!countdown ".Length + msgText.IndexOf("!countdown ")), message); //converting human readable times is hard :/
+                    }
+                    if (msgText.Contains("!freedomunits "))
+                    {
+                        Features.Convert(message);
                     }
                     if (Regex.IsMatch(msgText, "!joke\\b"))
                     {

@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -150,6 +151,10 @@ namespace silverworker_discord
                 await message.Channel.SendMessageAsync("convert failed :( aaaaaaadam!");
                 Console.Error.WriteLine($"convert failed :( qr{todaysnumber}");
             }
+        }
+        public static async void Convert(SocketUserMessage message)
+        {
+            await message.Channel.SendMessageAsync(Conversion.Converter.convert(message.Content));
         }
         public static async void Joke(SocketUserMessage message)
         {
