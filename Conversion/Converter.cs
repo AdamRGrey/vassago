@@ -16,7 +16,11 @@ namespace silverworker_discord.Conversion
 {
     public static class Converter
     {
-
+        public static string DebugInfo(){
+            var convertibles = knownConversions.Select(kc => kc.Item1).Union(knownConversions.Select(kc => kc.Item2)).Union(
+                knownAliases.Keys.SelectMany(k => k)).Distinct();
+            return $"{convertibles.Count()} convertibles; {string.Join(", ", convertibles)}";
+        }
         private delegate decimal Convert1Way(decimal input);
         private static string currencyPath;
         private static ExchangePairs currencyConf = null;
@@ -82,6 +86,7 @@ namespace silverworker_discord.Conversion
                 {
                     knownAliases.Add(new List<string>() { rate.Key.ToLower() }, rate.Key);
                     AddLinearPair(currencyConf.Base, rate.Key, rate.Value);
+                    Console.WriteLine($"{rate.Key.ToLower()} alias of {rate.Key}");
                 }
             }
         }
@@ -133,15 +138,9 @@ namespace silverworker_discord.Conversion
         }
         private static string normalizeUnit(string unit)
         {
+            if(string.IsNullOrWhiteSpace(unit))
+                return null;
             var normalizedUnit = unit.ToLower();
-            if (normalizedUnit.EndsWith("es"))
-            {
-                normalizedUnit = normalizedUnit.Substring(0, normalizedUnit.Length - 2);
-            }
-            else if (normalizedUnit.EndsWith('s'))
-            {
-                normalizedUnit = normalizedUnit.Substring(0, normalizedUnit.Length - 1);
-            }
             if (knownConversions.FirstOrDefault(c => c.Item1 == normalizedUnit || c.Item2 == normalizedUnit) != null)
             {
                 return normalizedUnit;
@@ -153,6 +152,14 @@ namespace silverworker_discord.Conversion
                 {
                     return knownAliases[key];
                 }
+            }
+            if (normalizedUnit.EndsWith("es"))
+            {
+                return normalizeUnit(normalizedUnit.Substring(0, normalizedUnit.Length - 2));
+            }
+            else if (normalizedUnit.EndsWith('s'))
+            {
+                return normalizeUnit(normalizedUnit.Substring(0, normalizedUnit.Length - 1));
             }
             return null;
         }

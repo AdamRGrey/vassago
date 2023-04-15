@@ -211,7 +211,8 @@ namespace silverworker_discord
                     }
                     if (Regex.IsMatch(msgText, "!pulse ?check\\b"))
                     {
-                        message.Channel.SendFileAsync("assets/ekgblip.png");
+                        //message.Channel.SendFileAsync("assets/ekgblip.png");
+                        Console.WriteLine(Conversion.Converter.DebugInfo());
                     }
                     if (msgText.Contains("cognitive dissonance") == true)
                     {
