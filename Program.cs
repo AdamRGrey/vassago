@@ -218,6 +218,14 @@ namespace silverworker_discord
                     {
                         message.ReplyAsync("that's not what cognitive dissonance means. Did you mean \"hypocrisy\"?");
                     }
+                    if(mentionedMe && Regex.IsMatch(msgText, "what'?s the longest (six|6)(-| )?letter word( in english)?\\b"))
+                    {
+                        Task.Run(async () => {
+                            await message.Channel.SendMessageAsync("mother.");
+                            await Task.Delay(3000);
+                            await message.Channel.SendMessageAsync("oh, longest? I thought you said fattest.");
+                        });
+                    }
                     if (Regex.IsMatch(msgText, "\\bthank (yo)?u\\b", RegexOptions.IgnoreCase) &&
                     (mentionedMe || Regex.IsMatch(msgText, "\\b(sh?tik)?bot\\b", RegexOptions.IgnoreCase)))
                     {
