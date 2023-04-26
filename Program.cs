@@ -214,6 +214,10 @@ namespace silverworker_discord
                         message.Channel.SendFileAsync("assets/ekgblip.png");
                         Console.WriteLine(Conversion.Converter.DebugInfo());
                     }
+                    if (mentionedMe && (Regex.IsMatch(msgText, "\\brecipe for .+") || Regex.IsMatch(msgText, ".+ recipe\\b")))
+                    {
+                        Features.Recipe(message);
+                    }
                     if (msgText.Contains("cognitive dissonance") == true)
                     {
                         message.ReplyAsync("that's not what cognitive dissonance means. Did you mean \"hypocrisy\"?");

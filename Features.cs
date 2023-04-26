@@ -190,6 +190,43 @@ namespace silverworker_discord
 
         }
 
+        public static async void Recipe(SocketUserMessage message)
+        {
+            var sb = new StringBuilder();
+            var snarkSeg1 = new string[]{"ew", "gross", "that seems a bit hard for you"};
+            sb.AppendLine(snarkSeg1[r.Next(snarkSeg1.Length)]);
+            var snarkSeg2 = new string[]{@"here's an easier recipe for you:
+Ingredients:
+- Corn flakes cereal
+- Milk
+
+Instructions:
+1. Pour some corn flakes into a bowl.
+2. Pour some milk into the bowl until it covers the corn flakes.
+3. Use a spoon to mix the corn flakes and milk together.
+4. Enjoy your delicious cereal!
+
+Hope that's a bit better for you! 🥣",
+@"here's an easier recipe for you:
+Ingredients:
+- Bread
+- Peanut butter
+- Jelly or jam
+
+Instructions:
+1. Take two slices of bread and put them on a plate or cutting board.
+2. Using a spoon or knife, spread peanut butter on one slice of bread.
+3. Using a separate spoon or knife, spread jelly or jam on the other slice of bread.
+4. Put the two slices of bread together with the peanut butter and jelly sides facing each other.
+5. Cut the sandwich in half (optional!).
+6. Enjoy your yummy sandwich!
+
+I hope you have fun making and eating your PB&J 🥪!",
+"just order pizza instead"
+};
+            sb.AppendLine(snarkSeg2[r.Next(snarkSeg2.Length)]);
+            await message.Channel.SendMessageAsync(sb.ToString());
+        }
         public static async void Skynet(SocketUserMessage message)
         {
             switch (r.Next(5))
