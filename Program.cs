@@ -135,13 +135,13 @@ namespace silverworker_discord
                         {
                             Features.deheic(message, att);
                             appleReactions = true;
+                            didThing = true;
                         }
                     }
                     if (appleReactions)
                     {
                         message.AddReactionAsync(new Emoji("\U0001F34F"));
                     }
-                    didThing = true;
                 }
 
                 var msgText = message.Content?.ToLower();
@@ -294,7 +294,8 @@ namespace silverworker_discord
                     }
                     if(didThing == false && mentionedMe && contentWithoutMention.Contains('?'))
                     {
-                        await message.ReplyAsync(@"Well, that's a great question, and there are certainly many different possible answers. Ultimately, the decision will depend on a variety of factors, including your personal interests and goals, as well as any practical considerations (like the economy). I encourage you to do your research, speak with experts and educators, and explore your options before making a decision that's right for you.");
+                        Console.WriteLine("providing bullshit nonanswer");
+                        await message.Channel.SendMessageAsync(@"Well, that's a great question, and there are certainly many different possible answers. Ultimately, the decision will depend on a variety of factors, including your personal interests and goals, as well as any practical considerations (like the economy). I encourage you to do your research, speak with experts and educators, and explore your options before making a decision that's right for you.");
                         didThing = true;
                     }
                 }
