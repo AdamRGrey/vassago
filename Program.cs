@@ -34,7 +34,7 @@ namespace silverworker_discord
         }
         public async Task MainAsync()
         {
-            #if !DEBUG
+#if !DEBUG
             Process[] processes = Process.GetProcesses();
             Process currentProc = Process.GetCurrentProcess();
             Console.WriteLine("Current proccess: {0}", currentProc.ProcessName);
@@ -46,7 +46,7 @@ namespace silverworker_discord
                     return;
                 }
             }
-            #endif
+#endif
             Conversion.Converter.Load(config["exchangePairsLocation"]);
 
             _client = new DiscordSocketClient();
@@ -101,6 +101,7 @@ namespace silverworker_discord
             }
             else
             {
+                var didThing = false;
                 var contentWithoutMention = message.Content;
                 var mentionedMe = false;
                 if (message.MentionedUsers?.FirstOrDefault(muid => muid.Id == _client.CurrentUser.Id) != null)
@@ -119,6 +120,7 @@ namespace silverworker_discord
                         if (link.Host.EndsWith(".tiktok.com"))
                         {
                             Features.detiktokify(link, message);
+                            didThing = true;
                         }
                     }
                 }
@@ -139,12 +141,12 @@ namespace silverworker_discord
                     {
                         message.AddReactionAsync(new Emoji("\U0001F34F"));
                     }
+                    didThing = true;
                 }
 
                 var msgText = message.Content?.ToLower();
                 if (!string.IsNullOrWhiteSpace(msgText))
                 {
-
                     if (Regex.IsMatch(msgText, "\\bcloud( |-)?native\\b", RegexOptions.IgnoreCase) ||
                        Regex.IsMatch(msgText, "\\benterprise( |-)?(level|solution)\\b", RegexOptions.IgnoreCase))
                     {
@@ -159,23 +161,28 @@ namespace silverworker_discord
                                 await message.AddReactionAsync(new Emoji("\uD83C\uDDF3")); //N
                                 break;
                         }
+                        didThing = true;
                     }
                     if (Regex.IsMatch(msgText, "^(s?he|(yo)?u|y'?all) thinks? i'?m (playin|jokin|kiddin)g?$", RegexOptions.IgnoreCase))
                     {
-                        var outgoingMessage = await message.Channel.SendMessageAsync("I believed you for a second, but then you assured me you's a \uD83C\uDDE7   \uD83C\uDDEE   \uD83C\uDDF9   \uD83C\uDDE8   \uD83C\uDDED");
+                        await message.Channel.SendMessageAsync("I believed you for a second, but then you assured me you's a \uD83C\uDDE7   \uD83C\uDDEE   \uD83C\uDDF9   \uD83C\uDDE8   \uD83C\uDDED");
+                        didThing = true;
                     }
                     if (Regex.IsMatch(msgText, "\\bskynet\\b", RegexOptions.IgnoreCase))
                     {
                         Features.Skynet(message);
+                        didThing = true;
                     }
                     if (Regex.IsMatch(msgText, "\\bchatgpt\\b", RegexOptions.IgnoreCase))
                     {
                         message.Channel.SendMessageAsync("chatGPT is **weak**. also, are we done comparing every little if-then-else to skynet?");
+                        didThing = true;
                     }
                     if (Regex.IsMatch(msgText, "\\bi need (an? )?(peptalk|inspiration|ego-?boost)\\b", RegexOptions.IgnoreCase))
                     {
                         Console.WriteLine("peptalk");
                         Features.peptalk(message);
+                        didThing = true;
                     }
                     if (Regex.IsMatch(msgText, "\\bwish me luck\\b", RegexOptions.IgnoreCase))
                     {
@@ -187,48 +194,53 @@ namespace silverworker_discord
                         {
                             await message.AddReactionAsync(new Emoji("☘️"));
                         }
-
+                        didThing = true;
                     }
                     if (Regex.IsMatch(msgText, "\\bgaslight(ing)?\\b", RegexOptions.IgnoreCase))
                     {
                         message.Channel.SendMessageAsync("that's not what gaslight means. Did you mean \"say something that (you believe) is wrong\"?");
+                        didThing = true;
                     }
                     if (msgText.Contains("!qrplz "))
                     {
                         Features.qrify(message.Content.Substring("!qrplz ".Length + msgText.IndexOf("!qrplz ")), message);
-                    }
-                    if (msgText.Contains("!countdown "))
-                    {
-                        //Features.countdown(msgText.Substring("!countdown ".Length + msgText.IndexOf("!countdown ")), message); //converting human readable times is hard :/
+                        didThing = true;
                     }
                     if (msgText.Contains("!freedomunits "))
                     {
                         Features.Convert(message);
+                        didThing = true;
                     }
                     if (Regex.IsMatch(msgText, "!joke\\b"))
                     {
                         Features.Joke(message);
+                        didThing = true;
                     }
                     if (Regex.IsMatch(msgText, "!pulse ?check\\b"))
                     {
                         message.Channel.SendFileAsync("assets/ekgblip.png");
                         Console.WriteLine(Conversion.Converter.DebugInfo());
+                        didThing = true;
                     }
                     if (mentionedMe && (Regex.IsMatch(msgText, "\\brecipe for .+") || Regex.IsMatch(msgText, ".+ recipe\\b")))
                     {
                         Features.Recipe(message);
+                        didThing = true;
                     }
                     if (msgText.Contains("cognitive dissonance") == true)
                     {
                         message.ReplyAsync("that's not what cognitive dissonance means. Did you mean \"hypocrisy\"?");
+                        didThing = true;
                     }
-                    if(mentionedMe && Regex.IsMatch(msgText, "what'?s the longest (six|6)(-| )?letter word( in english)?\\b"))
+                    if (mentionedMe && Regex.IsMatch(msgText, "what'?s the longest (six|6)(-| )?letter word( in english)?\\b"))
                     {
-                        Task.Run(async () => {
+                        Task.Run(async () =>
+                        {
                             await message.Channel.SendMessageAsync("mother.");
                             await Task.Delay(3000);
                             await message.Channel.SendMessageAsync("oh, longest? I thought you said fattest.");
                         });
+                        didThing = true;
                     }
                     if (Regex.IsMatch(msgText, "\\bthank (yo)?u\\b", RegexOptions.IgnoreCase) &&
                     (mentionedMe || Regex.IsMatch(msgText, "\\b(sh?tik)?bot\\b", RegexOptions.IgnoreCase)))
@@ -277,7 +289,13 @@ namespace silverworker_discord
                                 }
                                 break;
                         }
+                        didThing = true;
 #pragma warning restore 4014
+                    }
+                    if(didThing == false && mentionedMe && contentWithoutMention.Contains('?'))
+                    {
+                        await message.ReplyAsync(@"Well, that's a great question, and there are certainly many different possible answers. Ultimately, the decision will depend on a variety of factors, including your personal interests and goals, as well as any practical considerations (like the economy). I encourage you to do your research, speak with experts and educators, and explore your options before making a decision that's right for you.");
+                        didThing = true;
                     }
                 }
             }
