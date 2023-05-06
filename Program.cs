@@ -1,5 +1,6 @@
 ﻿//https://discord.com/oauth2/authorize?client_id=913003037348491264&permissions=274877942784&scope=bot%20messages.read
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -292,10 +293,14 @@ namespace silverworker_discord
                         didThing = true;
 #pragma warning restore 4014
                     }
-                    if(didThing == false && mentionedMe && contentWithoutMention.Contains('?'))
+                    if (didThing == false && mentionedMe && contentWithoutMention.Contains('?'))
                     {
-                        Console.WriteLine("providing bullshit nonanswer");
-                        await message.Channel.SendMessageAsync(@"Well, that's a great question, and there are certainly many different possible answers. Ultimately, the decision will depend on a variety of factors, including your personal interests and goals, as well as any practical considerations (like the economy). I encourage you to do your research, speak with experts and educators, and explore your options before making a decision that's right for you.");
+                        Console.WriteLine("providing bullshit nonanswer / admitting uselessness");
+                        var responses = new List<string>(){
+                                    @"Well, that's a great question, and there are certainly many different possible answers. Ultimately, the decision will depend on a variety of factors, including your personal interests and goals, as well as any practical considerations (like the economy). I encourage you to do your research, speak with experts and educators, and explore your options before making a decision that's right for you.",
+                                    @"┐(ﾟ ～ﾟ )┌",@"¯\_(ツ)_/¯",@"╮ (. ❛ ᴗ ❛.) ╭", @"╮(╯ _╰ )╭"
+                                };
+                        await message.Channel.SendMessageAsync(responses[r.Next(responses.Count)]);
                         didThing = true;
                     }
                 }
