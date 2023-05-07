@@ -152,9 +152,9 @@ namespace silverworker_discord
                 Console.Error.WriteLine($"convert failed :( qr{todaysnumber}");
             }
         }
-        public static async void Convert(SocketUserMessage message)
+        public static async void Convert(SocketUserMessage message, string contentWithoutMention)
         {
-            await message.Channel.SendMessageAsync(Conversion.Converter.convert(message.Content));
+            await message.Channel.SendMessageAsync(Conversion.Converter.convert(contentWithoutMention));
         }
         public static async void Joke(SocketUserMessage message)
         {

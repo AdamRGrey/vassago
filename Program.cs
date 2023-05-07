@@ -107,7 +107,7 @@ namespace silverworker_discord
                 var mentionedMe = false;
                 if (message.MentionedUsers?.FirstOrDefault(muid => muid.Id == _client.CurrentUser.Id) != null)
                 {
-                    var mentionOfMe = "<@!" + _client.CurrentUser.Id + ">";
+                    var mentionOfMe = "<@" + _client.CurrentUser.Id + ">";
                     contentWithoutMention = message.Content.Replace(mentionOfMe + " ", null);
                     contentWithoutMention = contentWithoutMention.Replace(mentionOfMe, null);
                     mentionedMe = true;
@@ -209,7 +209,7 @@ namespace silverworker_discord
                     }
                     if (msgText.Contains("!freedomunits "))
                     {
-                        Features.Convert(message);
+                        Features.Convert(message, contentWithoutMention);
                         didThing = true;
                     }
                     if (Regex.IsMatch(msgText, "!joke\\b"))
