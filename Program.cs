@@ -1,4 +1,4 @@
-﻿//https://discord.com/oauth2/authorize?client_id=913003037348491264&permissions=274877942784&scope=bot%20messages.read
+//https://discord.com/oauth2/authorize?client_id=913003037348491264&permissions=274877942784&scope=bot%20messages.read
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -50,7 +50,7 @@ namespace silverworker_discord
 #endif
             Conversion.Converter.Load(config["exchangePairsLocation"]);
 
-            _client = new DiscordSocketClient();
+            _client = new DiscordSocketClient(new DiscordSocketConfig(){GatewayIntents = GatewayIntents.All});
 
             _client.Log += Log;
 
