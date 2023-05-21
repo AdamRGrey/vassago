@@ -40,7 +40,7 @@ namespace silverworker_discord.Conversion
                 decimal asNumeric = 0;
                 if (decimal.TryParse(theseMatches[0].Groups[1].Value, out asNumeric))
                 {
-                    return actualConvert(asNumeric, theseMatches[0].Groups[2].Value, theseMatches[0].Groups[4].Value.ToLower());
+                    return Convert(asNumeric, theseMatches[0].Groups[2].Value, theseMatches[0].Groups[4].Value.ToLower());
                 }
                 return "mysteriously semi-parsable";
             }
@@ -91,17 +91,17 @@ namespace silverworker_discord.Conversion
             }
         }
 
-        private static string actualConvert(decimal numericTerm, string sourceunit, string destinationUnit)
+        public static string Convert(decimal numericTerm, string sourceunit, string destinationUnit)
         {
             var normalizedSourceUnit = normalizeUnit(sourceunit);
             if (string.IsNullOrWhiteSpace(normalizedSourceUnit))
             {
-                return $"what's {sourceunit}?";
+                return $"parse failure: what's {sourceunit}?";
             }
             var normalizedDestUnit = normalizeUnit(destinationUnit);
             if (string.IsNullOrWhiteSpace(normalizedDestUnit))
             {
-                return $"what's {destinationUnit}?";
+                return $"parse failure: what's {destinationUnit}?";
             }
             if (normalizedSourceUnit == normalizedDestUnit)
             {
@@ -134,7 +134,7 @@ namespace silverworker_discord.Conversion
                     return $"{String.Format("{0:G4}", accumulator)} {normalizedDestUnit}";
                 }
             }
-            return "no conversion known";
+            return "dimensional analysis failure - I know those units but can't find a path between them.";
         }
         private static string normalizeUnit(string unit)
         {

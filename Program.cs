@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
+using Discord.Net;
 
 namespace silverworker_discord
 {
@@ -54,9 +55,6 @@ namespace silverworker_discord
 
             _client.Log += Log;
 
-            await _client.LoginAsync(TokenType.Bot, config["token"]);
-            await _client.StartAsync();
-
             _client.Ready += () => Task.Run(() =>
             {
                 if (!eventsSignedUp)
@@ -66,12 +64,19 @@ namespace silverworker_discord
 
                     _client.MessageReceived += MessageReceived;
                     _client.UserJoined += UserJoined;
+                    //_client.ButtonExecuted += MyButtonHandler;
+                    _client.SlashCommandExecuted += SlashCommandsHelper.SlashCommandHandler;
+                    SlashCommandsHelper.Register(_client).GetAwaiter().GetResult();
                 }
                 else
                 {
                     Console.WriteLine("bot appears to be RE connected, so I'm not going to sign up twice");
                 }
             });
+
+            await _client.LoginAsync(TokenType.Bot, config["token"]);
+            await _client.StartAsync();
+
             // Block this task until the program is closed.
             await Task.Delay(-1);
 
@@ -293,6 +298,11 @@ namespace silverworker_discord
                         didThing = true;
 #pragma warning restore 4014
                     }
+                    // if (didThing == false && mentionedMe && contentWithoutMention.Contains("how long has that been there?"))
+                    // {
+                    //     await message.Channel.SendMessageAsync("text", false, null, null, null, null, new ComponentBuilder().WithButton("label", "custom-id").Build());
+                    //     didThing = true;
+                    // }
                     if (didThing == false && mentionedMe && contentWithoutMention.Contains('?'))
                     {
                         Console.WriteLine("providing bullshit nonanswer / admitting uselessness");
@@ -317,5 +327,15 @@ namespace silverworker_discord
             Console.WriteLine($"imma call him {abbreviatedNickname}");
             return arg.Guild.DefaultChannel.SendMessageAsync($"oh hey {abbreviatedNickname}- IPLAYTHESEALOFORICHALCOS <:ORICHALCOS:852749196633309194>");
         }
+        private async Task ButtonHandler(SocketMessageComponent component)
+        {
+            switch(component.Data.CustomId)
+            {
+                case "custom-id":
+                    await component.RespondAsync($"{component.User.Mention}, it's been here the whole time!");
+                break;
+            }
+        }
+        
     }
 }
