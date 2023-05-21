@@ -16,7 +16,7 @@ namespace silverworker_discord
             new CommandSetup(){
                 Id = "freedomunits",
                 UpdatedAt = new DateTime(2023, 5, 21, 13, 3, 0),
-                guild = null,
+                guild = 825293851110801428,
                 register = register_FreedomUnits
             }
         };
