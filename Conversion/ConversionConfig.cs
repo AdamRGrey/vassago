@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace silverworker_discord.Conversion
+namespace vassago.Conversion
 {
     public class ConversionConfig
     {

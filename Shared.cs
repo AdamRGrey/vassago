@@ -1,7 +1,7 @@
 
 using System;
 
-namespace silverworker_discord
+namespace vassago
 {
     public static class Shared
     {

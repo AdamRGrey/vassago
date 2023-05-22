@@ -12,7 +12,7 @@ using Discord.WebSocket;
 using Newtonsoft.Json;
 using QRCoder;
 
-namespace silverworker_discord.Conversion
+namespace vassago.Conversion
 {
     public static class Converter
     {

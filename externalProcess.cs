@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
-namespace silverworker_discord
+namespace vassago
 {
     public class ExternalProcess
     {

@@ -1,13 +1,14 @@
-namespace silverworker_discord
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Discord.WebSocket;
+using Discord;
+using Discord.Net;
+
+namespace vassago.Discord_Vassago
 {
-    using System;
-    using System.Linq;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using Discord.WebSocket;
-    using Discord.Net;
-    using Discord;
-    using Newtonsoft.Json;
 
     public static class SlashCommandsHelper
     {
@@ -30,7 +31,7 @@ namespace silverworker_discord
                 {
                     await Register(client, await guild.GetApplicationCommandsAsync(), guild);
                 }
-                catch (Discord.Net.HttpException ex)
+                catch (HttpException ex)
                 {
                     Console.Error.WriteLine($"error registering slash commands for guild {guild.Name} (id {guild.Id}) - {ex.Message}");
                 }
@@ -106,32 +107,6 @@ namespace silverworker_discord
             {
                 var json = JsonConvert.SerializeObject(exception.Errors, Formatting.Indented);
                 Console.Error.WriteLine(json);
-            }
-        }
-        public static async Task SlashCommandHandler(SocketSlashCommand command)
-        {
-            switch(command.CommandName)
-            {
-                case "freedomunits":
-                    try
-                    {
-                        var amt = Convert.ToDecimal((double)(command.Data.Options.First(o => o.Name == "amount").Value));
-                        var src = (string)command.Data.Options.First(o => o.Name == "src-unit").Value;
-                        var dest = (string)command.Data.Options.First(o => o.Name == "dest-unit").Value;
-                        var conversionResult = Conversion.Converter.Convert(amt, src, dest);
-                        
-                        await command.RespondAsync($"> {amt} {src} -> {dest}\n{conversionResult}");
-                    }
-                    catch(Exception e)
-                    {
-                        await command.RespondAsync($"error: {e.Message}. aaadam!");
-                    }
-                    break;
-                default:
-                    await command.RespondAsync($"\\*smiles and nods*\n");
-                    await command.Channel.SendFileAsync($"assets/loud sweating.gif");
-                    Console.Error.WriteLine($"can't understand command name: {command.CommandName}");
-                    break;
             }
         }
         private class CommandSetup
