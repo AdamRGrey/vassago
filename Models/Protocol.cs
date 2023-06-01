@@ -1,6 +1,13 @@
-using System;
+namespace vassago.Models;
 
-public abstract class Protocol
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class Protocol : Channel
 {
-    public Guid Id{get;set;}
+    //log in, log out, observe events?
+
+    //doesn't actually have to be a token, but it should be how an interface can find itself in the DB
+    public string ConnectionToken { get; set; }
 }

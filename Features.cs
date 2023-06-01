@@ -7,10 +7,12 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Discord;
+using Discord.WebSocket;
 using Newtonsoft.Json;
 using QRCoder;
 
-namespace vassago
+namespace silverworker_discord
 {
     public static class Features
     {
@@ -164,7 +166,7 @@ namespace vassago
             var thisJoke = jokes[r.Next(jokes.Length)];
             if (thisJoke.Contains("?") && !thisJoke.EndsWith('?'))
             {
-                #pragma warning disable 4014
+#pragma warning disable 4014
                 Task.Run(async () =>
                 {
                     var firstIndexAfterQuestionMark = thisJoke.LastIndexOf('?') + 1;
@@ -178,7 +180,7 @@ namespace vassago
                         await myOwnMsg.AddReactionAsync(new Emoji("\U0001F60E")); //smiling face with sunglasses
                     }
                 });
-                #pragma warning restore 4014
+#pragma warning restore 4014
             }
             else
             {

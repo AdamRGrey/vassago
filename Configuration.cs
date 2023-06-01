@@ -9,6 +9,8 @@ namespace vassago
     {
         public string ExchangePairsLocation {get;set;}
         public IEnumerable<string> DiscordTokens { get; set; }
+        public string DBConnectionString{get;set;}
+
         private Configuration(){}
         public static Configuration Parse(string configurationPath)
         {

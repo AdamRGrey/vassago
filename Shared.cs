@@ -1,10 +1,14 @@
+namespace vassago;
 
 using System;
+using System.Net.Http;
+using vassago.Models;
 
-namespace vassago
+
+public static class Shared
 {
-    public static class Shared
-    {
-        public static Random r = new Random();
-    }
+    public static Random r = new Random();
+    public static string DBConnectionString { get; set; }
+    public static ChattingContext dbContext { get; set; }
+    public static HttpClient HttpClient { get; internal set; } = new HttpClient();
 }
