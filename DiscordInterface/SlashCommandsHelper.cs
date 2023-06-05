@@ -47,7 +47,6 @@ namespace vassago.DiscordInterface
                 {
                     Console.WriteLine($"deleting command {existingCommand.Name} - (created at {existingCommand.CreatedAt}, it's in guild {existingCommand.Guild?.Id} while I'm in {guild?.Id})");
                     await existingCommand.DeleteAsync();
-                    Console.WriteLine("survived");
                 }
                 else
                 {
@@ -56,7 +55,6 @@ namespace vassago.DiscordInterface
                     {
                         Console.WriteLine($"overwriting command {existingCommand.Name}");
                         await myVersion.register(false, client, guild);
-                        Console.WriteLine($"survived");
                     }
                     myVersion.alreadyRegistered = true;
                 }
@@ -65,7 +63,6 @@ namespace vassago.DiscordInterface
             {
                 Console.WriteLine($"creating new command {remaining.Id} ({(remaining.guild == null ? "global" : $"for guild {remaining.guild}")})");
                 await remaining.register(true, client, guild);
-                Console.WriteLine($"survived");
             }
         }
 

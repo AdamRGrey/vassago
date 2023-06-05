@@ -99,7 +99,6 @@ public class DiscordInterface
             if (await thingmanagementdoer.Instance.ActOn(m))
             {
                 m.ActedOn = true;
-                Console.WriteLine("survived a savechanges: 103");
             }
         }
         _db.SaveChanges();
@@ -121,7 +120,6 @@ public class DiscordInterface
         //     seenIn.Add(defaultChannel);
         //     u.SeenInChannels = seenIn;
         //     _db.SaveChanges();
-        Console.WriteLine("survived a savechanges: 123");
         // }
         return thingmanagementdoer.Instance.OnJoin(u, defaultChannel);
 
@@ -191,7 +189,6 @@ public class DiscordInterface
         }
         return a;
     }
-
     internal Message UpsertMessage(IUserMessage dMessage)
     {
         var addPlease = false;
