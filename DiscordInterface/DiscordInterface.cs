@@ -82,7 +82,7 @@ public class DiscordInterface
         if (suMessage == null)
         {
             Console.WriteLine($"{messageParam.Content}, but not a user message");
-             return;
+            return;
         }
         Console.WriteLine($"#{suMessage.Channel}[{DateTime.Now}][{suMessage.Author.Username} [id={suMessage.Author.Id}]][msg id: {suMessage.Id}] {suMessage.Content}");
 
@@ -94,13 +94,14 @@ public class DiscordInterface
             m.MentionsMe = true;
         }
 
-        if((suMessage.Author.Id != client.CurrentUser.Id)){
-        if (await thingmanagementdoer.Instance.ActOn(m))
+        if ((suMessage.Author.Id != client.CurrentUser.Id))
         {
-            m.ActedOn = true;
-            Console.WriteLine("survived a savechanges: 103");
+            if (await thingmanagementdoer.Instance.ActOn(m))
+            {
+                m.ActedOn = true;
+                Console.WriteLine("survived a savechanges: 103");
+            }
         }
-    }
         _db.SaveChanges();
     }
 
@@ -171,17 +172,23 @@ public class DiscordInterface
 
     internal vassago.Models.Attachment UpsertAttachment(IAttachment dAttachment)
     {
+        var addPlease = false;
         var a = _db.Attachments.FirstOrDefault(ai => ai.ExternalId == dAttachment.Id);
         if (a == null)
         {
-            var creating = _db.Attachments.Add(new vassago.Models.Attachment());
-            a = creating.Entity;
+            addPlease = true;
+            a = new vassago.Models.Attachment();
         }
         a.ContentType = dAttachment.ContentType;
         a.Description = dAttachment.Description;
         a.Filename = dAttachment.Filename;
         a.Size = dAttachment.Size;
         a.Source = new Uri(dAttachment.Url);
+
+        if (addPlease)
+        {
+            _db.Attachments.Add(a);
+        }
         return a;
     }
 
@@ -194,12 +201,7 @@ public class DiscordInterface
             addPlease = true;
             m = new Message();
         }
-
-        if (m == null)
-        {
-            var creating = _db.Messages.Add(new Message() { Author = null, Channel = null });
-            m = creating.Entity;
-        }
+        m.Attachments = m.Attachments ?? new List<vassago.Models.Attachment>();
         if (dMessage.Attachments?.Any() == true)
         {
             m.Attachments = new List<vassago.Models.Attachment>();
@@ -208,12 +210,10 @@ public class DiscordInterface
                 m.Attachments.Add(UpsertAttachment(da));
             }
         }
-        //m.Attachments = new List<
         m.Author = UpsertUser(dMessage.Author);
         m.Channel = UpsertChannel(dMessage.Channel);
         m.Content = dMessage.Content;
         m.ExternalId = dMessage.Id;
-        //m.ExternalRepresentation
         m.Timestamp = dMessage.EditedTimestamp ?? dMessage.CreatedAt;
 
         if (dMessage.MentionedUserIds?.FirstOrDefault(muid => muid == client.CurrentUser.Id) != null)
@@ -225,8 +225,8 @@ public class DiscordInterface
             _db.Messages.Add(m);
         }
 
-        m.Reply = (t) => {return dMessage.ReplyAsync(t);};
-        m.React = (e) => {return dMessage.AddReactionAsync(Emote.Parse(e));};
+        m.Reply = (t) => { return dMessage.ReplyAsync(t); };
+        m.React = (e) => { return dMessage.AddReactionAsync(Emote.Parse(e)); };
         return m;
     }
     internal Channel UpsertChannel(IMessageChannel channel)

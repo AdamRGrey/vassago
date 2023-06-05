@@ -14,15 +14,4 @@ public class User //more like "user's account - no concept of the person outside
     public bool IsBot { get; set; } //webhook counts
     public Channel SeenInChannel { get; set; }
     public string Protocol { get; set; }
-    
-    public User(){}
-    public User(User u)
-    {
-        Type t = typeof(User);
-        PropertyInfo[] properties = t.GetProperties();
-        foreach (PropertyInfo pi in properties)
-        {
-            pi.SetValue(this, pi.GetValue(u, null), null);
-        }
-    }
 }
