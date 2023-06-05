@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using vassago.Models;
@@ -11,9 +12,11 @@ using vassago.Models;
 namespace vassago.Migrations
 {
     [DbContext(typeof(ChattingContext))]
-    partial class ChattingContextModelSnapshot : ModelSnapshot
+    [Migration("20230605162111_user aliases later")]
+    partial class useraliaseslater
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -226,7 +229,7 @@ namespace vassago.Migrations
             modelBuilder.Entity("vassago.Models.User", b =>
                 {
                     b.HasOne("vassago.Models.Channel", "SeenInChannel")
-                        .WithMany()
+                        .WithMany("OtherUsers")
                         .HasForeignKey("SeenInChannelId");
 
                     b.Navigation("SeenInChannel");
@@ -235,6 +238,8 @@ namespace vassago.Migrations
             modelBuilder.Entity("vassago.Models.Channel", b =>
                 {
                     b.Navigation("Messages");
+
+                    b.Navigation("OtherUsers");
 
                     b.Navigation("SubChannels");
                 });

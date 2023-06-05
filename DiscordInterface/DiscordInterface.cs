@@ -6,16 +6,16 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
- using vassago.Models;
-using vassago.DiscordInterface.Models;
+using vassago.Models;
 using vassago.Behavior;
+using Discord.Rest;
 
 namespace vassago.DiscordInterface;
 
 public class DiscordInterface
 {
-    private DiscordSocketClient _client;
-    private DiscordProtocol protocolInterface;
+    internal const string PROTOCOL = "discord";
+    internal DiscordSocketClient client;
     private bool eventsSignedUp = false;
     private ChattingContext _db;
     public DiscordInterface()
@@ -25,25 +25,30 @@ public class DiscordInterface
 
     public async Task Init(string token)
     {
-        _client = new DiscordSocketClient(new DiscordSocketConfig() { GatewayIntents = GatewayIntents.All });
+        //var c = _db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id);
+        //Todo: find protocol reference in DB.
+        //TODO: should protocol be shared across mutliple accounts on that protocol? should protocol be a per-vassago-account thing? 
+        //TODO: should protocol be associated with a connection token? how would that be updated?
 
-        _client.Log += (msg) =>
+        client = new DiscordSocketClient(new DiscordSocketConfig() { GatewayIntents = GatewayIntents.All });
+
+        client.Log += (msg) =>
         {
             Console.WriteLine(msg.ToString());
             return Task.CompletedTask;
         };
 
-        _client.Ready += () => Task.Run(() =>
+        client.Ready += () => Task.Run(() =>
         {
             if (!eventsSignedUp)
             {
                 eventsSignedUp = true;
                 Console.WriteLine("Bot is connected! going to sign up for message received and user joined in client ready");
 
-                _client.MessageReceived += MessageReceived;
+                client.MessageReceived += MessageReceived;
                 // _client.MessageUpdated +=
-                _client.UserJoined += UserJoined;
-                _client.SlashCommandExecuted += SlashCommandHandler;
+                client.UserJoined += UserJoined;
+                client.SlashCommandExecuted += SlashCommandHandler;
                 // _client.ChannelCreated +=
                 // _client.ChannelDestroyed +=
                 // _client.ChannelUpdated +=
@@ -56,8 +61,8 @@ public class DiscordInterface
                 // _client.JoinedGuild +=
                 // _client.GuildUpdated += 
                 // _client.LeftGuild += 
-                
-                SlashCommandsHelper.Register(_client).GetAwaiter().GetResult();
+
+                SlashCommandsHelper.Register(client).GetAwaiter().GetResult();
             }
             else
             {
@@ -65,8 +70,8 @@ public class DiscordInterface
             }
         });
 
-        await _client.LoginAsync(TokenType.Bot, token);
-        await _client.StartAsync();
+        await client.LoginAsync(TokenType.Bot, token);
+        await client.StartAsync();
     }
 #pragma warning disable 4014 //the "you're not awaiting this" warning. yeah I know, that's the beauty of an async method lol
 #pragma warning disable 1998 //the "it's async but you're not awaiting anything".
@@ -74,35 +79,29 @@ public class DiscordInterface
 #pragma warning restore 1998
     {
         var suMessage = messageParam as SocketUserMessage;
-        if (suMessage == null) return;
-
-        var m = _db.Messages.FirstOrDefault(mi => mi.ExternalId == suMessage.Id) as DiscordMessage;
-        if(m == null)
+        if (suMessage == null)
         {
-            m = _db.Messages.Add(new DiscordMessage(suMessage)).Entity as DiscordMessage;
+            Console.WriteLine($"{messageParam.Content}, but not a user message");
+             return;
         }
-        m.Intake(suMessage, _client.CurrentUser.Id);
-        
-        m.Channel = UpsertChannel(suMessage.Channel);
-        m.Author = UpsertUser(suMessage.Author);
-        _db.SaveChanges();
         Console.WriteLine($"#{suMessage.Channel}[{DateTime.Now}][{suMessage.Author.Username} [id={suMessage.Author.Id}]][msg id: {suMessage.Id}] {suMessage.Content}");
-        if (suMessage.Author.Id == _client.CurrentUser.Id) return;
 
+        var m = UpsertMessage(suMessage);
 
-        if (suMessage.MentionedUsers?.FirstOrDefault(muid => muid.Id == _client.CurrentUser.Id) != null)
+        if (suMessage.MentionedUsers?.FirstOrDefault(muid => muid.Id == client.CurrentUser.Id) != null)
         {
-            var mentionOfMe = "<@" + _client.CurrentUser.Id + ">";
+            var mentionOfMe = "<@" + client.CurrentUser.Id + ">";
             m.MentionsMe = true;
         }
 
-        //TODO: standardize content
-
-        if(await thingmanagementdoer.Instance.ActOn(m))
+        if((suMessage.Author.Id != client.CurrentUser.Id)){
+        if (await thingmanagementdoer.Instance.ActOn(m))
         {
             m.ActedOn = true;
-            _db.SaveChanges();
+            Console.WriteLine("survived a savechanges: 103");
         }
+    }
+        _db.SaveChanges();
     }
 
     private Task UserJoined(SocketGuildUser arg)
@@ -111,16 +110,18 @@ public class DiscordInterface
         var defaultChannel = UpsertChannel(arg.Guild.DefaultChannel);
         defaultChannel.ParentChannel = guild;
         var u = UpsertUser(arg);
-        if(u.SeenInChannels == null) u.SeenInChannels = new List<Channel>();
-        var sighting = u.SeenInChannels?.FirstOrDefault(c => c.ExternalId == arg.Guild.Id);
-        if(sighting == null)
-        {
-            var seenIn = u.SeenInChannels as List<Channel>;
-            seenIn.Add(guild);
-            seenIn.Add(defaultChannel);
-            u.SeenInChannels = seenIn;
-            _db.SaveChanges();
-        }
+        //TODO: seen in channels
+        // if (u.SeenInChannels == null) u.SeenInChannels = new List<Channel>();
+        // var sighting = u.SeenInChannels?.FirstOrDefault(c => c.ExternalId == arg.Guild.Id);
+        // if (sighting == null)
+        // {
+        //     var seenIn = u.SeenInChannels as List<Channel>;
+        //     seenIn.Add(guild);
+        //     seenIn.Add(defaultChannel);
+        //     u.SeenInChannels = seenIn;
+        //     _db.SaveChanges();
+        Console.WriteLine("survived a savechanges: 123");
+        // }
         return thingmanagementdoer.Instance.OnJoin(u, defaultChannel);
 
         // Console.WriteLine($"user joined: {arg.Nickname}. Guid: {arg.Guild.Id}. Channel: {arg.Guild.DefaultChannel}");
@@ -168,49 +169,155 @@ public class DiscordInterface
         }
     }
 
-    private Channel UpsertChannel(ISocketMessageChannel channel)
+    internal vassago.Models.Attachment UpsertAttachment(IAttachment dAttachment)
     {
-        var c = _db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id);
-        if(c == null)
+        var a = _db.Attachments.FirstOrDefault(ai => ai.ExternalId == dAttachment.Id);
+        if (a == null)
         {
-            c = _db.Channels.Add(new DiscordChannel()).Entity;
-            _db.SaveChanges();
+            var creating = _db.Attachments.Add(new vassago.Models.Attachment());
+            a = creating.Entity;
         }
-        if(channel is IGuildChannel)
+        a.ContentType = dAttachment.ContentType;
+        a.Description = dAttachment.Description;
+        a.Filename = dAttachment.Filename;
+        a.Size = dAttachment.Size;
+        a.Source = new Uri(dAttachment.Url);
+        return a;
+    }
+
+    internal Message UpsertMessage(IUserMessage dMessage)
+    {
+        var addPlease = false;
+        var m = _db.Messages.FirstOrDefault(mi => mi.ExternalId == dMessage.Id);
+        if (m == null)
+        {
+            addPlease = true;
+            m = new Message();
+        }
+
+        if (m == null)
+        {
+            var creating = _db.Messages.Add(new Message() { Author = null, Channel = null });
+            m = creating.Entity;
+        }
+        if (dMessage.Attachments?.Any() == true)
+        {
+            m.Attachments = new List<vassago.Models.Attachment>();
+            foreach (var da in dMessage.Attachments)
+            {
+                m.Attachments.Add(UpsertAttachment(da));
+            }
+        }
+        //m.Attachments = new List<
+        m.Author = UpsertUser(dMessage.Author);
+        m.Channel = UpsertChannel(dMessage.Channel);
+        m.Content = dMessage.Content;
+        m.ExternalId = dMessage.Id;
+        //m.ExternalRepresentation
+        m.Timestamp = dMessage.EditedTimestamp ?? dMessage.CreatedAt;
+
+        if (dMessage.MentionedUserIds?.FirstOrDefault(muid => muid == client.CurrentUser.Id) != null)
+        {
+            m.MentionsMe = true;
+        }
+        if (addPlease)
+        {
+            _db.Messages.Add(m);
+        }
+
+        m.Reply = (t) => {return dMessage.ReplyAsync(t);};
+        m.React = (e) => {return dMessage.AddReactionAsync(Emote.Parse(e));};
+        return m;
+    }
+    internal Channel UpsertChannel(IMessageChannel channel)
+    {
+        var addPlease = false;
+        Channel c = _db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id);
+        if (c == null)
+        {
+            addPlease = true;
+            c = new Channel();
+        }
+
+        c.DisplayName = channel.Name;
+        c.ExternalId = channel.Id;
+        c.IsDM = channel is IPrivateChannel;
+        c.Messages = c.Messages ?? new List<Message>();
+        //c.Messages = await channel.GetMessagesAsync(); //TODO: this, but only on startup or channel join
+        //c.OtherUsers = c.OtherUsers ?? new List<User>();
+        //c.OtherUsers = await channel.GetUsersAsync(); //TODO: this, but only on startup or channel join
+        c.Protocol = PROTOCOL;
+        if (channel is IGuildChannel)
         {
             c.ParentChannel = UpsertChannel((channel as IGuildChannel).Guild);
         }
         else if (channel is IPrivateChannel)
         {
-            c.ParentChannel = protocolInterface;
+            c.ParentChannel = null;
         }
         else
         {
-            c.ParentChannel = protocolInterface;
-            Console.WriteLine($"trying to upsert channel {channel.Id}/{channel.Name}, but it's neither guildchannel nor private channel. shrug.jpg");
+            c.ParentChannel = null;
+            Console.Error.WriteLine($"trying to upsert channel {channel.Id}/{channel.Name}, but it's neither guildchannel nor private channel. shrug.jpg");
         }
-        return c;        
-    }
-    private Channel UpsertChannel(IGuild channel)
-    {
-        var c = _db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id);
-        if(c == null)
+        c.ParentChannel.SubChannels.Add(c);
+        c.SubChannels = c.SubChannels ?? new List<Channel>();
+        if (addPlease)
         {
-            c = _db.Channels.Add(new DiscordChannel()).Entity;
-            _db.SaveChanges();
+            _db.Channels.Add(c);
         }
-        c.ParentChannel = protocolInterface;
+
+        c.SendMessage = (t) => { return channel.SendMessageAsync(t); };
+        c.SendFile = (f, t) => { return channel.SendFileAsync(f, t); };
         return c;
     }
-
-    private User UpsertUser(SocketUser user)
+    internal Channel UpsertChannel(IGuild channel)
     {
-        var u = _db.Users.FirstOrDefault(ui => ui.ExternalId == user.Id);
-        if(u == null)
+        var addPlease = false;
+        Channel c = _db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id);
+        if (c == null)
         {
-            u = _db.Users.Add(new DiscordUser()).Entity;
-            _db.SaveChanges();
+            addPlease = true;
+            c = new Channel();
         }
+
+        c.DisplayName = channel.Name;
+        c.ExternalId = channel.Id;
+        c.IsDM = false;
+        c.Messages = c.Messages ?? new List<Message>();
+        //c.Messages = await channel.GetMessagesAsync(); //TODO: this, but only on startup or channel join
+        //c.OtherUsers = c.OtherUsers ?? new List<User>();
+        //c.OtherUsers = await channel.GetUsersAsync(); //TODO: this, but only on startup or channel join
+        c.Protocol = PROTOCOL;
+        c.ParentChannel = null;
+        c.SubChannels = c.SubChannels ?? new List<Channel>();
+        if (addPlease)
+        {
+            _db.Channels.Add(c);
+        }
+
+        c.SendMessage = (t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; cannot accept text"); };
+        c.SendFile = (f, t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; send file"); };
+        return c;
+    }
+    internal User UpsertUser(IUser user)
+    {
+        var addPlease = false;
+        var u = _db.Users.FirstOrDefault(ui => ui.ExternalId == user.Id);
+        if (u == null)
+        {
+            addPlease = true;
+            u = new User();
+        }
+        u.Username = user.Username;
+        u.ExternalId = user.Id;
+        u.IsBot = user.IsBot || user.IsWebhook;
+        u.Protocol = PROTOCOL;
+        if (addPlease)
+        {
+            _db.Users.Add(u);
+        }
+
         return u;
     }
 }

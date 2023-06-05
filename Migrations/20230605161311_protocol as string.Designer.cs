@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using vassago.Models;
@@ -11,9 +12,11 @@ using vassago.Models;
 namespace vassago.Migrations
 {
     [DbContext(typeof(ChattingContext))]
-    partial class ChattingContextModelSnapshot : ModelSnapshot
+    [Migration("20230605161311_protocol as string")]
+    partial class protocolasstring
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,12 +177,17 @@ namespace vassago.Migrations
                     b.Property<Guid?>("SeenInChannelId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Username")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("SeenInChannelId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Users");
                 });
@@ -226,8 +234,12 @@ namespace vassago.Migrations
             modelBuilder.Entity("vassago.Models.User", b =>
                 {
                     b.HasOne("vassago.Models.Channel", "SeenInChannel")
-                        .WithMany()
+                        .WithMany("OtherUsers")
                         .HasForeignKey("SeenInChannelId");
+
+                    b.HasOne("vassago.Models.User", null)
+                        .WithMany("KnownAliases")
+                        .HasForeignKey("UserId");
 
                     b.Navigation("SeenInChannel");
                 });
@@ -236,12 +248,19 @@ namespace vassago.Migrations
                 {
                     b.Navigation("Messages");
 
+                    b.Navigation("OtherUsers");
+
                     b.Navigation("SubChannels");
                 });
 
             modelBuilder.Entity("vassago.Models.Message", b =>
                 {
                     b.Navigation("Attachments");
+                });
+
+            modelBuilder.Entity("vassago.Models.User", b =>
+                {
+                    b.Navigation("KnownAliases");
                 });
 #pragma warning restore 612, 618
         }

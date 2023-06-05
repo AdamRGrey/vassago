@@ -25,7 +25,6 @@ public class thingmanagementdoer
     {
         var didThing = false;
         var contentWithoutMention = message.Content;
-        var mentionedMe = false;
         // if (message.Author.Id == 159985870458322944) //MEE6
         // {
         //     if (message.Content?.Contains("you just advanced") == true)
@@ -138,16 +137,17 @@ public class thingmanagementdoer
             }
             if (Regex.IsMatch(msgText, "!joke\\b"))
             {
+                Console.WriteLine("joking");
                 Features.Joke(message);
                 didThing = true;
             }
             if (Regex.IsMatch(msgText, "!pulse ?check\\b"))
             {
-                message.Channel.SendFile("assets/ekgblip.png");
+                message.Channel.SendFile("assets/ekgblip.png", null);
                 Console.WriteLine(Conversion.Converter.DebugInfo());
                 didThing = true;
             }
-            if (mentionedMe && (Regex.IsMatch(msgText, "\\brecipe for .+") || Regex.IsMatch(msgText, ".+ recipe\\b")))
+            if (message.MentionsMe && (Regex.IsMatch(msgText, "\\brecipe for .+") || Regex.IsMatch(msgText, ".+ recipe\\b")))
             {
                 Features.Recipe(message);
                 didThing = true;
@@ -157,7 +157,7 @@ public class thingmanagementdoer
                 message.Reply("that's not what cognitive dissonance means. Did you mean \"hypocrisy\"?");
                 didThing = true;
             }
-            if (mentionedMe && Regex.IsMatch(msgText, "what'?s the longest (six|6)(-| )?letter word( in english)?\\b"))
+            if (message.MentionsMe && Regex.IsMatch(msgText, "what'?s the longest (six|6)(-| )?letter word( in english)?\\b"))
             {
                 Task.Run(async () =>
                 {
@@ -168,7 +168,7 @@ public class thingmanagementdoer
                 didThing = true;
             }
             if (Regex.IsMatch(msgText, "\\bthank (yo)?u\\b", RegexOptions.IgnoreCase) &&
-            (mentionedMe || Regex.IsMatch(msgText, "\\b(sh?tik)?bot\\b", RegexOptions.IgnoreCase)))
+            (message.MentionsMe || Regex.IsMatch(msgText, "\\b(sh?tik)?bot\\b", RegexOptions.IgnoreCase)))
             {
                 switch (Shared.r.Next(4))
                 {
@@ -222,7 +222,7 @@ public class thingmanagementdoer
             //     await message.Channel.SendMessage("text", false, null, null, null, null, new ComponentBuilder().WithButton("label", "custom-id").Build());
             //     didThing = true;
             // }
-            if (didThing == false && mentionedMe && contentWithoutMention.Contains('?'))
+            if (didThing == false && message.MentionsMe && contentWithoutMention.Contains('?'))
             {
                 Console.WriteLine("providing bullshit nonanswer / admitting uselessness");
                 var responses = new List<string>(){

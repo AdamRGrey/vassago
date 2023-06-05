@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace vassago.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class initialcreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -69,10 +69,9 @@ namespace vassago.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ExternalId = table.Column<decimal>(type: "numeric(20,0)", nullable: true),
-                    DisplayName = table.Column<string>(type: "text", nullable: true),
+                    Username = table.Column<string>(type: "text", nullable: true),
                     IsBot = table.Column<bool>(type: "boolean", nullable: false),
                     ProtocolId = table.Column<Guid>(type: "uuid", nullable: true),
-                    External = table.Column<string>(type: "text", nullable: true),
                     UserId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
@@ -124,7 +123,6 @@ namespace vassago.Migrations
                     MentionsMe = table.Column<bool>(type: "boolean", nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     ActedOn = table.Column<bool>(type: "boolean", nullable: false),
-                    ExternalRepresentation = table.Column<string>(type: "text", nullable: true),
                     AuthorId = table.Column<Guid>(type: "uuid", nullable: true),
                     ChannelId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
@@ -152,7 +150,10 @@ namespace vassago.Migrations
                     Source = table.Column<string>(type: "text", nullable: true),
                     Content = table.Column<byte[]>(type: "bytea", nullable: true),
                     Filename = table.Column<string>(type: "text", nullable: true),
-                    MessageId = table.Column<Guid>(type: "uuid", nullable: true)
+                    MessageId = table.Column<Guid>(type: "uuid", nullable: true),
+                    ContentType = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Size = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {

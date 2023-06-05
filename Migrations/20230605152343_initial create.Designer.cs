@@ -12,8 +12,8 @@ using vassago.Models;
 namespace vassago.Migrations
 {
     [DbContext(typeof(ChattingContext))]
-    [Migration("20230601033836_initial")]
-    partial class initial
+    [Migration("20230605152343_initial create")]
+    partial class initialcreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -49,6 +49,12 @@ namespace vassago.Migrations
                     b.Property<byte[]>("Content")
                         .HasColumnType("bytea");
 
+                    b.Property<string>("ContentType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
                     b.Property<decimal?>("ExternalId")
                         .HasColumnType("numeric(20,0)");
 
@@ -57,6 +63,9 @@ namespace vassago.Migrations
 
                     b.Property<Guid?>("MessageId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Source")
                         .HasColumnType("text");
@@ -132,9 +141,6 @@ namespace vassago.Migrations
                     b.Property<decimal?>("ExternalId")
                         .HasColumnType("numeric(20,0)");
 
-                    b.Property<string>("ExternalRepresentation")
-                        .HasColumnType("text");
-
                     b.Property<bool>("MentionsMe")
                         .HasColumnType("boolean");
 
@@ -184,12 +190,6 @@ namespace vassago.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("DisplayName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("External")
-                        .HasColumnType("text");
-
                     b.Property<decimal?>("ExternalId")
                         .HasColumnType("numeric(20,0)");
 
@@ -201,6 +201,9 @@ namespace vassago.Migrations
 
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

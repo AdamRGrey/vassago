@@ -1,8 +1,11 @@
 namespace vassago.Models;
 
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
+
 public class PermissionSettings
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     public uint? MaxAttachmentBytes { get; set; }
     public uint? MaxTextChars { get; set; }

@@ -47,7 +47,7 @@ public static class Features
                     {
                         try
                         {
-                            await message.Channel.SendFile(path);
+                            await message.Channel.SendFile(path, null);
                         }
                         catch (Exception e)
                         {
@@ -140,7 +140,7 @@ public static class Features
         File.WriteAllText($"tmp/qr{todaysnumber}.svg", qrCodeAsSvg);
         if (ExternalProcess.GoPlz("convert", $"tmp/qr{todaysnumber}.svg tmp/qr{todaysnumber}.png"))
         {
-            await message.Channel.SendFile($"tmp/qr{todaysnumber}.png");
+            await message.Channel.SendFile($"tmp/qr{todaysnumber}.png", null);
             File.Delete($"tmp/qr{todaysnumber}.svg");
             File.Delete($"tmp/qr{todaysnumber}.png");
         }
@@ -156,6 +156,7 @@ public static class Features
     }
     public static async void Joke(Message message)
     {
+        Console.WriteLine("joking");
         var jokes = File.ReadAllLines("assets/jokes.txt");
         jokes = jokes.Where(l => !string.IsNullOrWhiteSpace(l))?.ToArray();
         if (jokes?.Length == 0)
@@ -173,11 +174,12 @@ public static class Features
                 var punchline = thisJoke.Substring(firstIndexAfterQuestionMark, thisJoke.Length - firstIndexAfterQuestionMark);
                 Task.WaitAll(message.Channel.SendMessage(straightline));
                 Thread.Sleep(TimeSpan.FromSeconds(r.Next(5, 30)));
-                var myOwnMsg = await message.Channel.SendMessage(punchline);
-                if (r.Next(8) == 0)
-                {
-                    await myOwnMsg.React("\U0001F60E"); //smiling face with sunglasses
-                }
+                await message.Channel.SendMessage(punchline);
+                // var myOwnMsg = await message.Channel.SendMessage(punchline);
+                // if (r.Next(8) == 0)
+                // {
+                //     await myOwnMsg.React("\U0001F60E"); //smiling face with sunglasses
+                // }
             });
 #pragma warning restore 4014
         }
