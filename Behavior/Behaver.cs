@@ -8,15 +8,14 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-//TODO: better name
-public class thingmanagementdoer
+public class Behaver
 {
-    internal thingmanagementdoer() { }        
-    static thingmanagementdoer() { }
+    internal Behaver() { }        
+    static Behaver() { }
 
-    private static readonly thingmanagementdoer _instance = new thingmanagementdoer();
+    private static readonly Behaver _instance = new Behaver();
 
-    public static thingmanagementdoer Instance
+    public static Behaver Instance
     {
         get { return _instance; }
     }
@@ -24,49 +23,41 @@ public class thingmanagementdoer
     public async Task<bool> ActOn(Message message)
     {
         var didThing = false;
+        //TODO: get combined permissions for author and channel
         var contentWithoutMention = message.Content;
-        // if (message.Author.Id == 159985870458322944) //MEE6
+
+        ///behavior exists
+        // var wordLikes = message.Content.Split(' ', StringSplitOptions.TrimEntries);
+        // var links = wordLikes?.Where(wl => Uri.IsWellFormedUriString(wl, UriKind.Absolute)).Select(wl => new Uri(wl));
+        // if (links != null && links.Count() > 0)
         // {
-        //     if (message.Content?.Contains("you just advanced") == true)
+        //     foreach (var link in links)
         //     {
-        //         var newText = Regex.Replace(message.Content, "<[^>]*>", message.Author.Username);
-        //         newText = Regex.Replace(newText, "level [\\d]+", "level -1");
-        //         Features.mock(newText, message);
-        //         didThing = true;
+        //         if (link.Host.EndsWith(".tiktok.com"))
+        //         {
+        //             Features.detiktokify(link, message);
+        //             didThing = true;
+        //         }
         //     }
         // }
-        var wordLikes = message.Content.Split(' ', StringSplitOptions.TrimEntries);
-        var links = wordLikes?.Where(wl => Uri.IsWellFormedUriString(wl, UriKind.Absolute)).Select(wl => new Uri(wl));
-        if (links != null && links.Count() > 0)
-        {
-            foreach (var link in links)
-            {
-                if (link.Host.EndsWith(".tiktok.com"))
-                {
-                    Features.detiktokify(link, message);
-                    didThing = true;
-                }
-            }
-        }
-
-        if (message.Attachments?.Count() > 0)
-        {
-            Console.WriteLine($"{message.Attachments.Count()} attachments");
-            var appleReactions = false;
-            foreach (var att in message.Attachments)
-            {
-                if (att.Filename?.EndsWith(".heic") == true)
-                {
-                    Features.deheic(message, att);
-                    appleReactions = true;
-                    didThing = true;
-                }
-            }
-            if (appleReactions)
-            {
-                message.React("\U0001F34F");
-            }
-        }
+        // if (message.Attachments?.Count() > 0)
+        // {
+        //     Console.WriteLine($"{message.Attachments.Count()} attachments");
+        //     var appleReactions = false;
+        //     foreach (var att in message.Attachments)
+        //     {
+        //         if (att.Filename?.EndsWith(".heic") == true)
+        //         {
+        //             Features.deheic(message, att);
+        //             appleReactions = true;
+        //             didThing = true;
+        //         }
+        //     }
+        //     if (appleReactions)
+        //     {
+        //         message.React("\U0001F34F");
+        //     }
+        // }
 
         var msgText = message.Content?.ToLower();
         if (!string.IsNullOrWhiteSpace(msgText))
@@ -125,11 +116,11 @@ public class thingmanagementdoer
                 message.Channel.SendMessage("that's not what gaslight means. Did you mean \"say something that (you believe) is wrong\"?");
                 didThing = true;
             }
-            if (msgText.Contains("!qrplz "))
-            {
-                Features.qrify(message.Content.Substring("!qrplz ".Length + msgText.IndexOf("!qrplz ")), message);
-                didThing = true;
-            }
+            // if (msgText.Contains("!qrplz "))
+            // {
+            //     Features.qrify(message.Content.Substring("!qrplz ".Length + msgText.IndexOf("!qrplz ")), message);
+            //     didThing = true;
+            // }
             if (msgText.Contains("!freedomunits "))
             {
                 Features.Convert(message, contentWithoutMention);

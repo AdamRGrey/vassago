@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 
-public class User //more like "user's account - no concept of the person outside of the protocol. (yet?)
+public class User //TODO: distinguish the user and their account
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; set; }

@@ -25,11 +25,6 @@ public class DiscordInterface
 
     public async Task Init(string token)
     {
-        //var c = _db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id);
-        //Todo: find protocol reference in DB.
-        //TODO: should protocol be shared across mutliple accounts on that protocol? should protocol be a per-vassago-account thing? 
-        //TODO: should protocol be associated with a connection token? how would that be updated?
-
         client = new DiscordSocketClient(new DiscordSocketConfig() { GatewayIntents = GatewayIntents.All });
 
         client.Log += (msg) =>
@@ -96,7 +91,7 @@ public class DiscordInterface
 
         if ((suMessage.Author.Id != client.CurrentUser.Id))
         {
-            if (await thingmanagementdoer.Instance.ActOn(m))
+            if (await Behaver.Instance.ActOn(m))
             {
                 m.ActedOn = true;
             }
@@ -110,27 +105,7 @@ public class DiscordInterface
         var defaultChannel = UpsertChannel(arg.Guild.DefaultChannel);
         defaultChannel.ParentChannel = guild;
         var u = UpsertUser(arg);
-        //TODO: seen in channels
-        // if (u.SeenInChannels == null) u.SeenInChannels = new List<Channel>();
-        // var sighting = u.SeenInChannels?.FirstOrDefault(c => c.ExternalId == arg.Guild.Id);
-        // if (sighting == null)
-        // {
-        //     var seenIn = u.SeenInChannels as List<Channel>;
-        //     seenIn.Add(guild);
-        //     seenIn.Add(defaultChannel);
-        //     u.SeenInChannels = seenIn;
-        //     _db.SaveChanges();
-        // }
-        return thingmanagementdoer.Instance.OnJoin(u, defaultChannel);
-
-        // Console.WriteLine($"user joined: {arg.Nickname}. Guid: {arg.Guild.Id}. Channel: {arg.Guild.DefaultChannel}");
-        // var abbreviatedNickname = arg.Nickname;
-        // if (arg.Nickname.Length > 3)
-        // {
-        //     abbreviatedNickname = arg.Nickname.Substring(0, arg.Nickname.Length / 3);
-        // }
-        // Console.WriteLine($"imma call him {abbreviatedNickname}");
-        // return arg.Guild.DefaultChannel.SendMessageAsync($"oh hey {abbreviatedNickname}- IPLAYTHESEALOFORICHALCOS <:ORICHALCOS:852749196633309194>");
+        return Behaver.Instance.OnJoin(u, defaultChannel);
     }
     private async Task ButtonHandler(SocketMessageComponent component)
     {
@@ -240,9 +215,6 @@ public class DiscordInterface
         c.ExternalId = channel.Id;
         c.IsDM = channel is IPrivateChannel;
         c.Messages = c.Messages ?? new List<Message>();
-        //c.Messages = await channel.GetMessagesAsync(); //TODO: this, but only on startup or channel join
-        //c.OtherUsers = c.OtherUsers ?? new List<User>();
-        //c.OtherUsers = await channel.GetUsersAsync(); //TODO: this, but only on startup or channel join
         c.Protocol = PROTOCOL;
         if (channel is IGuildChannel)
         {
@@ -282,9 +254,6 @@ public class DiscordInterface
         c.ExternalId = channel.Id;
         c.IsDM = false;
         c.Messages = c.Messages ?? new List<Message>();
-        //c.Messages = await channel.GetMessagesAsync(); //TODO: this, but only on startup or channel join
-        //c.OtherUsers = c.OtherUsers ?? new List<User>();
-        //c.OtherUsers = await channel.GetUsersAsync(); //TODO: this, but only on startup or channel join
         c.Protocol = PROTOCOL;
         c.ParentChannel = null;
         c.SubChannels = c.SubChannels ?? new List<Channel>();
@@ -316,5 +285,26 @@ public class DiscordInterface
         }
 
         return u;
+    }
+    internal async void BackfillChannelInfo(Channel channel)
+    {
+        //TODO: some sort of "when you get around to it" task queue
+
+        //c.Messages = await channel.GetMessagesAsync(); //TODO: this
+        //c.OtherUsers = c.OtherUsers ?? new List<User>();
+        //c.OtherUsers = await channel.GetUsersAsync(); 
+        var dChannel = client.GetChannel(channel.ExternalId.Value);
+        if(dChannel is IGuild)
+        {
+            var guild = channel as IGuild;
+        }
+        else if(dChannel is IGuildChannel)
+        {
+            var gc = dChannel as IGuildChannel;
+        }
+        else if (dChannel is IPrivateChannel)
+        {
+            var dm = dChannel as IPrivateChannel;
+        }
     }
 }

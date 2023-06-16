@@ -18,7 +18,7 @@ public class Channel
     public List<Channel> SubChannels { get; set; }
     public Channel ParentChannel { get; set; }
     public string Protocol { get; set; }
-    public IEnumerable<Message> Messages { get; set; }
+    public List<Message> Messages { get; set; }
 
     [NonSerialized]
     public Func<string, string, Task> SendFile;

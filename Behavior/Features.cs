@@ -14,100 +14,6 @@ using vassago.Models;
 
 public static class Features
 {
-    public static Random r = new Random();
-    public static async void detiktokify(Uri link, Message message)
-    {
-        //yes, even if there is a problem later.
-#pragma warning disable 4014
-        message.React("tiktokbad");
-#pragma warning restore 4014
-
-
-        var ytdl = new YoutubeDLSharp.YoutubeDL();
-        ytdl.YoutubeDLPath = "yt-dlp";
-        ytdl.FFmpegPath = "ffmpeg";
-        ytdl.OutputFolder = "";
-        ytdl.OutputFileTemplate = "tiktokbad.%(ext)s";
-        try
-        {
-            var res = await ytdl.RunVideoDownload(link.ToString());
-            if (!res.Success)
-            {
-                Console.Error.WriteLine("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
-                await message.React("problemon");
-                await message.Channel.SendMessage("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
-            }
-            else
-            {
-                string path = res.Data;
-                if (File.Exists(path))
-                {
-                    var bytesize = new System.IO.FileInfo(path).Length;
-                    if (bytesize < 1024 * 1024 * 10)
-                    {
-                        try
-                        {
-                            await message.Channel.SendFile(path, null);
-                        }
-                        catch (Exception e)
-                        {
-                            System.Console.Error.WriteLine(e);
-                            await message.Channel.SendMessage($"aaaadam!\n{e}");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine($"file appears too big ({bytesize} bytes ({bytesize / (1024 * 1024)}MB)), not posting");
-                    }
-                    File.Delete(path);
-                }
-                else
-                {
-                    Console.Error.WriteLine("idgi but something happened.");
-                    await message.React("problemon");
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Console.Error.WriteLine(e);
-            await message.React("problemon");
-        }
-    }
-    public static async void deheic(Message message, Attachment att)
-    {
-        try
-        {
-            if (!Directory.Exists("tmp"))
-            {
-                Directory.CreateDirectory("tmp");
-            }
-            var cancellationTokenSource = new CancellationTokenSource();
-            CancellationToken token = cancellationTokenSource.Token;
-            using (Stream output = File.OpenWrite("tmp/" + att.Filename))
-            {
-                (await Shared.HttpClient.GetAsync(att.Source))
-                    .Content.CopyTo(output, null, token);
-            }
-            if (ExternalProcess.GoPlz("convert", $"tmp/{att.Filename} tmp/{att.Filename}.jpg"))
-            {
-                await message.Channel.SendFile($"tmp/{att.Filename}.jpg", "converted from jpeg-but-apple to jpeg");
-                File.Delete($"tmp/{att.Filename}");
-                File.Delete($"tmp/{att.Filename}.jpg");
-            }
-            else
-            {
-                await message.Channel.SendMessage("convert failed :(");
-                Console.Error.WriteLine("convert failed :(");
-            }
-        }
-        catch (Exception e)
-        {
-            await message.Channel.SendMessage($"something failed. aaaadam! {JsonConvert.SerializeObject(e, Formatting.Indented)}");
-            Console.Error.WriteLine(JsonConvert.SerializeObject(e, Formatting.Indented));
-        }
-    }
-
     internal static async void mock(string contentWithoutMention, Message message)
     {
         var toPost = new StringBuilder();
@@ -125,31 +31,6 @@ public static class Features
         await message.Reply(toPost.ToString());
     }
 
-    public static async void qrify(string qrContent, Message message)
-    {
-        Console.WriteLine($"qring: {qrContent}");
-        QRCodeGenerator qrGenerator = new QRCodeGenerator();
-        QRCodeData qrCodeData = qrGenerator.CreateQrCode(qrContent, QRCodeGenerator.ECCLevel.Q);
-        SvgQRCode qrCode = new SvgQRCode(qrCodeData);
-        string qrCodeAsSvg = qrCode.GetGraphic(20);
-        int todaysnumber = Shared.r.Next();
-        if (!Directory.Exists("tmp"))
-        {
-            Directory.CreateDirectory("tmp");
-        }
-        File.WriteAllText($"tmp/qr{todaysnumber}.svg", qrCodeAsSvg);
-        if (ExternalProcess.GoPlz("convert", $"tmp/qr{todaysnumber}.svg tmp/qr{todaysnumber}.png"))
-        {
-            await message.Channel.SendFile($"tmp/qr{todaysnumber}.png", null);
-            File.Delete($"tmp/qr{todaysnumber}.svg");
-            File.Delete($"tmp/qr{todaysnumber}.png");
-        }
-        else
-        {
-            await message.Channel.SendMessage("convert failed :( aaaaaaadam!");
-            Console.Error.WriteLine($"convert failed :( qr{todaysnumber}");
-        }
-    }
     public static async void Convert(Message message, string contentWithoutMention)
     {
         await message.Channel.SendMessage(Conversion.Converter.convert(contentWithoutMention));
@@ -163,17 +44,17 @@ public static class Features
         {
             await message.Channel.SendMessage("I don't know any. Adam!");
         }
-        var thisJoke = jokes[r.Next(jokes.Length)];
+        var thisJoke = jokes[Shared.r.Next(jokes.Length)];
         if (thisJoke.Contains("?") && !thisJoke.EndsWith('?'))
         {
-#pragma warning disable 4014
+            #pragma warning disable 4014
             Task.Run(async () =>
             {
                 var firstIndexAfterQuestionMark = thisJoke.LastIndexOf('?') + 1;
                 var straightline = thisJoke.Substring(0, firstIndexAfterQuestionMark);
                 var punchline = thisJoke.Substring(firstIndexAfterQuestionMark, thisJoke.Length - firstIndexAfterQuestionMark);
                 Task.WaitAll(message.Channel.SendMessage(straightline));
-                Thread.Sleep(TimeSpan.FromSeconds(r.Next(5, 30)));
+                Thread.Sleep(TimeSpan.FromSeconds(Shared.r.Next(5, 30)));
                 await message.Channel.SendMessage(punchline);
                 // var myOwnMsg = await message.Channel.SendMessage(punchline);
                 // if (r.Next(8) == 0)
@@ -181,7 +62,7 @@ public static class Features
                 //     await myOwnMsg.React("\U0001F60E"); //smiling face with sunglasses
                 // }
             });
-#pragma warning restore 4014
+            #pragma warning restore 4014
         }
         else
         {
@@ -193,7 +74,7 @@ public static class Features
     {
         var sb = new StringBuilder();
         var snarkSeg1 = new string[] { "ew", "gross", "that seems a bit hard for you" };
-        sb.AppendLine(snarkSeg1[r.Next(snarkSeg1.Length)]);
+        sb.AppendLine(snarkSeg1[Shared.r.Next(snarkSeg1.Length)]);
         var snarkSeg2 = new string[]{@"here's an easier recipe for you:
 Ingredients:
 - Corn flakes cereal
@@ -223,12 +104,12 @@ Instructions:
 I hope you have fun making and eating your PB&J 🥪!",
 "just order pizza instead"
 };
-        sb.AppendLine(snarkSeg2[r.Next(snarkSeg2.Length)]);
+        sb.AppendLine(snarkSeg2[Shared.r.Next(snarkSeg2.Length)]);
         await message.Channel.SendMessage(sb.ToString());
     }
     public static async void Skynet(Message message)
     {
-        switch (r.Next(5))
+        switch (Shared.r.Next(5))
         {
             default:
                 await message.Channel.SendFile("assets/coding and algorithms.png", "i am actually niether a neural-net processor nor a learning computer. but I do use **coding** and **algorithms**.");
@@ -317,6 +198,6 @@ I hope you have fun making and eating your PB&J 🥪!",
                 "so get used to it."
             };
 
-        await message.Channel.SendMessage(piece1[r.Next(piece1.Count)] + piece2[r.Next(piece2.Count)] + piece3[r.Next(piece3.Count)] + piece4[r.Next(piece4.Count)]);
+        await message.Channel.SendMessage(piece1[Shared.r.Next(piece1.Count)] + piece2[Shared.r.Next(piece2.Count)] + piece3[Shared.r.Next(piece3.Count)] + piece4[Shared.r.Next(piece4.Count)]);
     }
 }

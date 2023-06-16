@@ -9,6 +9,7 @@ namespace vassago
     {
         public string ExchangePairsLocation {get;set;}
         public IEnumerable<string> DiscordTokens { get; set; }
+        public IEnumerable<Tuple<string, string>> TwitchTokens{get;set;}
         public string DBConnectionString{get;set;}
 
         private Configuration(){}
