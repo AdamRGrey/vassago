@@ -23,6 +23,7 @@ namespace vassago.DiscordInterface
         };
         public static async Task Register(DiscordSocketClient client)
         {
+            return;
             var commandsInContext = await client.GetGlobalApplicationCommandsAsync();
             await Register(client, commandsInContext, null);
             foreach (var guild in client.Guilds)
@@ -110,7 +111,7 @@ namespace vassago.DiscordInterface
         {
             public string Id { get; set; }
             //the date/time you updated yours IN UTC.
-            public DateTimeOffset UpdatedAt { get; set; } 
+            public DateTimeOffset UpdatedAt { get; set; }
             public Registration register { get; set; }
             public ulong? guild { get; set; }
             public bool alreadyRegistered {get;set; } = false;

@@ -47,7 +47,7 @@ public class DiscordInterface
             if (!eventsSignedUp)
             {
                 eventsSignedUp = true;
-                Console.WriteLine("Bot is connected! going to sign up for message received and user joined in client ready");
+                Console.WriteLine($"Bot is connected {client.CurrentUser.Mention}! going to sign up for message received and user joined in client ready");
 
                 client.MessageReceived += MessageReceived;
                 // _client.MessageUpdated +=
@@ -59,12 +59,12 @@ public class DiscordInterface
                 // _client.GuildMemberUpdated +=
                 // _client.UserBanned +=
                 // _client.UserLeft +=
-                // _client.ThreadCreated += 
-                // _client.ThreadUpdated += 
+                // _client.ThreadCreated +=
+                // _client.ThreadUpdated +=
                 // _client.ThreadDeleted +=
                 // _client.JoinedGuild +=
-                // _client.GuildUpdated += 
-                // _client.LeftGuild += 
+                // _client.GuildUpdated +=
+                // _client.LeftGuild +=
 
                 SlashCommandsHelper.Register(client).GetAwaiter().GetResult();
             }
@@ -77,7 +77,7 @@ public class DiscordInterface
         await client.LoginAsync(TokenType.Bot, token);
         await client.StartAsync();
     }
-    
+
     #pragma warning disable 4014 //the "you're not awaiting this" warning. yeah I know, that's the beauty of an async method lol
     #pragma warning disable 1998 //the "it's async but you're not awaiting anything".
     private async Task MessageReceived(SocketMessage messageParam)
@@ -99,7 +99,7 @@ public class DiscordInterface
             m.MentionsMe = true;
         }
 
-        if ((suMessage.Author.Id != client.CurrentUser.Id))
+//        if ((suMessage.Author.Id != client.CurrentUser.Id))
         {
             if (await Behaver.Instance.ActOn(m))
             {
@@ -111,7 +111,7 @@ public class DiscordInterface
 
     private void UserJoined(SocketGuildUser arg)
     {
-        
+
             var guild = UpsertChannel(arg.Guild);
             var defaultChannel = UpsertChannel(arg.Guild.DefaultChannel);
             defaultChannel.ParentChannel = guild;
@@ -198,6 +198,7 @@ public class DiscordInterface
         m.ExternalId = dMessage.Id;
         m.Timestamp = dMessage.EditedTimestamp ?? dMessage.CreatedAt;
 
+
         if (dMessage.MentionedUserIds?.FirstOrDefault(muid => muid == client.CurrentUser.Id) != null)
         {
             m.MentionsMe = true;
@@ -208,9 +209,26 @@ public class DiscordInterface
         }
 
         m.Reply = (t) => { return dMessage.ReplyAsync(t); };
-        m.React = (e) => { return dMessage.AddReactionAsync(Emote.Parse(e)); };
+        m.React = (e) => { return attemptReact(dMessage, e); };
         return m;
     }
+
+    private Task attemptReact(IUserMessage msg, string e)
+    {
+        var c = _db.Channels.FirstOrDefault(c => c.ExternalId == msg.Channel.Id);
+        //var preferredEmote = c.EmoteOverrides?[e] ?? e; //TODO: emote overrides
+        var preferredEmote = e;
+        Emote emote;
+        if(!Emote.TryParse(preferredEmote, out emote))
+        {
+            if(preferredEmote == e)
+                Console.Error.WriteLine($"never heard of emote {e}");
+            return null;
+        }
+
+        return msg.AddReactionAsync(emote);
+    }
+
     internal Channel UpsertChannel(IMessageChannel channel)
     {
         var addPlease = false;
@@ -276,14 +294,14 @@ public class DiscordInterface
         c.SendFile = (f, t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; send file"); };
         return c;
     }
-    internal User UpsertUser(IUser user)
+    internal Account UpsertUser(IUser user)
     {
         var addPlease = false;
         var u = _db.Users.FirstOrDefault(ui => ui.ExternalId == user.Id);
         if (u == null)
         {
             addPlease = true;
-            u = new User();
+            u = new Account();
         }
         u.Username = user.Username;
         u.ExternalId = user.Id;
@@ -302,7 +320,7 @@ public class DiscordInterface
 
         //c.Messages = await channel.GetMessagesAsync(); //TODO: this
         //c.OtherUsers = c.OtherUsers ?? new List<User>();
-        //c.OtherUsers = await channel.GetUsersAsync(); 
+        //c.OtherUsers = await channel.GetUsersAsync();
         var dChannel = client.GetChannel(channel.ExternalId.Value);
         if(dChannel is IGuild)
         {

@@ -20,9 +20,10 @@ public class LaughAtOwnJoke : Behavior
 
     public override bool ShouldAct(Message message)
     {
+
         //TODO: i need to keep track of myself from here somehow
-        return false;
-        //return message.Author == me && punchlinesAwaitingReaction.Contains(message.Content);
+        //return false;
+        return /*message.Author == me &&*/ punchlinesAwaitingReaction.Contains(message.Content);
     }
 
     public override async Task<bool> ActOn(Message message)

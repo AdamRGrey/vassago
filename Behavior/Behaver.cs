@@ -34,9 +34,6 @@ public class Behaver
 
     public async Task<bool> ActOn(Message message)
     {
-        var permissions = new PermissionSettings(); //TODO: get combined permissions for author and channel
-        var contentWithoutMention = message.Content;
-
         foreach (var behavior in behaviors)
         {
             if (behavior.ShouldAct(message))
@@ -45,7 +42,7 @@ public class Behaver
                 message.ActedOn = true;
             }
         }
-        if (message.ActedOn == false && message.MentionsMe && contentWithoutMention.Contains('?'))
+        if (message.ActedOn == false && message.MentionsMe && message.Content.Contains('?'))
         {
             Console.WriteLine("providing bullshit nonanswer / admitting uselessness");
             var responses = new List<string>(){

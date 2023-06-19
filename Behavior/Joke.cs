@@ -37,12 +37,12 @@ public class Joke : Behavior
                 var punchline = thisJoke.Substring(firstIndexAfterQuestionMark, thisJoke.Length - firstIndexAfterQuestionMark);
                 Task.WaitAll(message.Channel.SendMessage(straightline));
                 Thread.Sleep(TimeSpan.FromSeconds(Shared.r.Next(5, 30)));
+                //if (Shared.r.Next(8) == 0)
+                {
+                    LaughAtOwnJoke.punchlinesAwaitingReaction.Add(punchline);
+                }
                 await message.Channel.SendMessage(punchline);
                 // var myOwnMsg = await message.Channel.SendMessage(punchline);
-                if (Shared.r.Next(8) == 0)
-                {
-                    LaughAtOwnJoke.punchlinesAwaitingReaction.Add(punchline);                     
-                }
             });
             #pragma warning restore 4014
         }

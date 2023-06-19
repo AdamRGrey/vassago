@@ -45,12 +45,13 @@ public class Detiktokify : Behavior
     {
         foreach(var link in tiktokLinks)
         {
-            #pragma warning disable 4014
-            message.React("tiktokbad");
-            #pragma warning restore 4014
-
             try
             {
+                Console.WriteLine("detiktokifying");
+                #pragma warning disable 4014
+                await message.React("<:tiktok:1070038619584200884>");
+                #pragma warning restore 4014
+
                 var res = await ytdl.RunVideoDownload(link.ToString());
                 if (!res.Success)
                 {

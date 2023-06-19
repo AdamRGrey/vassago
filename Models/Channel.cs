@@ -19,6 +19,8 @@ public class Channel
     public Channel ParentChannel { get; set; }
     public string Protocol { get; set; }
     public List<Message> Messages { get; set; }
+    public List<Account> Users { get; set; }
+    //public Dictionary<string, string> EmoteOverrides{get;set;}
 
     [NonSerialized]
     public Func<string, string, Task> SendFile;
