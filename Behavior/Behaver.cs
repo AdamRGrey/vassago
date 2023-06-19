@@ -61,10 +61,5 @@ public class Behaver
         }
         return message.ActedOn;
     }
-
-    internal Task OnJoin(User u, Channel defaultChannel)
-    {
-        throw new NotImplementedException();
-    }
 }
 #pragma warning restore 4014 //the "async not awaited" error
