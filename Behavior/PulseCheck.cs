@@ -14,7 +14,7 @@ public class PulseCheck : Behavior
 
     public override string Trigger => "!pluse ?check";
 
-    public override async Task<bool> ActOn(PermissionSettings permissions, Message message)
+    public override async Task<bool> ActOn(Message message)
     {
         await message.Channel.SendFile("assets/ekgblip.png", null);
         return true;

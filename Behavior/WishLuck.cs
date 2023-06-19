@@ -16,7 +16,7 @@ public class WishLuck : Behavior
 
     public override string Description => "wishes you luck";
 
-    public override async Task<bool> ActOn(PermissionSettings permissions, Message message)
+    public override async Task<bool> ActOn(Message message)
     {
         if (Shared.r.Next(20) == 0)
         {

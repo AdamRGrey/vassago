@@ -15,11 +15,11 @@ public class Gratitude : Behavior
 
     public override string Trigger => "thank me";
 
-    public override bool ShouldAct(PermissionSettings permissions, Message message)
+    public override bool ShouldAct(Message message)
     {
         return Regex.IsMatch(message.Content, "\\bthank (yo)?u\\b", RegexOptions.IgnoreCase) && message.MentionsMe;
     }
-    public override async Task<bool> ActOn(PermissionSettings permissions, Message message)
+    public override async Task<bool> ActOn(Message message)
     {
 
         switch (Shared.r.Next(4))

@@ -16,7 +16,7 @@ public class ChatGPTSnark : Behavior
 
     public override string Description => "snarkiness about the latest culty-fixation in ai";
 
-    public override async Task<bool> ActOn(PermissionSettings permissions, Message message)
+    public override async Task<bool> ActOn(Message message)
     {
         await message.Channel.SendMessage("chatGPT is **weak**. also, are we done comparing every little if-then-else to skynet?");
         return true;

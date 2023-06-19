@@ -22,9 +22,9 @@ public class Detiktokify : Behavior
         ytdl.OutputFolder = "";
         ytdl.OutputFileTemplate = "tiktokbad.%(ext)s";
     }
-    public override bool ShouldAct(PermissionSettings permissions, Message message)
+    public override bool ShouldAct(Message message)
     {
-        if(permissions.MaxAttachmentBytes == 0)
+        if(message.Channel.EffectivePermissions.MaxAttachmentBytes == 0)
             return false;
 
         var wordLikes = message.Content.Split(' ', StringSplitOptions.TrimEntries);
@@ -41,7 +41,7 @@ public class Detiktokify : Behavior
         }
         return tiktokLinks.Any();
     }
-    public override async Task<bool> ActOn(PermissionSettings permissions, Message message)
+    public override async Task<bool> ActOn(Message message)
     {
         foreach(var link in tiktokLinks)
         {
@@ -64,7 +64,7 @@ public class Detiktokify : Behavior
                     if (File.Exists(path))
                     {
                         var bytesize = new System.IO.FileInfo(path).Length;
-                        if (bytesize < permissions.MaxAttachmentBytes - 256)
+                        if (bytesize < message.Channel.EffectivePermissions.MaxAttachmentBytes - 256)
                         {
                             try
                             {

@@ -18,7 +18,7 @@ public class QRify : Behavior
 
     public override string Description => "generate text QR codes";
 
-    public override async Task<bool> ActOn(PermissionSettings permissions, Message message)
+    public override async Task<bool> ActOn(Message message)
     {
         var qrContent = message.Content.Substring($"{Trigger} ".Length + message.Content.IndexOf(Trigger));
         Console.WriteLine($"qring: {qrContent}");

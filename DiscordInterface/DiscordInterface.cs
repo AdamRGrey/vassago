@@ -18,6 +18,15 @@ public class DiscordInterface
     internal DiscordSocketClient client;
     private bool eventsSignedUp = false;
     private ChattingContext _db;
+    private static PermissionSettings defaultPermissions = new PermissionSettings()
+    {
+        MeannessFilterLevel = 1,
+        LewdnessFilterLevel = 3,
+        MaxTextChars = 2000,
+        MaxAttachmentBytes = 8 * 1024 * 1024,
+        LinksAllowed = true,
+        ReactionsPossible = true
+    };
     public DiscordInterface()
     {
         _db = Shared.dbContext;
@@ -42,7 +51,7 @@ public class DiscordInterface
 
                 client.MessageReceived += MessageReceived;
                 // _client.MessageUpdated +=
-                client.UserJoined += UserJoined;
+                // client.UserJoined += UserJoined;
                 client.SlashCommandExecuted += SlashCommandHandler;
                 // _client.ChannelCreated +=
                 // _client.ChannelDestroyed +=
@@ -100,13 +109,13 @@ public class DiscordInterface
         _db.SaveChanges();
     }
 
-    private Task UserJoined(SocketGuildUser arg)
+    private void UserJoined(SocketGuildUser arg)
     {
-        var guild = UpsertChannel(arg.Guild);
-        var defaultChannel = UpsertChannel(arg.Guild.DefaultChannel);
-        defaultChannel.ParentChannel = guild;
-        var u = UpsertUser(arg);
-        return Behaver.Instance.OnJoin(u, defaultChannel);
+        
+            var guild = UpsertChannel(arg.Guild);
+            var defaultChannel = UpsertChannel(arg.Guild.DefaultChannel);
+            defaultChannel.ParentChannel = guild;
+            var u = UpsertUser(arg);
     }
     private async Task ButtonHandler(SocketMessageComponent component)
     {

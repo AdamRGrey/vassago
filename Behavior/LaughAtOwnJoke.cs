@@ -18,14 +18,14 @@ public class LaughAtOwnJoke : Behavior
     public override string Description => Name;
     public static List<string> punchlinesAwaitingReaction = new List<string>();
 
-    public override bool ShouldAct(PermissionSettings permissions, Message message)
+    public override bool ShouldAct(Message message)
     {
         //TODO: i need to keep track of myself from here somehow
         return false;
         //return message.Author == me && punchlinesAwaitingReaction.Contains(message.Content);
     }
 
-    public override async Task<bool> ActOn(PermissionSettings permissions, Message message)
+    public override async Task<bool> ActOn(Message message)
     {
         punchlinesAwaitingReaction.Remove(message.Content);
         await message.React("\U0001F60E"); //smiling face with sunglasses

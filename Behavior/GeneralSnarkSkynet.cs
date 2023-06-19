@@ -16,7 +16,7 @@ public class GeneralSnarkSkynet : Behavior
 
     public override string Description => "snarkiness about the old AI fixation";
 
-    public override async Task<bool> ActOn(PermissionSettings permissions, Message message)
+    public override async Task<bool> ActOn(Message message)
     {
         switch (Shared.r.Next(5))
         {

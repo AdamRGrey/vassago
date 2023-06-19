@@ -10,7 +10,7 @@ public class UnitConvert : Behavior
     public override string Trigger => "!freedomunits";
     public override string Description => "convert between many units.";
 
-    public override async Task<bool> ActOn(PermissionSettings permissions, Message message)
+    public override async Task<bool> ActOn(Message message)
     {
 
         var theseMatches = Regex.Matches(message.Content, "\\b([\\d]+\\.?\\d*) ?([^\\d\\s].*) (in|to|as) ([^\\d\\s].*)$", RegexOptions.IgnoreCase);

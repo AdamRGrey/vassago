@@ -39,9 +39,9 @@ public class Behaver
 
         foreach (var behavior in behaviors)
         {
-            if (behavior.ShouldAct(permissions, message))
+            if (behavior.ShouldAct(message))
             {
-                behavior.ActOn(permissions, message);
+                behavior.ActOn(message);
                 message.ActedOn = true;
             }
         }

@@ -18,7 +18,7 @@ public class FiximageHeic : Behavior
     public override string Description => "convert heic images to jpg";
 
     private List<Attachment> heics = new List<Attachment>();
-    public override bool ShouldAct(PermissionSettings permissions, Message message)
+    public override bool ShouldAct(Message message)
     {
         if (message.Attachments?.Count() > 0)
         {
@@ -33,7 +33,7 @@ public class FiximageHeic : Behavior
         return heics.Any();
     }
 
-    public override async Task<bool> ActOn(PermissionSettings permissions, Message message)
+    public override async Task<bool> ActOn(Message message)
     {
         if (!Directory.Exists("tmp"))
         {

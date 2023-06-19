@@ -18,7 +18,7 @@ public class PepTalk : Behavior
 
     public override string Description => "assembles a pep talk from a few pieces";
 
-    public override async Task<bool> ActOn(PermissionSettings permissions, Message message)
+    public override async Task<bool> ActOn(Message message)
     {var piece1 = new List<string>{
                 "Champ, ",
                 "Fact: ",

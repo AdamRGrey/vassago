@@ -10,6 +10,7 @@ public class PermissionSettings
     public uint? MaxAttachmentBytes { get; set; }
     public uint? MaxTextChars { get; set; }
     public bool? LinksAllowed { get; set; }
+    public bool? ReactionsPossible { get; set; }
     public int? LewdnessFilterLevel { get; set; }
     public int? MeannessFilterLevel { get; set; }
 }

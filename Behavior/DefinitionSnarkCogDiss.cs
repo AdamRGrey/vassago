@@ -16,7 +16,7 @@ public class DefinitionSnarkCogDiss : Behavior
 
     public override string Description => "snarkiness about the rampant misuse of the term cognitive dissonance";
 
-    public override async Task<bool> ActOn(PermissionSettings permissions, Message message)
+    public override async Task<bool> ActOn(Message message)
     {
         await message.Reply("that's not what cognitive dissonance means. Did you mean \"hypocrisy\"?");
         return true;

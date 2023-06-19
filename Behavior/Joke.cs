@@ -17,7 +17,7 @@ public class Joke : Behavior
 
     public override string Description => "tell a joke";
 
-    public override async Task<bool> ActOn(PermissionSettings permissions, Message message)
+    public override async Task<bool> ActOn(Message message)
     {
         Console.WriteLine("joking");
         var jokes = File.ReadAllLines("assets/jokes.txt");

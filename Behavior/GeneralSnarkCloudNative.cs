@@ -15,13 +15,13 @@ public class GeneralSnarkCloudNative : Behavior
     public override string Name => "general snarkiness: cloud native";
 
     public override string Trigger => "certain tech buzzwords that no human uses in normal conversation";
-    public override bool ShouldAct(PermissionSettings permissions, Message message)
+    public override bool ShouldAct(Message message)
     {
         return Regex.IsMatch(message.Content, "\\bcloud( |-)?native\\b", RegexOptions.IgnoreCase) ||
                Regex.IsMatch(message.Content, "\\benterprise( |-)?(level|solution)\\b", RegexOptions.IgnoreCase);
     }
 
-    public override async Task<bool> ActOn(PermissionSettings permissions, Message message)
+    public override async Task<bool> ActOn(Message message)
     {
         switch (Shared.r.Next(2))
         {
