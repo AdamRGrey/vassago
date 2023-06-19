@@ -13,6 +13,10 @@ public class Message
     public Guid Id { get; set; }
     public ulong? ExternalId { get; set; }
     public string Content { get; set; }
+    /*
+    * TODO: more general "talking to me". current impl is platform's capital m Mention, but I'd like it if they use my name without "properly" 
+    * mentioning me, and also if it's just me and them in a channel
+    */
     public bool MentionsMe { get; set; }
     public DateTimeOffset Timestamp { get; set; }
     public bool ActedOn { get; set; }

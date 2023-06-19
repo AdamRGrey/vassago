@@ -31,22 +31,6 @@ namespace vassago.Conversion
         };
         private static Dictionary<List<string>, string> knownAliases = new Dictionary<List<string>, string>(new List<KeyValuePair<List<string>, string>>());
 
-        public static string convert(string message)
-        {
-            var theseMatches = Regex.Matches(message, "\\b([\\d]+\\.?\\d*) ?([^\\d\\s].*) (in|to|as) ([^\\d\\s].*)$", RegexOptions.IgnoreCase);
-
-            if (theseMatches != null && theseMatches.Count > 0 && theseMatches[0].Groups != null && theseMatches[0].Groups.Count == 5)
-            {
-                decimal asNumeric = 0;
-                if (decimal.TryParse(theseMatches[0].Groups[1].Value, out asNumeric))
-                {
-                    return Convert(asNumeric, theseMatches[0].Groups[2].Value, theseMatches[0].Groups[4].Value.ToLower());
-                }
-                return "mysteriously semi-parsable";
-            }
-            return "unparsable";
-        }
-
         public static void Load(string currencyPath)
         {
             Converter.currencyPath = currencyPath;

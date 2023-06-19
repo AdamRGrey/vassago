@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using vassago.Models;
 
-public class Deheic : Behavior
+public class FiximageHeic : Behavior
 {
     public override string Name => "deheic";
 
