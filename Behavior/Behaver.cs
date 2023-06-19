@@ -10,7 +10,19 @@ using System.Collections.Generic;
 
 public class Behaver
 {
-    internal Behaver() { }        
+    private static List<Behavior> behaviors { get; set; } = new List<Behavior>();
+    internal Behaver()
+    {
+        var subtypes = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(domainAssembly => domainAssembly.GetTypes())
+            .Where(type => type.IsSubclassOf(typeof(Behavior)) && !type.IsAbstract)
+            .ToList();
+
+        foreach (var subtype in subtypes)
+        {
+            behaviors.Add((Behavior)Activator.CreateInstance(subtype));
+        }
+    }
     static Behaver() { }
 
     private static readonly Behaver _instance = new Behaver();
@@ -22,9 +34,31 @@ public class Behaver
 
     public async Task<bool> ActOn(Message message)
     {
-        var didThing = false;
-        //TODO: get combined permissions for author and channel
+        var permissions = new PermissionSettings(); //TODO: get combined permissions for author and channel
         var contentWithoutMention = message.Content;
+
+        foreach (var behavior in behaviors)
+        {
+            if (behavior.ShouldAct(permissions, message))
+            {
+                behavior.ActOn(permissions, message);
+                message.ActedOn = true;
+            }
+        }
+        if (message.ActedOn == false && message.MentionsMe && contentWithoutMention.Contains('?'))
+        {
+            Console.WriteLine("providing bullshit nonanswer / admitting uselessness");
+            var responses = new List<string>(){
+                                @"Well, that's a great question, and there are certainly many different possible answers. Ultimately, the decision will depend on a variety of factors, including your personal interests and goals, as well as any practical considerations (like the economy). I encourage you to do your research, speak with experts and educators, and explore your options before making a decision that's right for you.",
+                                @"┐(ﾟ ～ﾟ )┌",@"¯\_(ツ)_/¯",@"╮ (. ❛ ᴗ ❛.) ╭", @"╮(╯ _╰ )╭"
+                            };
+            await message.Channel.SendMessage(responses[Shared.r.Next(responses.Count)]);
+            message.ActedOn = true;
+        }
+        if (message.ActedOn)
+        {
+            Shared.dbContext.SaveChanges();
+        }
 
         ///behavior exists
         // var wordLikes = message.Content.Split(' ', StringSplitOptions.TrimEntries);
@@ -36,8 +70,7 @@ public class Behaver
         //         if (link.Host.EndsWith(".tiktok.com"))
         //         {
         //             Features.detiktokify(link, message);
-        //             didThing = true;
-        //         }
+        //                     //         }
         //     }
         // }
         // if (message.Attachments?.Count() > 0)
@@ -50,8 +83,7 @@ public class Behaver
         //         {
         //             Features.deheic(message, att);
         //             appleReactions = true;
-        //             didThing = true;
-        //         }
+        //                     //         }
         //     }
         //     if (appleReactions)
         //     {
@@ -76,28 +108,23 @@ public class Behaver
                         await message.React("\uD83C\uDDF3"); //N
                         break;
                 }
-                didThing = true;
             }
             if (Regex.IsMatch(msgText, "^(s?he|(yo)?u|y'?all) thinks? i'?m (playin|jokin|kiddin)g?$", RegexOptions.IgnoreCase))
             {
                 await message.Channel.SendMessage("I believed you for a second, but then you assured me you's a \uD83C\uDDE7   \uD83C\uDDEE   \uD83C\uDDF9   \uD83C\uDDE8   \uD83C\uDDED");
-                didThing = true;
             }
             if (Regex.IsMatch(msgText, "\\bskynet\\b", RegexOptions.IgnoreCase))
             {
                 Features.Skynet(message);
-                didThing = true;
             }
             if (Regex.IsMatch(msgText, "\\bchatgpt\\b", RegexOptions.IgnoreCase))
             {
                 message.Channel.SendMessage("chatGPT is **weak**. also, are we done comparing every little if-then-else to skynet?");
-                didThing = true;
             }
             if (Regex.IsMatch(msgText, "\\bi need (an? )?(peptalk|inspiration|ego-?boost)\\b", RegexOptions.IgnoreCase))
             {
                 Console.WriteLine("peptalk");
                 Features.peptalk(message);
-                didThing = true;
             }
             if (Regex.IsMatch(msgText, "\\bwish me luck\\b", RegexOptions.IgnoreCase))
             {
@@ -109,44 +136,36 @@ public class Behaver
                 {
                     await message.React("☘️");
                 }
-                didThing = true;
             }
             if (Regex.IsMatch(msgText, "\\bgaslight(ing)?\\b", RegexOptions.IgnoreCase))
             {
                 message.Channel.SendMessage("that's not what gaslight means. Did you mean \"say something that (you believe) is wrong\"?");
-                didThing = true;
             }
             // if (msgText.Contains("!qrplz "))
             // {
             //     Features.qrify(message.Content.Substring("!qrplz ".Length + msgText.IndexOf("!qrplz ")), message);
-            //     didThing = true;
-            // }
+            //                 // }
             if (msgText.Contains("!freedomunits "))
             {
                 Features.Convert(message, contentWithoutMention);
-                didThing = true;
             }
             if (Regex.IsMatch(msgText, "!joke\\b"))
             {
                 Console.WriteLine("joking");
                 Features.Joke(message);
-                didThing = true;
             }
             if (Regex.IsMatch(msgText, "!pulse ?check\\b"))
             {
                 message.Channel.SendFile("assets/ekgblip.png", null);
                 Console.WriteLine(Conversion.Converter.DebugInfo());
-                didThing = true;
             }
             if (message.MentionsMe && (Regex.IsMatch(msgText, "\\brecipe for .+") || Regex.IsMatch(msgText, ".+ recipe\\b")))
             {
                 Features.Recipe(message);
-                didThing = true;
             }
             if (msgText.Contains("cognitive dissonance") == true)
             {
                 message.Reply("that's not what cognitive dissonance means. Did you mean \"hypocrisy\"?");
-                didThing = true;
             }
             if (message.MentionsMe && Regex.IsMatch(msgText, "what'?s the longest (six|6)(-| )?letter word( in english)?\\b"))
             {
@@ -156,7 +175,6 @@ public class Behaver
                     await Task.Delay(3000);
                     await message.Channel.SendMessage("oh, longest? I thought you said fattest.");
                 });
-                didThing = true;
             }
             if (Regex.IsMatch(msgText, "\\bthank (yo)?u\\b", RegexOptions.IgnoreCase) &&
             (message.MentionsMe || Regex.IsMatch(msgText, "\\b(sh?tik)?bot\\b", RegexOptions.IgnoreCase)))
@@ -205,26 +223,9 @@ public class Behaver
                         }
                         break;
                 }
-                didThing = true;
-#pragma warning restore 4014
-            }
-            // if (didThing == false && mentionedMe && contentWithoutMention.Contains("how long has that been there?"))
-            // {
-            //     await message.Channel.SendMessage("text", false, null, null, null, null, new ComponentBuilder().WithButton("label", "custom-id").Build());
-            //     didThing = true;
-            // }
-            if (didThing == false && message.MentionsMe && contentWithoutMention.Contains('?'))
-            {
-                Console.WriteLine("providing bullshit nonanswer / admitting uselessness");
-                var responses = new List<string>(){
-                                    @"Well, that's a great question, and there are certainly many different possible answers. Ultimately, the decision will depend on a variety of factors, including your personal interests and goals, as well as any practical considerations (like the economy). I encourage you to do your research, speak with experts and educators, and explore your options before making a decision that's right for you.",
-                                    @"┐(ﾟ ～ﾟ )┌",@"¯\_(ツ)_/¯",@"╮ (. ❛ ᴗ ❛.) ╭", @"╮(╯ _╰ )╭"
-                                };
-                await message.Channel.SendMessage(responses[Shared.r.Next(responses.Count)]);
-                didThing = true;
             }
         }
-        return didThing;
+        return message.ActedOn;
     }
 
     internal Task OnJoin(User u, Channel defaultChannel)

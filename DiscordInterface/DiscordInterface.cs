@@ -68,10 +68,11 @@ public class DiscordInterface
         await client.LoginAsync(TokenType.Bot, token);
         await client.StartAsync();
     }
-#pragma warning disable 4014 //the "you're not awaiting this" warning. yeah I know, that's the beauty of an async method lol
-#pragma warning disable 1998 //the "it's async but you're not awaiting anything".
+    
+    #pragma warning disable 4014 //the "you're not awaiting this" warning. yeah I know, that's the beauty of an async method lol
+    #pragma warning disable 1998 //the "it's async but you're not awaiting anything".
     private async Task MessageReceived(SocketMessage messageParam)
-#pragma warning restore 1998
+    #pragma warning restore 1998
     {
         var suMessage = messageParam as SocketUserMessage;
         if (suMessage == null)
@@ -219,6 +220,7 @@ public class DiscordInterface
         if (channel is IGuildChannel)
         {
             c.ParentChannel = UpsertChannel((channel as IGuildChannel).Guild);
+            c.ParentChannel.SubChannels.Add(c);
         }
         else if (channel is IPrivateChannel)
         {
@@ -229,7 +231,6 @@ public class DiscordInterface
             c.ParentChannel = null;
             Console.Error.WriteLine($"trying to upsert channel {channel.Id}/{channel.Name}, but it's neither guildchannel nor private channel. shrug.jpg");
         }
-        c.ParentChannel.SubChannels.Add(c);
         c.SubChannels = c.SubChannels ?? new List<Channel>();
         if (addPlease)
         {
