@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using vassago.Models;
 
+[StaticPlz]
 public class FiximageHeic : Behavior
 {
     public override string Name => "deheic";
@@ -20,6 +21,8 @@ public class FiximageHeic : Behavior
     private List<Attachment> heics = new List<Attachment>();
     public override bool ShouldAct(Message message)
     {
+        if(Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id))
+            return false;
         if (message.Attachments?.Count() > 0)
         {
             foreach (var att in message.Attachments)

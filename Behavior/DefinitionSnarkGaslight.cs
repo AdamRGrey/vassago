@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using vassago.Models;
 
+[StaticPlz]
 public class DefinitionSnarkGaslight : Behavior
 {
     public override string Name => "Definition Snarkiness: gaslighting";

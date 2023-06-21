@@ -3,6 +3,8 @@ namespace vassago.Behavior;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using vassago.Models;
+
+[StaticPlz]
 public class UnitConvert : Behavior
 {
     public override string Name => "Unit conversion";
@@ -25,7 +27,7 @@ public class UnitConvert : Behavior
             await message.Channel.SendMessage("mysteriously semi-parsable");
         }
         await message.Channel.SendMessage( "unparsable");
-        
+
         return true;
     }
 }

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using vassago.Models;
 
+[StaticPlz]
 public class WishLuck : Behavior
 {
     public override string Name => "wish me luck";

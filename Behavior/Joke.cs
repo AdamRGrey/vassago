@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using vassago.Models;
 
+[StaticPlz]
 public class Joke : Behavior
 {
     public override string Name => "Joke";
@@ -34,12 +35,12 @@ public class Joke : Behavior
             {
                 var firstIndexAfterQuestionMark = thisJoke.LastIndexOf('?') + 1;
                 var straightline = thisJoke.Substring(0, firstIndexAfterQuestionMark);
-                var punchline = thisJoke.Substring(firstIndexAfterQuestionMark, thisJoke.Length - firstIndexAfterQuestionMark);
+                var punchline = thisJoke.Substring(firstIndexAfterQuestionMark, thisJoke.Length - firstIndexAfterQuestionMark).Trim();
                 Task.WaitAll(message.Channel.SendMessage(straightline));
                 Thread.Sleep(TimeSpan.FromSeconds(Shared.r.Next(5, 30)));
                 //if (Shared.r.Next(8) == 0)
                 {
-                    LaughAtOwnJoke.punchlinesAwaitingReaction.Add(punchline);
+                    Behaver.Behaviors.Add(new LaughAtOwnJoke(punchline));
                 }
                 await message.Channel.SendMessage(punchline);
                 // var myOwnMsg = await message.Channel.SendMessage(punchline);

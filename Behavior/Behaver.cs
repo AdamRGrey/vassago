@@ -10,17 +10,22 @@ using System.Collections.Generic;
 
 public class Behaver
 {
-    private static List<Behavior> behaviors { get; set; } = new List<Behavior>();
+    private ChattingContext _db;
+    public List<Account> Selves { get; internal set; } = new List<Account>();
+    public static List<Behavior> Behaviors { get; private set; } = new List<Behavior>();
     internal Behaver()
     {
+        _db = new ChattingContext();
+
         var subtypes = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(domainAssembly => domainAssembly.GetTypes())
-            .Where(type => type.IsSubclassOf(typeof(Behavior)) && !type.IsAbstract)
+            .Where(type => type.IsSubclassOf(typeof(Behavior)) && !type.IsAbstract &&
+                type.GetCustomAttributes(typeof(StaticPlzAttribute),false)?.Any() == true)
             .ToList();
 
         foreach (var subtype in subtypes)
         {
-            behaviors.Add((Behavior)Activator.CreateInstance(subtype));
+            Behaviors.Add((Behavior)Activator.CreateInstance(subtype));
         }
     }
     static Behaver() { }
@@ -34,7 +39,7 @@ public class Behaver
 
     public async Task<bool> ActOn(Message message)
     {
-        foreach (var behavior in behaviors)
+        foreach (var behavior in Behaviors)
         {
             if (behavior.ShouldAct(message))
             {
@@ -42,7 +47,7 @@ public class Behaver
                 message.ActedOn = true;
             }
         }
-        if (message.ActedOn == false && message.MentionsMe && message.Content.Contains('?'))
+        if (message.ActedOn == false && message.MentionsMe && message.Content.Contains('?') && !Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id))
         {
             Console.WriteLine("providing bullshit nonanswer / admitting uselessness");
             var responses = new List<string>(){
@@ -54,7 +59,7 @@ public class Behaver
         }
         if (message.ActedOn)
         {
-            Shared.dbContext.SaveChanges();
+            _db.SaveChanges();
         }
         return message.ActedOn;
     }

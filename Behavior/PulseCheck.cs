@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using vassago.Models;
 
+[StaticPlz]
 public class PulseCheck : Behavior
 {
     public override string Name => "pulse check";

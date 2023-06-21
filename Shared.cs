@@ -9,6 +9,5 @@ public static class Shared
 {
     public static Random r = new Random();
     public static string DBConnectionString { get; set; }
-    public static ChattingContext dbContext { get; set; }
     public static HttpClient HttpClient { get; internal set; } = new HttpClient();
 }

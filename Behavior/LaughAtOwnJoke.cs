@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using vassago.Models;
 
+
 public class LaughAtOwnJoke : Behavior
 {
     public override string Name => "Laugh at own jokes";
@@ -16,20 +17,23 @@ public class LaughAtOwnJoke : Behavior
     public override string Trigger => "1 in 8";
 
     public override string Description => Name;
-    public static List<string> punchlinesAwaitingReaction = new List<string>();
+    private string _punchline{get;set;}
 
+    public LaughAtOwnJoke(string punchline)
+    {
+        _punchline = punchline;
+    }
     public override bool ShouldAct(Message message)
     {
-
-        //TODO: i need to keep track of myself from here somehow
-        //return false;
-        return /*message.Author == me &&*/ punchlinesAwaitingReaction.Contains(message.Content);
+        Console.WriteLine($"{message.Content} == {_punchline}");
+        return message.Content == _punchline
+        && Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id);
     }
 
     public override async Task<bool> ActOn(Message message)
     {
-        punchlinesAwaitingReaction.Remove(message.Content);
         await message.React("\U0001F60E"); //smiling face with sunglasses
+        Behaver.Behaviors.Remove(this);
         return true;
     }
 }

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using vassago.Models;
 
+[StaticPlz]
 public class GeneralSnarkSkynet : Behavior
 {
     public override string Name => "Skynet Snarkiness";

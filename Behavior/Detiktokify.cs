@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using vassago.Models;
+
+[StaticPlz]
 public class Detiktokify : Behavior
 {
     public override string Name { get => "Detiktokify"; }

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using vassago.Models;
 
+[StaticPlz]
 public class DefinitionSnarkCogDiss : Behavior
 {
     public override string Name => "Definition Snarkiness: cognitivie dissonance";

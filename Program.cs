@@ -23,10 +23,9 @@ namespace vassago
         public async Task MainAsync()
         {
             Shared.DBConnectionString = config.DBConnectionString;
-            Shared.dbContext = new ChattingContext();
-            {   
-                Shared.dbContext.Database.EnsureCreated();
-            }
+            var dbc = new ChattingContext();
+            dbc.Database.EnsureCreated();
+
             Conversion.Converter.Load(config.ExchangePairsLocation);
             if(config.DiscordTokens.Any())
                 foreach(var dt in config.DiscordTokens)
@@ -34,7 +33,7 @@ namespace vassago
                     var d = new DiscordInterface.DiscordInterface();
                     await d.Init(dt);
                     discords.Add(d);
-                }            
+                }
 
             await Task.Delay(-1);
         }

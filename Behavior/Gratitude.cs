@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using vassago.Models;
 
+[StaticPlz]
 public class Gratitude : Behavior
 {
     public override string Name => "Gratitude";
@@ -17,6 +18,8 @@ public class Gratitude : Behavior
 
     public override bool ShouldAct(Message message)
     {
+        if(Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id))
+            return false;
         return Regex.IsMatch(message.Content, "\\bthank (yo)?u\\b", RegexOptions.IgnoreCase) && message.MentionsMe;
     }
     public override async Task<bool> ActOn(Message message)

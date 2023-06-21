@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using vassago.Models;
 using QRCoder;
 
+[StaticPlz]
 public class PepTalk : Behavior
 {
     public override string Name => "PepTalk";

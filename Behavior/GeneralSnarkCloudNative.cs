@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using vassago.Models;
 
+[StaticPlz]
 public class GeneralSnarkCloudNative : Behavior
 {
     public override string Name => "general snarkiness: cloud native";
@@ -17,6 +18,8 @@ public class GeneralSnarkCloudNative : Behavior
     public override string Trigger => "certain tech buzzwords that no human uses in normal conversation";
     public override bool ShouldAct(Message message)
     {
+        if(Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id))
+            return false;
         return Regex.IsMatch(message.Content, "\\bcloud( |-)?native\\b", RegexOptions.IgnoreCase) ||
                Regex.IsMatch(message.Content, "\\benterprise( |-)?(level|solution)\\b", RegexOptions.IgnoreCase);
     }

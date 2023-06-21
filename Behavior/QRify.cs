@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using vassago.Models;
 using QRCoder;
 
+[StaticPlz]
 public class QRify : Behavior
 {
     public override string Name => "qr-ify";
