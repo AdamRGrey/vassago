@@ -81,6 +81,7 @@ public class Detiktokify : Behavior
                         }
                         else
                         {
+                            message.ActedOn = true;
                             Console.WriteLine($"file appears too big ({bytesize} bytes ({bytesize / (1024 * 1024)}MB)), not posting");
                         }
                         File.Delete(path);

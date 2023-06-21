@@ -13,7 +13,7 @@ public class PulseCheck : Behavior
 {
     public override string Name => "pulse check";
 
-    public override string Trigger => "!pluse ?check";
+    public override string Trigger => "!pulse ?check";
 
     public override async Task<bool> ActOn(Message message)
     {

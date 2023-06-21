@@ -23,11 +23,12 @@ public class UnitConvert : Behavior
             if (decimal.TryParse(theseMatches[0].Groups[1].Value, out asNumeric))
             {
                 await message.Channel.SendMessage(Conversion.Converter.Convert(asNumeric, theseMatches[0].Groups[2].Value, theseMatches[0].Groups[4].Value.ToLower()));
+                return true;
             }
             await message.Channel.SendMessage("mysteriously semi-parsable");
+            return true;
         }
         await message.Channel.SendMessage( "unparsable");
-
         return true;
     }
 }

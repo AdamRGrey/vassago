@@ -31,7 +31,7 @@ public class Gratitude : Behavior
                 await message.Channel.SendMessage("you're welcome, citizen!");
                 break;
             case 1:
-                await message.React("☺");
+                await message.React(":)");
                 break;
             case 2:
                 await message.React("\U0001F607"); //smiling face with halo
@@ -40,7 +40,7 @@ public class Gratitude : Behavior
                 switch (Shared.r.Next(9))
                 {
                     case 0:
-                        await message.React("❤"); //normal heart, usually rendered red
+                        await message.React("<3"); //normal heart, usually rendered red
                         break;
                     case 1:
                         await message.React("\U0001F9E1"); //orange heart
