@@ -29,6 +29,9 @@ public class Detiktokify : Behavior
         if(message.Channel.EffectivePermissions.MaxAttachmentBytes == 0)
             return false;
 
+        if(Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id))
+            return false;
+
         var wordLikes = message.Content.Split(' ', StringSplitOptions.TrimEntries);
         var possibleLinks = wordLikes?.Where(wl => Uri.IsWellFormedUriString(wl, UriKind.Absolute)).Select(wl => new Uri(wl));
         if (possibleLinks != null && possibleLinks.Count() > 0)
@@ -51,7 +54,7 @@ public class Detiktokify : Behavior
             {
                 Console.WriteLine("detiktokifying");
                 #pragma warning disable 4014
-                await message.React("<:tiktok:1070038619584200884>");
+                //await message.React("<:tiktok:1070038619584200884>");
                 #pragma warning restore 4014
 
                 var res = await ytdl.RunVideoDownload(link.ToString());
@@ -66,7 +69,7 @@ public class Detiktokify : Behavior
                     string path = res.Data;
                     if (File.Exists(path))
                     {
-                        var bytesize = new System.IO.FileInfo(path).Length;
+                        ulong bytesize = (ulong)((new System.IO.FileInfo(path)).Length);
                         if (bytesize < message.Channel.EffectivePermissions.MaxAttachmentBytes - 256)
                         {
                             try

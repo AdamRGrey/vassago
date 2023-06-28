@@ -7,7 +7,7 @@ public class PermissionSettings
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
-    public uint? MaxAttachmentBytes { get; set; }
+    public ulong? MaxAttachmentBytes { get; set; }
     public uint? MaxTextChars { get; set; }
     public bool? LinksAllowed { get; set; }
     public bool? ReactionsPossible { get; set; }
