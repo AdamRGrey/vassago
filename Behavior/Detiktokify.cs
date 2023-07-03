@@ -52,7 +52,7 @@ public class Detiktokify : Behavior
         {
             try
             {
-                Console.WriteLine("detiktokifying");
+                Console.WriteLine($"detiktokifying {link}");
                 #pragma warning disable 4014
                 //await message.React("<:tiktok:1070038619584200884>");
                 #pragma warning restore 4014

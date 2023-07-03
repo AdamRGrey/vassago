@@ -23,8 +23,6 @@ public class DiscordInterface
     private ChattingContext _db;
     private static SemaphoreSlim discordChannelSetup = new SemaphoreSlim(1, 1);
     private Channel protocolAsChannel;
-    private Queue<ulong> backfillChannels = new Queue<ulong>();
-    private Queue<ulong> backfillAccounts = new Queue<ulong>();
 
     public DiscordInterface()
     {
@@ -46,8 +44,6 @@ public class DiscordInterface
 
         await client.LoginAsync(TokenType.Bot, token);
         await client.StartAsync();
-
-        BackfillLoop();
     }
 
     private async Task SetupDiscordChannel()
@@ -122,6 +118,9 @@ public class DiscordInterface
     private async Task SelfConnected()
     {
         var selfUser = UpsertAccount(client.CurrentUser);
+        selfUser.SeenInChannel = protocolAsChannel;
+        selfUser.DisplayName = client.CurrentUser.Username;
+
         await _db.SaveChangesAsync();
         Behaver.Instance.Selves.Add(selfUser);
     }
@@ -194,7 +193,6 @@ public class DiscordInterface
                 break;
         }
     }
-
     internal vassago.Models.Attachment UpsertAttachment(IAttachment dAttachment)
     {
         var a = _db.Attachments.FirstOrDefault(ai => ai.ExternalId == dAttachment.Id);
@@ -228,17 +226,18 @@ public class DiscordInterface
                 m.Attachments.Add(UpsertAttachment(da));
             }
         }
-        m.Author = UpsertAccount(dMessage.Author);
-        m.Channel = UpsertChannel(dMessage.Channel);
         m.Content = dMessage.Content;
         m.ExternalId = dMessage.Id;
         m.Timestamp = dMessage.EditedTimestamp ?? dMessage.CreatedAt;
-
-
-        if (dMessage.Author.Id != client.CurrentUser.Id && dMessage.MentionedUserIds?.FirstOrDefault(muid => muid == client.CurrentUser.Id) != null)
+        m.Channel = UpsertChannel(dMessage.Channel);
+        m.Author = UpsertAccount(dMessage.Author);
+        m.Author.SeenInChannel = m.Channel;
+        if(dMessage.Channel is IGuildChannel)
         {
-            m.MentionsMe = true;
+            m.Author.DisplayName = (dMessage.Author as IGuildUser).DisplayName;//discord forgot how display names work.
         }
+        m.MentionsMe = (dMessage.Author.Id != client.CurrentUser.Id
+            && (dMessage.MentionedUserIds?.FirstOrDefault(muid => muid == client.CurrentUser.Id) > 0));
 
         m.Reply = (t) => { return dMessage.ReplyAsync(t); };
         m.React = (e) => { return attemptReact(dMessage, e); };
@@ -251,7 +250,6 @@ public class DiscordInterface
         {
             c = new Channel();
             _db.Channels.Add(c);
-            backfillChannels.Enqueue(channel.Id);
         }
 
         c.DisplayName = channel.Name;
@@ -285,7 +283,6 @@ public class DiscordInterface
         {
             c = new Channel();
             _db.Channels.Add(c);
-            backfillChannels.Enqueue(channel.Id);
         }
 
         c.DisplayName = channel.Name;
@@ -304,18 +301,28 @@ public class DiscordInterface
     }
     internal Account UpsertAccount(IUser user)
     {
+        var hadToAdd = false;
         var acc = _db.Accounts.FirstOrDefault(ui => ui.ExternalId == user.Id);
         if (acc == null)
         {
             acc = new Account();
             _db.Accounts.Add(acc);
-            backfillAccounts.Enqueue(user.Id);
+            hadToAdd = true;
         }
         acc.Username = user.Username;
         acc.ExternalId = user.Id;
         acc.IsBot = user.IsBot || user.IsWebhook;
         acc.Protocol = PROTOCOL;
 
+        if(hadToAdd)
+        {
+            acc.IsUser = _db.Users.FirstOrDefault(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol));
+            if(acc.IsUser == null)
+            {
+                acc.IsUser = new User() { Accounts = new List<Account>() { acc } };
+                _db.Users.Add(acc.IsUser);
+            }
+        }
         return acc;
     }
 
@@ -340,68 +347,4 @@ public class DiscordInterface
         return msg.AddReactionAsync(emote);
     }
 
-    internal async void BackfillLoop()
-    {
-        while (true)
-        {
-            Thread.Sleep(TimeSpan.FromMinutes(2));
-            if(backfillChannels.Any())
-            {
-                var ch = backfillChannels.Dequeue();
-                var channelFromDiscord = client.GetChannel(ch);
-                if(channelFromDiscord is ITextChannel)
-                {
-                    var textChannel = channelFromDiscord as ITextChannel;
-                    var msgs = await textChannel.GetMessagesAsync().FlattenAsync();
-                    foreach(var msg in msgs)
-                    {
-                        if(msg.Type == MessageType.Default)
-                        {
-                            UpsertMessage((IUserMessage)msg);
-                        }
-                    }
-                }
-                if(channelFromDiscord is IGuild)
-                {
-                    var guild = (channelFromDiscord as IGuild);
-                    foreach(var subCh in await guild.GetChannelsAsync())
-                    {
-                        //UpsertChannel(subCh);
-                    }
-                }
-                if(channelFromDiscord is IGuildChannel)
-                {
-                    var guildChannel = channelFromDiscord as IGuildChannel;
-                    var users = await guildChannel.GetUsersAsync().FlattenAsync();
-                    foreach(var user in users)
-                    {
-                        UpsertAccount(user);
-                    }
-                }
-                _db.SaveChanges();
-            }
-
-            for(int i = 0; i < 10 && backfillAccounts.Any(); i++)
-            {
-                var aci = backfillAccounts.Dequeue();
-
-                var acc = UpsertAccount(await client.GetUserAsync(aci));
-                if (acc.IsUser == null)
-                {
-                    var internalUser = _db.Users.FirstOrDefault(u =>
-                        u.Accounts.Any(ua => ua.ExternalId == acc.ExternalId && ua.Protocol == acc.Protocol));
-                    if (internalUser == null)
-                    {
-                        internalUser = new User()
-                        {
-                            Accounts = new List<Account>() { acc }
-                        };
-                        _db.Users.Add(internalUser);
-                    }
-                    acc.IsUser = internalUser;
-                }
-            }
-            _db.SaveChanges();
-        }
-    }
 }
