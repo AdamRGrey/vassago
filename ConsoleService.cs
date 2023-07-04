@@ -2,12 +2,11 @@ namespace vassago
 {
     using vassago;
     using vassago.Models;
+    using vassago.TwitchInterface;
 
     internal class ConsoleService : IHostedService
     {
         Configuration config = new Configuration();
-        private List<DiscordInterface.DiscordInterface> discords = new List<DiscordInterface.DiscordInterface>();
-        private List<TwitchInterface.TwitchInterface> twitchs = new List<TwitchInterface.TwitchInterface>();
 
         public ConsoleService(IConfiguration aspConfig)
         {
@@ -30,7 +29,7 @@ namespace vassago
                 {
                     var d = new DiscordInterface.DiscordInterface();
                     await d.Init(dt);
-                    discords.Add(d);
+                    ProtocolInterfaces.ProtocolList.discords.Add(d);
                 }
 
             if (config.TwitchConfigs?.Any() ?? false)
@@ -38,7 +37,7 @@ namespace vassago
                 {
                     var t = new TwitchInterface.TwitchInterface();
                     await t.Init(tc);
-                    twitchs.Add(t);
+                    ProtocolInterfaces.ProtocolList.twitchs.Add(t);
                 }
         }
 

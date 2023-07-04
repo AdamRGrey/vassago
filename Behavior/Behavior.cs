@@ -24,5 +24,8 @@ public abstract class Behavior
     public virtual string Description => Name;
 }
 
-
+///<summary>
+///the behavior should be static. I.e., we make one at the start and it's ready to check and go for the whole lifetime.
+///As opposed to LaughAtOwnJoke, which only needs to be created to wait for 1 punchline one time.
+///</summary>
 public class StaticPlzAttribute : Attribute {}

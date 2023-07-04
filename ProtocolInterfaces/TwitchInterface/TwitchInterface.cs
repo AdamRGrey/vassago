@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using RestSharp;
 using TwitchLib.Api;
@@ -36,7 +37,7 @@ public class TwitchInterface
             {
                 protocolAsChannel = new Channel()
                 {
-                    DisplayName = "discord (itself)",
+                    DisplayName = "twitch (itself)",
                     Permissions = new PermissionSettings()
                     {
                         MeannessFilterLevel = Enumerations.MeannessFilterLevel.Medium,
@@ -126,8 +127,6 @@ public class TwitchInterface
         await _db.SaveChangesAsync();
         Behaver.Instance.Selves.Add(selfUser);
 
-        client.JoinChannel("#homeburger");
-        client.JoinChannel("homeburger");
         Console.WriteLine($"Connected to {e.AutoJoinChannel}");
     }
 
@@ -249,5 +248,17 @@ public class TwitchInterface
         m.Reply = (t) => { return Task.Run(() => {client.SendWhisper(whisperMessage.Username, t); });};
         m.React = (e) => { throw new InvalidOperationException($"twitch cannot react"); };
         return m;
+    }
+
+    public string AttemptJoin(string channelTarget)
+    {
+        client.JoinChannel(channelTarget);
+        return "o7";
+    }
+
+    internal void AttemptLeave(string channelTarget)
+    {
+        client.SendMessage(channelTarget, "o7");
+        client.LeaveChannel(channelTarget);
     }
 }

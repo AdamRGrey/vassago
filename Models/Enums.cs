@@ -29,7 +29,7 @@ public static class Enumerations
     public enum WellknownPermissions
     {
         Master, //e.g., me. not that I think this would ever be released?
-        ChannelModerator,
+        TwitchSummon,
     }
 
     public static string GetDescription<T>(this T enumerationValue)
