@@ -45,7 +45,7 @@ public class QRify : Behavior
             if(message.Channel.EffectivePermissions.MaxAttachmentBytes < (ulong)(new System.IO.FileInfo($"tmp/qr{todaysnumber}.png").Length))
                 await message.Channel.SendFile($"tmp/qr{todaysnumber}.png", null);
             else
-                message.Channel.SendMessage("resulting qr image 2 big 4 here");
+                await message.Channel.SendMessage("resulting qr image 2 big 4 here");
             File.Delete($"tmp/qr{todaysnumber}.svg");
             File.Delete($"tmp/qr{todaysnumber}.png");
         }
