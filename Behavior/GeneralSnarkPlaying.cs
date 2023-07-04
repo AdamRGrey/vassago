@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using vassago.Models;
+using static vassago.Models.Enumerations;
 
 [StaticPlz]
 public class GeneralSnarkPlaying : Behavior
@@ -22,6 +23,11 @@ public class GeneralSnarkPlaying : Behavior
     {
         if(Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id))
             return false;
+
+        if((MeannessFilterLevel)message.Channel.EffectivePermissions.MeannessFilterLevel < MeannessFilterLevel.Medium ||
+            (LewdnessFilterLevel)message.Channel.EffectivePermissions.LewdnessFilterLevel  < LewdnessFilterLevel.Moderate)
+            return false;
+
         return Regex.IsMatch(message.Content, "^(s?he|(yo)?u|y'?all|they) thinks? i'?m (playin|jokin|kiddin)g?$", RegexOptions.IgnoreCase);
     }
     public override async Task<bool> ActOn(Message message)

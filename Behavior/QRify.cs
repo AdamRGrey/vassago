@@ -19,6 +19,13 @@ public class QRify : Behavior
 
     public override string Description => "generate text QR codes";
 
+    public override bool ShouldAct(Message message)
+    {
+        if(message.Channel.EffectivePermissions.MaxAttachmentBytes < 1024)
+            return false;
+        return base.ShouldAct(message);
+    }
+
     public override async Task<bool> ActOn(Message message)
     {
         var qrContent = message.Content.Substring($"{Trigger} ".Length + message.Content.IndexOf(Trigger));
@@ -35,7 +42,10 @@ public class QRify : Behavior
         File.WriteAllText($"tmp/qr{todaysnumber}.svg", qrCodeAsSvg);
         if (ExternalProcess.GoPlz("convert", $"tmp/qr{todaysnumber}.svg tmp/qr{todaysnumber}.png"))
         {
-            await message.Channel.SendFile($"tmp/qr{todaysnumber}.png", null);
+            if(message.Channel.EffectivePermissions.MaxAttachmentBytes < (ulong)(new System.IO.FileInfo($"tmp/qr{todaysnumber}.png").Length))
+                await message.Channel.SendFile($"tmp/qr{todaysnumber}.png", null);
+            else
+                message.Channel.SendMessage("resulting qr image 2 big 4 here");
             File.Delete($"tmp/qr{todaysnumber}.svg");
             File.Delete($"tmp/qr{todaysnumber}.png");
         }

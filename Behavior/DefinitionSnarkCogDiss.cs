@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using vassago.Models;
+using static vassago.Models.Enumerations;
 
 [StaticPlz]
 public class DefinitionSnarkCogDiss : Behavior
@@ -16,6 +17,14 @@ public class DefinitionSnarkCogDiss : Behavior
     public override string Trigger => "\\bcognitive dissonance";
 
     public override string Description => "snarkiness about the rampant misuse of the term cognitive dissonance";
+
+    public override bool ShouldAct(Message message)
+    {
+        if((MeannessFilterLevel)message.Channel.EffectivePermissions.MeannessFilterLevel < MeannessFilterLevel.Medium)
+            return false;
+
+        return base.ShouldAct(message);
+    }
 
     public override async Task<bool> ActOn(Message message)
     {

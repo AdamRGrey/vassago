@@ -60,8 +60,8 @@ public class DiscordInterface
                     DisplayName = "discord (itself)",
                     Permissions = new PermissionSettings()
                     {
-                        MeannessFilterLevel = 1,
-                        LewdnessFilterLevel = 3,
+                        MeannessFilterLevel = Enumerations.MeannessFilterLevel.Strict,
+                        LewdnessFilterLevel = Enumerations.LewdnessFilterLevel.Moderate,
                         MaxTextChars = 2000,
                         MaxAttachmentBytes = 25 * 1024 * 1024, //allegedly it's 25, but I worry it's not actually.
                         LinksAllowed = true,

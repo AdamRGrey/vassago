@@ -29,12 +29,12 @@ public class Channel
     public Func<string, Task> SendMessage;
 
 
-    public PermissionSettings EffectivePermissions
+    public DefinitePermissionSettings EffectivePermissions
     {
         get
         {
             PermissionSettings toReturn = Permissions ?? new PermissionSettings();
-            return GetEffectivePermissions(ref toReturn);
+            return GetEffectivePermissions(ref toReturn).Definite();
         }
     }
     private PermissionSettings GetEffectivePermissions(ref PermissionSettings settings)

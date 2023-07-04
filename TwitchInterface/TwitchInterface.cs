@@ -39,8 +39,8 @@ public class TwitchInterface
                     DisplayName = "discord (itself)",
                     Permissions = new PermissionSettings()
                     {
-                        MeannessFilterLevel = 1,
-                        LewdnessFilterLevel = 3,
+                        MeannessFilterLevel = Enumerations.MeannessFilterLevel.Medium,
+                        LewdnessFilterLevel = Enumerations.LewdnessFilterLevel.G,
                         MaxTextChars = 500,
                         MaxAttachmentBytes = 0,
                         LinksAllowed = false,

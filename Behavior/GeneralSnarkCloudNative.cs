@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using vassago.Models;
+using static vassago.Models.Enumerations;
 
 [StaticPlz]
 public class GeneralSnarkCloudNative : Behavior
@@ -20,6 +21,13 @@ public class GeneralSnarkCloudNative : Behavior
     {
         if(Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id))
             return false;
+
+        if(message.Channel.EffectivePermissions.ReactionsPossible == true)
+            return false;
+
+        if((MeannessFilterLevel)message.Channel.EffectivePermissions.MeannessFilterLevel < MeannessFilterLevel.Medium)
+            return false;
+
         return Regex.IsMatch(message.Content, "\\bcloud( |-)?native\\b", RegexOptions.IgnoreCase) ||
                Regex.IsMatch(message.Content, "\\benterprise( |-)?(level|solution)\\b", RegexOptions.IgnoreCase);
     }

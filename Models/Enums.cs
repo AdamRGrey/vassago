@@ -21,6 +21,8 @@ public static class Enumerations
     {
         [Description("good vibes only")]
         Strict,
+        [Description("a bit cheeky")]
+        Medium,
         [Description("387.44 million miles of printed circuits, etc")]
         Unrestricted
     }

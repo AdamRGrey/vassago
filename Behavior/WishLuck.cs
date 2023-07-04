@@ -19,14 +19,15 @@ public class WishLuck : Behavior
 
     public override async Task<bool> ActOn(Message message)
     {
+        var toSend = "☘️";
         if (Shared.r.Next(20) == 0)
         {
-            await message.React("\U0001f340");//4-leaf clover
+            toSend = "\U0001f340";//4-leaf clover
         }
+        if(message.Channel.EffectivePermissions.ReactionsPossible == true)
+            await message.React(toSend);
         else
-        {
-            await message.React("☘️");
-        }
+            await message.Channel.SendMessage(toSend);
         return true;
     }
 }
