@@ -52,7 +52,7 @@ public class DiscordInterface
 
         try
         {
-            protocolAsChannel = _db.Channels.FirstOrDefault(c => c.ParentChannel == null && c.Protocol == "discord");
+            protocolAsChannel = _db.Channels.FirstOrDefault(c => c.ParentChannel == null && c.Protocol == PROTOCOL);
             if (protocolAsChannel == null)
             {
                 protocolAsChannel = new Channel()
@@ -211,7 +211,7 @@ public class DiscordInterface
     }
     internal Message UpsertMessage(IUserMessage dMessage)
     {
-        var m = _db.Messages.FirstOrDefault(mi => mi.ExternalId == dMessage.Id);
+        var m = _db.Messages.FirstOrDefault(mi => mi.ExternalId == dMessage.Id.ToString() && mi.Protocol == PROTOCOL);
         if (m == null)
         {
             m = new Message();
@@ -227,7 +227,7 @@ public class DiscordInterface
             }
         }
         m.Content = dMessage.Content;
-        m.ExternalId = dMessage.Id;
+        m.ExternalId = dMessage.Id.ToString();
         m.Timestamp = dMessage.EditedTimestamp ?? dMessage.CreatedAt;
         m.Channel = UpsertChannel(dMessage.Channel);
         m.Author = UpsertAccount(dMessage.Author);
@@ -245,7 +245,7 @@ public class DiscordInterface
     }
     internal Channel UpsertChannel(IMessageChannel channel)
     {
-        Channel c = _db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id);
+        Channel c = _db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
         if (c == null)
         {
             c = new Channel();
@@ -253,7 +253,7 @@ public class DiscordInterface
         }
 
         c.DisplayName = channel.Name;
-        c.ExternalId = channel.Id;
+        c.ExternalId = channel.Id.ToString();
         c.IsDM = channel is IPrivateChannel;
         c.Messages = c.Messages ?? new List<Message>();
         c.Protocol = PROTOCOL;
@@ -278,7 +278,7 @@ public class DiscordInterface
     }
     internal Channel UpsertChannel(IGuild channel)
     {
-        Channel c = _db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id);
+        Channel c = _db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
         if (c == null)
         {
             c = new Channel();
@@ -286,7 +286,7 @@ public class DiscordInterface
         }
 
         c.DisplayName = channel.Name;
-        c.ExternalId = channel.Id;
+        c.ExternalId = channel.Id.ToString();
         c.IsDM = false;
         c.Messages = c.Messages ?? new List<Message>();
         c.Protocol = protocolAsChannel.Protocol;
@@ -302,7 +302,7 @@ public class DiscordInterface
     internal Account UpsertAccount(IUser user)
     {
         var hadToAdd = false;
-        var acc = _db.Accounts.FirstOrDefault(ui => ui.ExternalId == user.Id);
+        var acc = _db.Accounts.FirstOrDefault(ui => ui.ExternalId == user.Id.ToString() && ui.Protocol == PROTOCOL);
         if (acc == null)
         {
             acc = new Account();
@@ -310,7 +310,7 @@ public class DiscordInterface
             hadToAdd = true;
         }
         acc.Username = user.Username;
-        acc.ExternalId = user.Id;
+        acc.ExternalId = user.Id.ToString();
         acc.IsBot = user.IsBot || user.IsWebhook;
         acc.Protocol = PROTOCOL;
 
@@ -328,7 +328,7 @@ public class DiscordInterface
 
     private Task attemptReact(IUserMessage msg, string e)
     {
-        var c = _db.Channels.FirstOrDefault(c => c.ExternalId == msg.Channel.Id);
+        var c = _db.Channels.FirstOrDefault(c => c.ExternalId == msg.Channel.Id.ToString());
         //var preferredEmote = c.EmoteOverrides?[e] ?? e; //TODO: emote overrides
         var preferredEmote = e;
         Emoji emoji;

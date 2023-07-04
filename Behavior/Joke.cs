@@ -38,7 +38,7 @@ public class Joke : Behavior
                 var punchline = thisJoke.Substring(firstIndexAfterQuestionMark, thisJoke.Length - firstIndexAfterQuestionMark).Trim();
                 Task.WaitAll(message.Channel.SendMessage(straightline));
                 Thread.Sleep(TimeSpan.FromSeconds(Shared.r.Next(5, 30)));
-                //if (Shared.r.Next(8) == 0)
+                if (message.Channel.EffectivePermissions.ReactionsPossible == true && Shared.r.Next(8) == 0)
                 {
                     Behaver.Behaviors.Add(new LaughAtOwnJoke(punchline));
                 }

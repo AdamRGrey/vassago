@@ -11,7 +11,7 @@ public class Channel
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; set; }
-    public ulong? ExternalId { get; set; }
+    public string ExternalId { get; set; }
     public string DisplayName { get; set; }
     public bool IsDM { get; set; }
     public PermissionSettings Permissions { get; set; }

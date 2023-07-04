@@ -31,8 +31,8 @@ namespace vassago.Migrations
                     b.Property<string>("DisplayName")
                         .HasColumnType("text");
 
-                    b.Property<decimal?>("ExternalId")
-                        .HasColumnType("numeric(20,0)");
+                    b.Property<string>("ExternalId")
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsBot")
                         .HasColumnType("boolean");
@@ -107,8 +107,8 @@ namespace vassago.Migrations
                     b.Property<string>("DisplayName")
                         .HasColumnType("text");
 
-                    b.Property<decimal?>("ExternalId")
-                        .HasColumnType("numeric(20,0)");
+                    b.Property<string>("ExternalId")
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsDM")
                         .HasColumnType("boolean");
@@ -149,11 +149,14 @@ namespace vassago.Migrations
                     b.Property<string>("Content")
                         .HasColumnType("text");
 
-                    b.Property<decimal?>("ExternalId")
-                        .HasColumnType("numeric(20,0)");
+                    b.Property<string>("ExternalId")
+                        .HasColumnType("text");
 
                     b.Property<bool>("MentionsMe")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("Protocol")
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");

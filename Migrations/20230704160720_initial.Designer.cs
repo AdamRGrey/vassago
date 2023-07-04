@@ -12,8 +12,8 @@ using vassago.Models;
 namespace vassago.Migrations
 {
     [DbContext(typeof(ChattingContext))]
-    [Migration("20230605152343_initial create")]
-    partial class initialcreate
+    [Migration("20230704160720_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,19 +25,43 @@ namespace vassago.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("ChannelUser", b =>
+            modelBuilder.Entity("vassago.Models.Account", b =>
                 {
-                    b.Property<Guid>("OtherUsersId")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("SeenInChannelsId")
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ExternalId")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsBot")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("IsUserId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("OtherUsersId", "SeenInChannelsId");
+                    b.Property<int[]>("PermissionTags")
+                        .HasColumnType("integer[]");
 
-                    b.HasIndex("SeenInChannelsId");
+                    b.Property<string>("Protocol")
+                        .HasColumnType("text");
 
-                    b.ToTable("ChannelUser");
+                    b.Property<Guid?>("SeenInChannelId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsUserId");
+
+                    b.HasIndex("SeenInChannelId");
+
+                    b.ToTable("Accounts");
                 });
 
             modelBuilder.Entity("vassago.Models.Attachment", b =>
@@ -83,15 +107,11 @@ namespace vassago.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("DisplayName")
                         .HasColumnType("text");
 
-                    b.Property<decimal?>("ExternalId")
-                        .HasColumnType("numeric(20,0)");
+                    b.Property<string>("ExternalId")
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsDM")
                         .HasColumnType("boolean");
@@ -99,25 +119,19 @@ namespace vassago.Migrations
                     b.Property<Guid?>("ParentChannelId")
                         .HasColumnType("uuid");
 
-                    b.Property<int?>("PermissionsOverridesId")
+                    b.Property<int?>("PermissionsId")
                         .HasColumnType("integer");
 
-                    b.Property<Guid?>("ProtocolId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("Protocol")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ParentChannelId");
 
-                    b.HasIndex("PermissionsOverridesId");
-
-                    b.HasIndex("ProtocolId");
+                    b.HasIndex("PermissionsId");
 
                     b.ToTable("Channels");
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Channel");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("vassago.Models.Message", b =>
@@ -138,11 +152,14 @@ namespace vassago.Migrations
                     b.Property<string>("Content")
                         .HasColumnType("text");
 
-                    b.Property<decimal?>("ExternalId")
-                        .HasColumnType("numeric(20,0)");
+                    b.Property<string>("ExternalId")
+                        .HasColumnType("text");
 
                     b.Property<bool>("MentionsMe")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("Protocol")
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
@@ -170,14 +187,17 @@ namespace vassago.Migrations
                     b.Property<bool?>("LinksAllowed")
                         .HasColumnType("boolean");
 
-                    b.Property<long?>("MaxAttachmentBytes")
-                        .HasColumnType("bigint");
+                    b.Property<decimal?>("MaxAttachmentBytes")
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<long?>("MaxTextChars")
                         .HasColumnType("bigint");
 
                     b.Property<int?>("MeannessFilterLevel")
                         .HasColumnType("integer");
+
+                    b.Property<bool?>("ReactionsPossible")
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
@@ -190,53 +210,24 @@ namespace vassago.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal?>("ExternalId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<bool>("IsBot")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid?>("ProtocolId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Username")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("ProtocolId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("vassago.Models.Protocol", b =>
+            modelBuilder.Entity("vassago.Models.Account", b =>
                 {
-                    b.HasBaseType("vassago.Models.Channel");
+                    b.HasOne("vassago.Models.User", "IsUser")
+                        .WithMany("Accounts")
+                        .HasForeignKey("IsUserId");
 
-                    b.Property<string>("ConnectionToken")
-                        .HasColumnType("text");
+                    b.HasOne("vassago.Models.Channel", "SeenInChannel")
+                        .WithMany("Users")
+                        .HasForeignKey("SeenInChannelId");
 
-                    b.HasDiscriminator().HasValue("Protocol");
-                });
+                    b.Navigation("IsUser");
 
-            modelBuilder.Entity("ChannelUser", b =>
-                {
-                    b.HasOne("vassago.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("OtherUsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("vassago.Models.Channel", null)
-                        .WithMany()
-                        .HasForeignKey("SeenInChannelsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("SeenInChannel");
                 });
 
             modelBuilder.Entity("vassago.Models.Attachment", b =>
@@ -254,24 +245,18 @@ namespace vassago.Migrations
                         .WithMany("SubChannels")
                         .HasForeignKey("ParentChannelId");
 
-                    b.HasOne("vassago.Models.PermissionSettings", "PermissionsOverrides")
+                    b.HasOne("vassago.Models.PermissionSettings", "Permissions")
                         .WithMany()
-                        .HasForeignKey("PermissionsOverridesId");
-
-                    b.HasOne("vassago.Models.Protocol", "Protocol")
-                        .WithMany()
-                        .HasForeignKey("ProtocolId");
+                        .HasForeignKey("PermissionsId");
 
                     b.Navigation("ParentChannel");
 
-                    b.Navigation("PermissionsOverrides");
-
-                    b.Navigation("Protocol");
+                    b.Navigation("Permissions");
                 });
 
             modelBuilder.Entity("vassago.Models.Message", b =>
                 {
-                    b.HasOne("vassago.Models.User", "Author")
+                    b.HasOne("vassago.Models.Account", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId");
 
@@ -284,24 +269,13 @@ namespace vassago.Migrations
                     b.Navigation("Channel");
                 });
 
-            modelBuilder.Entity("vassago.Models.User", b =>
-                {
-                    b.HasOne("vassago.Models.Protocol", "Protocol")
-                        .WithMany()
-                        .HasForeignKey("ProtocolId");
-
-                    b.HasOne("vassago.Models.User", null)
-                        .WithMany("KnownAliases")
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("Protocol");
-                });
-
             modelBuilder.Entity("vassago.Models.Channel", b =>
                 {
                     b.Navigation("Messages");
 
                     b.Navigation("SubChannels");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("vassago.Models.Message", b =>
@@ -311,7 +285,7 @@ namespace vassago.Migrations
 
             modelBuilder.Entity("vassago.Models.User", b =>
                 {
-                    b.Navigation("KnownAliases");
+                    b.Navigation("Accounts");
                 });
 #pragma warning restore 612, 618
         }

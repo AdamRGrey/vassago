@@ -9,7 +9,7 @@ public class Account
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; set; }
-    public ulong? ExternalId { get; set; }
+    public string ExternalId { get; set; }
     public string Username { get; set; }
     private string _displayName = null;
     public string DisplayName

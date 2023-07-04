@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace vassago.Migrations
 {
     /// <inheritdoc />
-    public partial class initialcreate : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,9 +18,10 @@ namespace vassago.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    MaxAttachmentBytes = table.Column<long>(type: "bigint", nullable: true),
+                    MaxAttachmentBytes = table.Column<decimal>(type: "numeric(20,0)", nullable: true),
                     MaxTextChars = table.Column<long>(type: "bigint", nullable: true),
                     LinksAllowed = table.Column<bool>(type: "boolean", nullable: true),
+                    ReactionsPossible = table.Column<bool>(type: "boolean", nullable: true),
                     LewdnessFilterLevel = table.Column<int>(type: "integer", nullable: true),
                     MeannessFilterLevel = table.Column<int>(type: "integer", nullable: true)
                 },
@@ -30,18 +31,27 @@ namespace vassago.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Channels",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ExternalId = table.Column<decimal>(type: "numeric(20,0)", nullable: true),
+                    ExternalId = table.Column<string>(type: "text", nullable: true),
                     DisplayName = table.Column<string>(type: "text", nullable: true),
                     IsDM = table.Column<bool>(type: "boolean", nullable: false),
-                    PermissionsOverridesId = table.Column<int>(type: "integer", nullable: true),
+                    PermissionsId = table.Column<int>(type: "integer", nullable: true),
                     ParentChannelId = table.Column<Guid>(type: "uuid", nullable: true),
-                    ProtocolId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Discriminator = table.Column<string>(type: "text", nullable: false),
-                    ConnectionToken = table.Column<string>(type: "text", nullable: true)
+                    Protocol = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -52,65 +62,39 @@ namespace vassago.Migrations
                         principalTable: "Channels",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Channels_Channels_ProtocolId",
-                        column: x => x.ProtocolId,
-                        principalTable: "Channels",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Channels_PermissionSettings_PermissionsOverridesId",
-                        column: x => x.PermissionsOverridesId,
+                        name: "FK_Channels_PermissionSettings_PermissionsId",
+                        column: x => x.PermissionsId,
                         principalTable: "PermissionSettings",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "Accounts",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ExternalId = table.Column<decimal>(type: "numeric(20,0)", nullable: true),
+                    ExternalId = table.Column<string>(type: "text", nullable: true),
                     Username = table.Column<string>(type: "text", nullable: true),
+                    DisplayName = table.Column<string>(type: "text", nullable: true),
                     IsBot = table.Column<bool>(type: "boolean", nullable: false),
-                    ProtocolId = table.Column<Guid>(type: "uuid", nullable: true),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: true)
+                    SeenInChannelId = table.Column<Guid>(type: "uuid", nullable: true),
+                    PermissionTags = table.Column<int[]>(type: "integer[]", nullable: true),
+                    Protocol = table.Column<string>(type: "text", nullable: true),
+                    IsUserId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_Accounts", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Users_Channels_ProtocolId",
-                        column: x => x.ProtocolId,
+                        name: "FK_Accounts_Channels_SeenInChannelId",
+                        column: x => x.SeenInChannelId,
                         principalTable: "Channels",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Users_Users_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Accounts_Users_IsUserId",
+                        column: x => x.IsUserId,
                         principalTable: "Users",
                         principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ChannelUser",
-                columns: table => new
-                {
-                    OtherUsersId = table.Column<Guid>(type: "uuid", nullable: false),
-                    SeenInChannelsId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ChannelUser", x => new { x.OtherUsersId, x.SeenInChannelsId });
-                    table.ForeignKey(
-                        name: "FK_ChannelUser_Channels_SeenInChannelsId",
-                        column: x => x.SeenInChannelsId,
-                        principalTable: "Channels",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ChannelUser_Users_OtherUsersId",
-                        column: x => x.OtherUsersId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -118,7 +102,8 @@ namespace vassago.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ExternalId = table.Column<decimal>(type: "numeric(20,0)", nullable: true),
+                    Protocol = table.Column<string>(type: "text", nullable: true),
+                    ExternalId = table.Column<string>(type: "text", nullable: true),
                     Content = table.Column<string>(type: "text", nullable: true),
                     MentionsMe = table.Column<bool>(type: "boolean", nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
@@ -130,14 +115,14 @@ namespace vassago.Migrations
                 {
                     table.PrimaryKey("PK_Messages", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Messages_Accounts_AuthorId",
+                        column: x => x.AuthorId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_Messages_Channels_ChannelId",
                         column: x => x.ChannelId,
                         principalTable: "Channels",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Messages_Users_AuthorId",
-                        column: x => x.AuthorId,
-                        principalTable: "Users",
                         principalColumn: "Id");
                 });
 
@@ -166,6 +151,16 @@ namespace vassago.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Accounts_IsUserId",
+                table: "Accounts",
+                column: "IsUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Accounts_SeenInChannelId",
+                table: "Accounts",
+                column: "SeenInChannelId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Attachments_MessageId",
                 table: "Attachments",
                 column: "MessageId");
@@ -176,19 +171,9 @@ namespace vassago.Migrations
                 column: "ParentChannelId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Channels_PermissionsOverridesId",
+                name: "IX_Channels_PermissionsId",
                 table: "Channels",
-                column: "PermissionsOverridesId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Channels_ProtocolId",
-                table: "Channels",
-                column: "ProtocolId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ChannelUser_SeenInChannelsId",
-                table: "ChannelUser",
-                column: "SeenInChannelsId");
+                column: "PermissionsId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Messages_AuthorId",
@@ -199,16 +184,6 @@ namespace vassago.Migrations
                 name: "IX_Messages_ChannelId",
                 table: "Messages",
                 column: "ChannelId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_ProtocolId",
-                table: "Users",
-                column: "ProtocolId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_UserId",
-                table: "Users",
-                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -218,16 +193,16 @@ namespace vassago.Migrations
                 name: "Attachments");
 
             migrationBuilder.DropTable(
-                name: "ChannelUser");
-
-            migrationBuilder.DropTable(
                 name: "Messages");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Accounts");
 
             migrationBuilder.DropTable(
                 name: "Channels");
+
+            migrationBuilder.DropTable(
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "PermissionSettings");
