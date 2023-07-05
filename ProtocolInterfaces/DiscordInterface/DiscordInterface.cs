@@ -117,8 +117,7 @@ public class DiscordInterface
 
     private async Task SelfConnected()
     {
-        var selfUser = UpsertAccount(client.CurrentUser);
-        selfUser.SeenInChannel = protocolAsChannel;
+        var selfUser = UpsertAccount(client.CurrentUser, protocolAsChannel.Id);
         selfUser.DisplayName = client.CurrentUser.Username;
 
         await _db.SaveChangesAsync();
@@ -154,8 +153,7 @@ public class DiscordInterface
         var guild = UpsertChannel(arg.Guild);
         var defaultChannel = UpsertChannel(arg.Guild.DefaultChannel);
         defaultChannel.ParentChannel = guild;
-        var u = UpsertAccount(arg);
-        u.SeenInChannel = guild;
+        var u = UpsertAccount(arg, guild.Id);
         u.DisplayName = arg.DisplayName;
     }
     private async Task ButtonHandler(SocketMessageComponent component)
@@ -230,7 +228,7 @@ public class DiscordInterface
         m.ExternalId = dMessage.Id.ToString();
         m.Timestamp = dMessage.EditedTimestamp ?? dMessage.CreatedAt;
         m.Channel = UpsertChannel(dMessage.Channel);
-        m.Author = UpsertAccount(dMessage.Author);
+        m.Author = UpsertAccount(dMessage.Author, m.Channel.Id);
         m.Author.SeenInChannel = m.Channel;
         if(dMessage.Channel is IGuildChannel)
         {
@@ -299,10 +297,10 @@ public class DiscordInterface
         c.SendFile = (f, t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; send file"); };
         return c;
     }
-    internal Account UpsertAccount(IUser user)
+    internal Account UpsertAccount(IUser user, Guid inChannel)
     {
         var hadToAdd = false;
-        var acc = _db.Accounts.FirstOrDefault(ui => ui.ExternalId == user.Id.ToString() && ui.Protocol == PROTOCOL);
+        var acc = _db.Accounts.FirstOrDefault(ui => ui.ExternalId == user.Id.ToString() && ui.SeenInChannel.Id == inChannel);
         if (acc == null)
         {
             acc = new Account();

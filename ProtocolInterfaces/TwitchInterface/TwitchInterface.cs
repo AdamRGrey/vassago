@@ -121,8 +121,7 @@ public class TwitchInterface
 
     private async void Client_OnConnected(object sender, OnConnectedArgs e)
     {
-        var selfUser = UpsertAccount(e.BotUsername);
-        selfUser.SeenInChannel = protocolAsChannel;
+        var selfUser = UpsertAccount(e.BotUsername, protocolAsChannel.Id);
 
         await _db.SaveChangesAsync();
         Behaver.Instance.Selves.Add(selfUser);
@@ -140,10 +139,10 @@ public class TwitchInterface
         Console.WriteLine($"{e.DateTime.ToString()}: {e.BotUsername} - {e.Data}");
     }
 
-    private Account UpsertAccount(string username)
+    private Account UpsertAccount(string username, Guid inChannel)
     {
         var hadToAdd = false;
-        var acc = _db.Accounts.FirstOrDefault(ui => ui.ExternalId == username);
+        var acc = _db.Accounts.FirstOrDefault(ui => ui.ExternalId == username && ui.SeenInChannel.Id == inChannel);
         if (acc == null)
         {
             acc = new Account();
@@ -221,7 +220,7 @@ public class TwitchInterface
         m.Content = chatMessage.Message;
         m.ExternalId = chatMessage.Id;
         m.Channel = UpsertChannel(chatMessage.Channel);
-        m.Author = UpsertAccount(chatMessage.Username);
+        m.Author = UpsertAccount(chatMessage.Username, m.Channel.Id);
         m.Author.SeenInChannel = m.Channel;
 
         m.Reply = (t) => { return Task.Run(() => { client.SendReply(chatMessage.Channel, chatMessage.Id, t); }); };
@@ -242,7 +241,7 @@ public class TwitchInterface
         m.ExternalId = whisperMessage.MessageId;
         m.Channel = UpsertDMChannel(whisperMessage.Username);
         m.Channel.IsDM = true;
-        m.Author = UpsertAccount(whisperMessage.Username);
+        m.Author = UpsertAccount(whisperMessage.Username, m.Channel.Id);
         m.Author.SeenInChannel = m.Channel;
 
         m.Reply = (t) => { return Task.Run(() => {client.SendWhisper(whisperMessage.Username, t); });};

@@ -1,8 +1,13 @@
+using Microsoft.EntityFrameworkCore;
+using vassago.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IHostedService, vassago.ConsoleService>();
+builder.Services.AddDbContext<ChattingContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("ChattingContext")));
 
 var app = builder.Build();
 
