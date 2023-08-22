@@ -92,9 +92,10 @@ public class TwitchInterface
     private async void Client_OnWhisperReceivedAsync(object sender, OnWhisperReceivedArgs e)
     {
         Console.WriteLine($"whisper#{e.WhisperMessage.Username}[{DateTime.Now}][{e.WhisperMessage.DisplayName} [id={e.WhisperMessage.Username}]][msg id: {e.WhisperMessage.MessageId}] {e.WhisperMessage.Message}");
-        if (_db.Messages.Select(m => m.ExternalId == e.WhisperMessage.MessageId) != null)
+        var old = _db.Messages.FirstOrDefault(m => m.ExternalId == e.WhisperMessage.MessageId && m.Protocol == PROTOCOL);
+        if (old != null)
         {
-            Console.WriteLine("already seent it");
+            Console.WriteLine($"[whisperreceived]: {e.WhisperMessage.MessageId}? already seent it. Internal id: {old.Id}");
             return;
         }
         var m = UpsertMessage(e.WhisperMessage);
@@ -109,11 +110,13 @@ public class TwitchInterface
     private async void Client_OnMessageReceivedAsync(object sender, OnMessageReceivedArgs e)
     {
         Console.WriteLine($"#{e.ChatMessage.Channel}[{DateTime.Now}][{e.ChatMessage.DisplayName} [id={e.ChatMessage.Username}]][msg id: {e.ChatMessage.Id}] {e.ChatMessage.Message}");
-        if (_db.Messages.Select(m => m.ExternalId == e.ChatMessage.Id) != null)
+        var old = _db.Messages.FirstOrDefault(m => m.ExternalId == e.ChatMessage.Id && m.Protocol == PROTOCOL);
+        if (old != null)
         {
-            Console.WriteLine("already seent it");
+            Console.WriteLine($"[messagereceived]: {e.ChatMessage.Id}? already seent it");
             return;
         }
+        Console.WriteLine($"[messagereceived]: {e.ChatMessage.Id}? new to me.");
         var m = UpsertMessage(e.ChatMessage);
         m.MentionsMe = Regex.IsMatch(e.ChatMessage.Message?.ToLower(), $"@{e.ChatMessage.BotUsername.ToLower()}\\b") ||
             e.ChatMessage.ChatReply?.ParentUserLogin == e.ChatMessage.BotUsername;
@@ -217,6 +220,7 @@ public class TwitchInterface
         if (m == null)
         {
             m = new Message();
+            m.Protocol = PROTOCOL;
             _db.Messages.Add(m);
             m.Timestamp = (DateTimeOffset)DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
         }
@@ -237,6 +241,7 @@ public class TwitchInterface
         if (m == null)
         {
             m = new Message();
+            m.Protocol = PROTOCOL;
             _db.Messages.Add(m);
             m.Timestamp = (DateTimeOffset)DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
         }

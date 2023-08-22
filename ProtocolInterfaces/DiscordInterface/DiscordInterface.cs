@@ -213,6 +213,7 @@ public class DiscordInterface
         if (m == null)
         {
             m = new Message();
+            m.Protocol = PROTOCOL;
             _db.Messages.Add(m);
         }
         m.Attachments = m.Attachments ?? new List<vassago.Models.Attachment>();
