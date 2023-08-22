@@ -44,12 +44,16 @@ public class Detiktokify : Behavior
                 }
             }
         }
+        if(tiktokLinks.Any()){
+            Console.WriteLine($"Should Act on message id {message.ExternalId}; with content {message.Content}");
+        }
         return tiktokLinks.Any();
     }
     public override async Task<bool> ActOn(Message message)
     {
         foreach(var link in tiktokLinks)
         {
+            tiktokLinks.Remove(link);
             try
             {
                 Console.WriteLine($"detiktokifying {link}");

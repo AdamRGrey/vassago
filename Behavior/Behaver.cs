@@ -45,6 +45,7 @@ public class Behaver
             {
                 behavior.ActOn(message);
                 message.ActedOn = true;
+                Console.WriteLine("acted on, moving forward");
             }
         }
         if (message.ActedOn == false && message.MentionsMe && message.Content.Contains('?') && !Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id))
@@ -52,14 +53,10 @@ public class Behaver
             Console.WriteLine("providing bullshit nonanswer / admitting uselessness");
             var responses = new List<string>(){
                                 @"Well, that's a great question, and there are certainly many different possible answers. Ultimately, the decision will depend on a variety of factors, including your personal interests and goals, as well as any practical considerations (like the economy). I encourage you to do your research, speak with experts and educators, and explore your options before making a decision that's right for you.",
-                                @"┐(ﾟ ～ﾟ )┌",@"¯\_(ツ)_/¯",@"╮ (. ❛ ᴗ ❛.) ╭", @"╮(╯ _╰ )╭"
+                                @"┐(ﾟ ～ﾟ )┌", @"¯\_(ツ)_/¯", @"╮ (. ❛ ᴗ ❛.) ╭", @"╮(╯ _╰ )╭"
                             };
             await message.Channel.SendMessage(responses[Shared.r.Next(responses.Count)]);
             message.ActedOn = true;
-        }
-        if (message.ActedOn)
-        {
-            _db.SaveChanges();
         }
         return message.ActedOn;
     }

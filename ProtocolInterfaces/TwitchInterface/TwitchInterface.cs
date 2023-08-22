@@ -69,10 +69,10 @@ public class TwitchInterface
         await SetupTwitchChannel();
 
         WebSocketClient customClient = new WebSocketClient(new ClientOptions
-            {
-                MessagesAllowedInPeriod = 750,
-                ThrottlingPeriod = TimeSpan.FromSeconds(30)
-            }
+        {
+            MessagesAllowedInPeriod = 750,
+            ThrottlingPeriod = TimeSpan.FromSeconds(30)
+        }
         );
         client = new TwitchClient(customClient);
         client.Initialize(new ConnectionCredentials(tc.username, tc.oauth, capabilities: new Capabilities()));
@@ -92,30 +92,34 @@ public class TwitchInterface
     private async void Client_OnWhisperReceivedAsync(object sender, OnWhisperReceivedArgs e)
     {
         Console.WriteLine($"whisper#{e.WhisperMessage.Username}[{DateTime.Now}][{e.WhisperMessage.DisplayName} [id={e.WhisperMessage.Username}]][msg id: {e.WhisperMessage.MessageId}] {e.WhisperMessage.Message}");
+        if (_db.Messages.Select(m => m.ExternalId == e.WhisperMessage.MessageId) != null)
+        {
+            Console.WriteLine("already seent it");
+            return;
+        }
         var m = UpsertMessage(e.WhisperMessage);
         m.Channel.IsDM = true;
-
         m.MentionsMe = Regex.IsMatch(e.WhisperMessage.Message?.ToLower(), $"\\b@{e.WhisperMessage.BotUsername.ToLower()}\\b");
+        _db.SaveChanges();
 
-        if (await Behaver.Instance.ActOn(m))
-        {
-            m.ActedOn = true;
-        }
+        await Behaver.Instance.ActOn(m);
         _db.SaveChanges();
     }
 
     private async void Client_OnMessageReceivedAsync(object sender, OnMessageReceivedArgs e)
     {
         Console.WriteLine($"#{e.ChatMessage.Channel}[{DateTime.Now}][{e.ChatMessage.DisplayName} [id={e.ChatMessage.Username}]][msg id: {e.ChatMessage.Id}] {e.ChatMessage.Message}");
+        if (_db.Messages.Select(m => m.ExternalId == e.ChatMessage.Id) != null)
+        {
+            Console.WriteLine("already seent it");
+            return;
+        }
         var m = UpsertMessage(e.ChatMessage);
-
         m.MentionsMe = Regex.IsMatch(e.ChatMessage.Message?.ToLower(), $"@{e.ChatMessage.BotUsername.ToLower()}\\b") ||
             e.ChatMessage.ChatReply?.ParentUserLogin == e.ChatMessage.BotUsername;
+        _db.SaveChanges();
 
-        if (await Behaver.Instance.ActOn(m))
-        {
-            m.ActedOn = true;
-        }
+        await Behaver.Instance.ActOn(m);
         _db.SaveChanges();
     }
 
@@ -154,10 +158,10 @@ public class TwitchInterface
         //acc.IsBot =
         acc.Protocol = PROTOCOL;
 
-        if(hadToAdd)
+        if (hadToAdd)
         {
             acc.IsUser = _db.Users.FirstOrDefault(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol));
-            if(acc.IsUser == null)
+            if (acc.IsUser == null)
             {
                 acc.IsUser = new vassago.Models.User() { Accounts = new List<Account>() { acc } };
                 _db.Users.Add(acc.IsUser);
@@ -181,8 +185,8 @@ public class TwitchInterface
         c.Protocol = PROTOCOL;
         c.ParentChannel = protocolAsChannel;
         c.SubChannels = c.SubChannels ?? new List<Channel>();
-        c.SendMessage = (t) => { return Task.Run(() => {client.SendMessage(channelName, t); }); };
-        c.SendFile = (f, t) => { throw new InvalidOperationException($"twitch cannot send files");  };
+        c.SendMessage = (t) => { return Task.Run(() => { client.SendMessage(channelName, t); }); };
+        c.SendFile = (f, t) => { throw new InvalidOperationException($"twitch cannot send files"); };
         return c;
         throw new NotImplementedException();
     }
@@ -201,8 +205,8 @@ public class TwitchInterface
         c.Protocol = PROTOCOL;
         c.ParentChannel = protocolAsChannel;
         c.SubChannels = c.SubChannels ?? new List<Channel>();
-        c.SendMessage = (t) => { return Task.Run(() => {client.SendWhisper(whisperWith, t); }); };
-        c.SendFile = (f, t) => { throw new InvalidOperationException($"twitch cannot send files");  };
+        c.SendMessage = (t) => { return Task.Run(() => { client.SendWhisper(whisperWith, t); }); };
+        c.SendFile = (f, t) => { throw new InvalidOperationException($"twitch cannot send files"); };
         return c;
         throw new NotImplementedException();
     }
@@ -214,7 +218,7 @@ public class TwitchInterface
         {
             m = new Message();
             _db.Messages.Add(m);
-            m.Timestamp =(DateTimeOffset)DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
+            m.Timestamp = (DateTimeOffset)DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
         }
 
         m.Content = chatMessage.Message;
@@ -234,7 +238,7 @@ public class TwitchInterface
         {
             m = new Message();
             _db.Messages.Add(m);
-            m.Timestamp =(DateTimeOffset)DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
+            m.Timestamp = (DateTimeOffset)DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
         }
 
         m.Content = whisperMessage.Message;
@@ -244,7 +248,7 @@ public class TwitchInterface
         m.Author = UpsertAccount(whisperMessage.Username, m.Channel.Id);
         m.Author.SeenInChannel = m.Channel;
 
-        m.Reply = (t) => { return Task.Run(() => {client.SendWhisper(whisperMessage.Username, t); });};
+        m.Reply = (t) => { return Task.Run(() => { client.SendWhisper(whisperMessage.Username, t); }); };
         m.React = (e) => { throw new InvalidOperationException($"twitch cannot react"); };
         return m;
     }
