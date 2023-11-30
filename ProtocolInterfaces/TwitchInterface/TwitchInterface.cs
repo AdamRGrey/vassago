@@ -261,7 +261,7 @@ public class TwitchInterface
     public string AttemptJoin(string channelTarget)
     {
         client.JoinChannel(channelTarget);
-        return "o7";
+        return $"attempt join {channelTarget} - o7";
     }
 
     internal void AttemptLeave(string channelTarget)

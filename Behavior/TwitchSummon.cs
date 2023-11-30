@@ -15,10 +15,6 @@ public class TwitchSummon : Behavior
     //I think given the bot's (hopeful) ability to play nice with others - anyone can summon it anywhere
     //HOWEVER, if not-the-broadcaster summons it, 1) all channel permissions to strict and 2) auto-disconnect on stream end
     //i don't know if the twitch *chat* interface has knowledge of if the stream ends. maybe auto-disconnect after like 2 hours?
-    public override bool ShouldAct(Message message)
-    {
-        return true;
-    }
 
     public override async Task<bool> ActOn(Message message)
     {
