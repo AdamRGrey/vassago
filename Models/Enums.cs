@@ -26,15 +26,6 @@ public static class Enumerations
         [Description("387.44m mi of printed circuits")]
         Unrestricted
     }
-    public enum VerbosityFilterLevel
-    {
-        [Description("stfu")]
-        Quiet,
-        [Description("pithy")]
-        Pithy,
-        [Description("you want text i'll GIVE you text")]
-        Unrestricted
-    }
 
     public static string GetDescription<T>(this T enumerationValue)
     where T : struct

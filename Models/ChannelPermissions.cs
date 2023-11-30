@@ -13,7 +13,6 @@ public class ChannelPermissions
     public bool? ReactionsPossible { get; set; }
     public Enumerations.LewdnessFilterLevel? LewdnessFilterLevel { get; set; }
     public Enumerations.MeannessFilterLevel? MeannessFilterLevel { get; set; }
-    public Enumerations.VerbosityFilterLevel? VerbosityFilterLevel { get; set; }
 
     internal DefinitePermissionSettings Definite()
     {
@@ -24,7 +23,6 @@ public class ChannelPermissions
             LinksAllowed = this.LinksAllowed ?? false,
             LewdnessFilterLevel = this.LewdnessFilterLevel ?? Enumerations.LewdnessFilterLevel.G,
             MeannessFilterLevel = this.MeannessFilterLevel ?? Enumerations.MeannessFilterLevel.Strict,
-            VerbosityFilterLevel = this.VerbosityFilterLevel ?? Enumerations.VerbosityFilterLevel.Pithy,
             ReactionsPossible = this.ReactionsPossible ?? false
         };
     }
