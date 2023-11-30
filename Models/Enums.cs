@@ -15,7 +15,7 @@ public static class Enumerations
         [Description("polite company")]
         Moderate,
         [Description(";) ;) ;)")]
-        unrestricted
+        Unrestricted
     }
     public enum MeannessFilterLevel
     {
@@ -23,13 +23,17 @@ public static class Enumerations
         Strict,
         [Description("a bit cheeky")]
         Medium,
-        [Description("387.44 million miles of printed circuits, etc")]
+        [Description("387.44m mi of printed circuits")]
         Unrestricted
     }
-    public enum WellknownPermissions
+    public enum VerbosityFilterLevel
     {
-        Master, //e.g., me. not that I think this would ever be released?
-        TwitchSummon,
+        [Description("stfu")]
+        Quiet,
+        [Description("pithy")]
+        Pithy,
+        [Description("you want text i'll GIVE you text")]
+        Unrestricted
     }
 
     public static string GetDescription<T>(this T enumerationValue)

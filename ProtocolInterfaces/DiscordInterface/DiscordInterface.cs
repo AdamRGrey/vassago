@@ -58,7 +58,7 @@ public class DiscordInterface
                 protocolAsChannel = new Channel()
                 {
                     DisplayName = "discord (itself)",
-                    Permissions = new PermissionSettings()
+                    Permissions = new Models.ChannelPermissions()
                     {
                         MeannessFilterLevel = Enumerations.MeannessFilterLevel.Strict,
                         LewdnessFilterLevel = Enumerations.LewdnessFilterLevel.Moderate,
@@ -291,7 +291,7 @@ public class DiscordInterface
         c.Protocol = protocolAsChannel.Protocol;
         c.ParentChannel = protocolAsChannel;
         c.SubChannels = c.SubChannels ?? new List<Channel>();
-        c.Permissions = c.Permissions ?? new PermissionSettings();
+        c.Permissions = c.Permissions ?? new Models.ChannelPermissions();
         c.Permissions.MaxAttachmentBytes = channel.MaxUploadLimit;
 
         c.SendMessage = (t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; cannot accept text"); };

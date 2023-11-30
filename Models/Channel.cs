@@ -14,7 +14,7 @@ public class Channel
     public string ExternalId { get; set; }
     public string DisplayName { get; set; }
     public bool IsDM { get; set; }
-    public PermissionSettings Permissions { get; set; }
+    public ChannelPermissions Permissions { get; set; }
     public List<Channel> SubChannels { get; set; }
     public Channel ParentChannel { get; set; }
     public string Protocol { get; set; }
@@ -33,11 +33,11 @@ public class Channel
     {
         get
         {
-            PermissionSettings toReturn = Permissions ?? new PermissionSettings();
+            ChannelPermissions toReturn = Permissions ?? new ChannelPermissions();
             return GetEffectivePermissions(ref toReturn).Definite();
         }
     }
-    private PermissionSettings GetEffectivePermissions(ref PermissionSettings settings)
+    private ChannelPermissions GetEffectivePermissions(ref ChannelPermissions settings)
     {
         if(settings == null) throw new ArgumentNullException();
         settings.LewdnessFilterLevel = settings.LewdnessFilterLevel ?? Permissions?.LewdnessFilterLevel;

@@ -38,7 +38,7 @@ public class TwitchInterface
                 protocolAsChannel = new Channel()
                 {
                     DisplayName = "twitch (itself)",
-                    Permissions = new PermissionSettings()
+                    Permissions = new ChannelPermissions()
                     {
                         MeannessFilterLevel = Enumerations.MeannessFilterLevel.Medium,
                         LewdnessFilterLevel = Enumerations.LewdnessFilterLevel.G,

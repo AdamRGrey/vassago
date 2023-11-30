@@ -16,7 +16,10 @@ public class TwitchDismiss : Behavior
         if(message.MentionsMe &&
             (Regex.IsMatch(message.Content.ToLower(), "\\bbegone\\b") || Regex.IsMatch(message.Content.ToLower(), "\\bfuck off\\b")))
             {
-                //TODO: PERMISSION!
+                //TODO: PERMISSION! who can dismiss me? pretty simple list:
+                //1) anyone in the channel with authority*
+                //2) whoever summoned me
+                //* i don't know if the twitch *chat* interface will tell me if someone's a mod.
                 return true;
             }
         return false;

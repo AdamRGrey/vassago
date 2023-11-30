@@ -9,7 +9,7 @@ public class ChattingContext : DbContext
     public DbSet<Channel> Channels { get; set; }
     //public DbSet<Emoji> Emoji {get;set;}
     public DbSet<Message> Messages { get; set; }
-    public DbSet<PermissionSettings> PermissionSettings{get;set;}
+    public DbSet<ChannelPermissions> PermissionSettings{get;set;}
     public DbSet<Account> Accounts { get; set; }
     public DbSet<User> Users { get; set; }
 

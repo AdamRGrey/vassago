@@ -26,8 +26,6 @@ public class Account
     }
     public bool IsBot { get; set; } //webhook counts
     public Channel SeenInChannel { get; set; }
-    //permissions are per account-in-channel or per-user, and always propagate down. and since protocol will be a channel, I'll set the "is adam" permission on myself 1x/protocol.
-    public List<Enumerations.WellknownPermissions> PermissionTags{get;set;}
     public string Protocol { get; set; }
     public User IsUser {get; set;}
 }
