@@ -300,27 +300,22 @@ public class DiscordInterface
     }
     internal Account UpsertAccount(IUser user, Guid inChannel)
     {
-        var hadToAdd = false;
         var acc = _db.Accounts.FirstOrDefault(ui => ui.ExternalId == user.Id.ToString() && ui.SeenInChannel.Id == inChannel);
         if (acc == null)
         {
             acc = new Account();
             _db.Accounts.Add(acc);
-            hadToAdd = true;
         }
         acc.Username = user.Username;
         acc.ExternalId = user.Id.ToString();
         acc.IsBot = user.IsBot || user.IsWebhook;
         acc.Protocol = PROTOCOL;
 
-        if(hadToAdd)
+        acc.IsUser = _db.Users.FirstOrDefault(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol));
+        if(acc.IsUser == null)
         {
-            acc.IsUser = _db.Users.FirstOrDefault(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol));
-            if(acc.IsUser == null)
-            {
-                acc.IsUser = new User() { Accounts = new List<Account>() { acc } };
-                _db.Users.Add(acc.IsUser);
-            }
+            acc.IsUser = new User() { Accounts = new List<Account>() { acc } };
+            _db.Users.Add(acc.IsUser);
         }
         return acc;
     }

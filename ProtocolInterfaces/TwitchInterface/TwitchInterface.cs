@@ -15,12 +15,13 @@ namespace vassago.TwitchInterface;
 
 public class TwitchInterface
 {
-    internal const string PROTOCOL = "Twitch";
+    internal const string PROTOCOL = "twitch";
     private bool eventsSignedUp = false;
     private ChattingContext _db;
     private static SemaphoreSlim twitchChannelSetup = new SemaphoreSlim(1, 1);
     private Channel protocolAsChannel;
     TwitchClient client;
+    TwitchAPI api;
 
     public TwitchInterface()
     {
@@ -83,10 +84,23 @@ public class TwitchInterface
         client.OnWhisperReceived += Client_OnWhisperReceivedAsync;
         client.OnConnected += Client_OnConnected;
 
-        Console.WriteLine("twitch client connecting...");
+        Console.WriteLine("twitch client 1 connecting...");
         client.Connect();
-        Console.WriteLine("twitch client connected");
+        Console.WriteLine("twitch client 1 connected");
 
+        // Console.WriteLine("twitch API client connecting...");
+        // api = new TwitchAPI();
+        // Console.WriteLine("can I just use the same creds as the other client?");
+        // api.Settings.ClientId = tc.username;
+        // api.Settings.AccessToken = tc.oauth;
+        // try{
+        //     var neckbreads = await api.Helix.Moderation.GetModeratorsAsync("silvermeddlists");
+        //     Console.WriteLine($"{neckbreads?.Data?.Count()} shabby beards that need to be given up on");
+        // }
+        // catch(Exception e){
+        //     Console.Error.WriteLine(e);
+        // }
+        // Console.WriteLine("k.");
     }
 
     private async void Client_OnWhisperReceivedAsync(object sender, OnWhisperReceivedArgs e)
@@ -148,27 +162,22 @@ public class TwitchInterface
 
     private Account UpsertAccount(string username, Guid inChannel)
     {
-        var hadToAdd = false;
         var acc = _db.Accounts.FirstOrDefault(ui => ui.ExternalId == username && ui.SeenInChannel.Id == inChannel);
         if (acc == null)
         {
             acc = new Account();
             _db.Accounts.Add(acc);
-            hadToAdd = true;
         }
         acc.Username = username;
         acc.ExternalId = username;
         //acc.IsBot =
         acc.Protocol = PROTOCOL;
 
-        if (hadToAdd)
+        acc.IsUser = _db.Users.FirstOrDefault(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol));
+        if (acc.IsUser == null)
         {
-            acc.IsUser = _db.Users.FirstOrDefault(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol));
-            if (acc.IsUser == null)
-            {
-                acc.IsUser = new vassago.Models.User() { Accounts = new List<Account>() { acc } };
-                _db.Users.Add(acc.IsUser);
-            }
+            acc.IsUser = new vassago.Models.User() { Accounts = new List<Account>() { acc } };
+            _db.Users.Add(acc.IsUser);
         }
         return acc;
     }
@@ -191,7 +200,6 @@ public class TwitchInterface
         c.SendMessage = (t) => { return Task.Run(() => { client.SendMessage(channelName, t); }); };
         c.SendFile = (f, t) => { throw new InvalidOperationException($"twitch cannot send files"); };
         return c;
-        throw new NotImplementedException();
     }
     private Channel UpsertDMChannel(string whisperWith)
     {
@@ -208,10 +216,20 @@ public class TwitchInterface
         c.Protocol = PROTOCOL;
         c.ParentChannel = protocolAsChannel;
         c.SubChannels = c.SubChannels ?? new List<Channel>();
-        c.SendMessage = (t) => { return Task.Run(() => { client.SendWhisper(whisperWith, t); }); };
+        c.SendMessage = (t) => { return Task.Run(() => {
+                try
+                {
+
+                    client.SendWhisper(whisperWith, t);
+                }
+                catch(Exception e)
+                {
+                    Console.Error.WriteLine(e);
+                }
+            });
+            };
         c.SendFile = (f, t) => { throw new InvalidOperationException($"twitch cannot send files"); };
         return c;
-        throw new NotImplementedException();
     }
 
     private Message UpsertMessage(ChatMessage chatMessage)
