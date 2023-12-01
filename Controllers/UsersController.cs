@@ -20,7 +20,13 @@ public class UsersController : Controller
     {
         return _db.Users != null ?
             View(await _db.Users.Include(u => u.Accounts).ToListAsync()) :
-            Problem("Entity set '_db.Users'  is null.");
+            Problem("Entity set '_db.Users' is null.");
+    }
+    public async Task<IActionResult> Details(Guid id)
+    {
+        return _db.Users != null ?
+            View(await _db.Users.Include(u => u.Accounts).FirstAsync(u => u.Id == id)) :
+            Problem("Entity set '_db.Users' is null.");
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

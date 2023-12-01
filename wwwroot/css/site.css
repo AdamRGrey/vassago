@@ -20,3 +20,15 @@ html {
 body {
   margin-bottom: 60px;
 }
+.account .protocol-icon{
+  display:inline-block;
+  width: 32px;
+  height: 32px;
+  background-size: 32px;
+}
+.account.discord .protocol-icon{
+  background-image: url("../imgs/discord_logo1600.png");
+}
+.account.twitch .protocol-icon{
+  background-image: url("../imgs/twitch.png");
+}

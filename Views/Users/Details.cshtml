@@ -1,0 +1,21 @@
+@model User
+@{
+    ViewData["Title"] = "User details";
+}
+
+User @Model.DisplayName<br />
+
+<div class="permissions">
+
+</div>
+
+<div class="accounts">
+@foreach (var acc in Model.Accounts)
+{
+    <div class="account @acc.Protocol">
+        <div class="protocol-icon">&nbsp;</div>
+        @Html.DisplayFor(acc => acc.DisplayName)
+        <a asp-controller="Accounts" asp-action="Details" asp-route-id="@acc.Id">Details</a>
+    </div>
+}
+</div>
