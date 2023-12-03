@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using System.Threading.Tasks;
-using Discord;
+using static vassago.Models.Enumerations;
 
 public class Channel
 {
@@ -13,13 +13,13 @@ public class Channel
     public Guid Id { get; set; }
     public string ExternalId { get; set; }
     public string DisplayName { get; set; }
-    public bool IsDM { get; set; }
     public ChannelPermissions Permissions { get; set; }
     public List<Channel> SubChannels { get; set; }
     public Channel ParentChannel { get; set; }
     public string Protocol { get; set; }
     public List<Message> Messages { get; set; }
     public List<Account> Users { get; set; }
+    public ChannelType ChannelType {get; set;}
     //public Dictionary<string, string> EmoteOverrides{get;set;}
 
     [NonSerialized]
@@ -60,6 +60,20 @@ public class Channel
         else
         {
             return settings;
+        }
+    }
+    public string LineageSummary
+    {
+        get
+        {
+            if(this.ParentChannel != null)
+            {
+                return this.ParentChannel.LineageSummary + '/' + this.DisplayName;
+            }
+            else
+            {
+                return this.Protocol;
+            }
         }
     }
 }

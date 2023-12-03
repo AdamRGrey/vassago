@@ -113,7 +113,7 @@ public class TwitchInterface
             return;
         }
         var m = UpsertMessage(e.WhisperMessage);
-        m.Channel.IsDM = true;
+        m.Channel.ChannelType = vassago.Models.Enumerations.ChannelType.DM;
         m.MentionsMe = Regex.IsMatch(e.WhisperMessage.Message?.ToLower(), $"\\b@{e.WhisperMessage.BotUsername.ToLower()}\\b");
         _db.SaveChanges();
 
@@ -192,7 +192,7 @@ public class TwitchInterface
         }
         c.DisplayName = channelName;
         c.ExternalId = channelName;
-        c.IsDM = false;
+        c.ChannelType = vassago.Models.Enumerations.ChannelType.Normal;
         c.Messages = c.Messages ?? new List<Message>();
         c.Protocol = PROTOCOL;
         c.ParentChannel = protocolAsChannel;
@@ -211,7 +211,7 @@ public class TwitchInterface
         }
         c.DisplayName = $"Whisper: {whisperWith}";
         c.ExternalId = $"w_{whisperWith}";
-        c.IsDM = true;
+        c.ChannelType = vassago.Models.Enumerations.ChannelType.DM;
         c.Messages = c.Messages ?? new List<Message>();
         c.Protocol = PROTOCOL;
         c.ParentChannel = protocolAsChannel;
@@ -267,7 +267,7 @@ public class TwitchInterface
         m.Content = whisperMessage.Message;
         m.ExternalId = whisperMessage.MessageId;
         m.Channel = UpsertDMChannel(whisperMessage.Username);
-        m.Channel.IsDM = true;
+        m.Channel.ChannelType = vassago.Models.Enumerations.ChannelType.DM;
         m.Author = UpsertAccount(whisperMessage.Username, m.Channel.Id);
         m.Author.SeenInChannel = m.Channel;
 

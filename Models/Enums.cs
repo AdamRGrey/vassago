@@ -27,6 +27,18 @@ public static class Enumerations
         Unrestricted
     }
 
+    public enum ChannelType
+    {
+        [Description("Normal")]
+        Normal,
+        [Description("DM")]
+        DM,
+        [Description("protocol psuedo-channel")]
+        Protocol,
+        [Description("organizational psuedo-channel")]
+        OU
+    }
+
     public static string GetDescription<T>(this T enumerationValue)
     where T : struct
     {

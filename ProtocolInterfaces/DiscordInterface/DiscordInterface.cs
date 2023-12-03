@@ -253,7 +253,7 @@ public class DiscordInterface
 
         c.DisplayName = channel.Name;
         c.ExternalId = channel.Id.ToString();
-        c.IsDM = channel is IPrivateChannel;
+        c.ChannelType = (channel is IPrivateChannel) ? vassago.Models.Enumerations.ChannelType.DM : vassago.Models.Enumerations.ChannelType.Normal;
         c.Messages = c.Messages ?? new List<Message>();
         c.Protocol = PROTOCOL;
         if (channel is IGuildChannel)
@@ -273,6 +273,13 @@ public class DiscordInterface
         c.SubChannels = c.SubChannels ?? new List<Channel>();
         c.SendMessage = (t) => { return channel.SendMessageAsync(t); };
         c.SendFile = (f, t) => { return channel.SendFileAsync(f, t); };
+
+        switch(c.ChannelType)
+        {
+            case vassago.Models.Enumerations.ChannelType.DM:
+                c.DisplayName = "DM: " + (channel as IPrivateChannel).Recipients?.FirstOrDefault(u => u.Id != client.CurrentUser.Id).Username;
+                break;
+        }
         return c;
     }
     internal Channel UpsertChannel(IGuild channel)
@@ -286,7 +293,7 @@ public class DiscordInterface
 
         c.DisplayName = channel.Name;
         c.ExternalId = channel.Id.ToString();
-        c.IsDM = false;
+        c.ChannelType = vassago.Models.Enumerations.ChannelType.Normal;
         c.Messages = c.Messages ?? new List<Message>();
         c.Protocol = protocolAsChannel.Protocol;
         c.ParentChannel = protocolAsChannel;

@@ -1,0 +1,42 @@
+@model IEnumerable<Channel>
+@{
+    ViewData["Title"] = "Channels";
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                protocol
+            </th>
+            <th>type</th>
+            <th>
+                display name
+            </th>
+            <th>
+                Lineage
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model) {
+        <tr>
+            <td class="@item.Protocol">
+                <div class="protocol-icon">&nbsp;</div>
+            </td>
+            <td class="@item.ChannelType">
+                <div class="channel-type-icon">&nbsp;</div>
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DisplayName)
+            </td>
+            <td>
+                @item.LineageSummary
+            </td>
+            <td>
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
