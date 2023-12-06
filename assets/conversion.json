@@ -215,15 +215,29 @@
         {
             "canonical":"mi",
             "aliases": [
-                "mile",
-                "miles"
+                "mile"
             ]
         },
         {
-            "canonical":"blue whale length",
+            "canonical":"blue whale lengths",
             "aliases": [
                 "bwl",
                 "whales"
+            ]
+        },
+        {
+            "canonical":"ångströms",
+            "aliases": [
+                "angstroms",
+                "Å"
+            ]
+        },
+        {
+            "canonical":"μm",
+            "aliases": [
+                "micrometers",
+                "micrometres",
+                "microns"
             ]
         }
     ],
@@ -238,9 +252,11 @@
         {"item1":"m", "item2":"in", "factor":39.37008},
         {"item1":"m", "item2":"cm", "factor":100},
         {"item1":"cm", "item2":"mm", "factor":10},
+        {"item1":"m", "item2":"μm", "factor":1000000},
         {"item1":"km", "item2":"mi", "factor":0.6213712},
         {"item1":"ft", "item2":"in", "factor":12},
         {"item1":"yd", "item2":"ft", "factor":3},
+        {"item1":"football field", "item2":"yd", "factor":100},
         {"item1":"chain", "item2":"yd", "factor":22},
         {"item1":"chain", "item2":"link", "factor":100},
         {"item1":"furlong", "item2":"mi", "factor":8},
@@ -249,6 +265,8 @@
         {"item1":"ly", "item2":"km", "factor": 946070000000},
         {"item1":"pc", "item2":"AU", "factor":206266.3},
         {"item1":"blue whale length", "item2": "m", "factor": 29.9},
+        {"item1":"m", "item2": "ångström", "factor": 10000000000},
+        {"item1":"smoot", "item2": "cm", "factor": 170},
 
         {"item1":"floz", "item2":"mL", "factor":29.57344},
         {"item1":"L", "item2":"mL", "factor":1000},

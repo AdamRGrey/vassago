@@ -115,7 +115,14 @@ namespace vassago.Conversion
                 }
                 else
                 {
-                    return $"{String.Format("{0:G4}", accumulator)} {normalizedDestUnit}s";
+                    if(String.Format("{0:G3}", accumulator).Contains("E-"))
+                    {
+                        return $"{accumulator} {normalizedDestUnit}";
+                    }
+                    else
+                    {
+                        return $"{String.Format("{0:N}", accumulator)} {normalizedDestUnit}";
+                    }
                 }
             }
             return "dimensional analysis failure - I know those units but can't find a path between them.";

@@ -20,7 +20,7 @@ html {
 body {
   margin-bottom: 60px;
 }
-.protocol-icon{
+.protocol-icon,.channel-type-icon{
   display:inline-block;
   width: 32px;
   height: 32px;
@@ -31,4 +31,16 @@ body {
 }
 .twitch .protocol-icon{
   background-image: url("../imgs/twitch.png");
+}
+.Normal .channel-type-icon{
+  background-color: black;
+}
+.DM .channel-type-icon{
+  background-color: black;
+}
+.Protocol .channel-type-icon{
+  background-color: black;
+}
+.OU .channel-type-icon{
+  background-color: black;
 }
