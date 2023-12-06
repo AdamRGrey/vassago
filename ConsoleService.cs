@@ -1,5 +1,6 @@
 namespace vassago
 {
+    using Microsoft.EntityFrameworkCore;
     using vassago;
     using vassago.Models;
     using vassago.TwitchInterface;
@@ -22,6 +23,7 @@ namespace vassago
         {
             var dbc = new ChattingContext();
             dbc.Database.EnsureCreated();
+            dbc.Database.Migrate();
 
             if (DiscordTokens?.Any() ?? false)
                 foreach (var dt in DiscordTokens)
