@@ -57,18 +57,21 @@ namespace vassago.Conversion
             if(currencyConf != null)
             {
                 knownConversions.RemoveAll(kc => kc.Item1 == currencyConf.Base);
-                knownAliases.Remove(knownAliases.FirstOrDefault(kvp => kvp.Value == currencyConf.Base).Key);
-                foreach (var rate in currencyConf.rates)
-                    knownAliases.Remove(knownAliases.FirstOrDefault(kvp => kvp.Value == rate.Key).Key);
             }
             if (File.Exists(currencyPath))
             {
                 currencyConf = JsonConvert.DeserializeObject<ExchangePairs>(File.ReadAllText(currencyPath));
 
-                knownAliases.Add(new List<string>() { currencyConf.Base.ToLower() }, currencyConf.Base);
+                if(!knownAliases.ContainsValue(currencyConf.Base))
+                {
+                    knownAliases.Add(new List<string>() { currencyConf.Base.ToLower() }, currencyConf.Base);
+                }
                 foreach (var rate in currencyConf.rates)
                 {
-                    knownAliases.Add(new List<string>() { rate.Key.ToLower() }, rate.Key);
+                    if(!knownAliases.ContainsValue(rate.Key))
+                    {
+                        knownAliases.Add(new List<string>() { rate.Key.ToLower() }, rate.Key);
+                    }
                     AddLinearPair(currencyConf.Base, rate.Key, rate.Value);
                     Console.WriteLine($"{rate.Key.ToLower()} alias of {rate.Key}");
                 }
