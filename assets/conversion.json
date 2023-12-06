@@ -266,7 +266,7 @@
         {"item1":"pc", "item2":"AU", "factor":206266.3},
         {"item1":"blue whale length", "item2": "m", "factor": 29.9},
         {"item1":"m", "item2": "ångström", "factor": 10000000000},
-        {"item1":"smoot", "item2": "cm", "factor": 170},
+        {"item1":"smoot", "item2": "ft", "factor": 5.583333333333},
 
         {"item1":"floz", "item2":"mL", "factor":29.57344},
         {"item1":"L", "item2":"mL", "factor":1000},
