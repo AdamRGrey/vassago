@@ -204,6 +204,20 @@
             "aliases": [
                 "parsec"
             ]
+        },
+        {
+            "canonical":"mi",
+            "aliases": [
+                "mile",
+                "miles"
+            ]
+        },
+        {
+            "canonical":"blue whale length",
+            "aliases": [
+                "bwl",
+                "whales"
+            ]
         }
     ],
     "linearPairs":[
@@ -226,6 +240,7 @@
         {"item1":"AU", "item2":"ly", "factor": 0.0000158125},
         {"item1":"ly", "item2":"km", "factor": 946070000000},
         {"item1":"pc", "item2":"AU", "factor":206266.3},
+        {"item1":"blue whale length", "item2": "m", "factor": 29.9},
 
         {"item1":"floz", "item2":"mL", "factor":29.57344},
         {"item1":"L", "item2":"mL", "factor":1000},
@@ -242,14 +257,14 @@
         {"item1":"gal", "item2":"floz", "factor":128},
         {"item1":"gal", "item2":"qt", "factor":4},
 
-        
+
         {"item1":"acre", "item2":"yd^2", "factor":4840},
         {"item1":"yd^2", "item2":"m^2", "factor":0.836127},
 
         {"item1":"mph", "item2":"knot", "factor":0.868976},
         {"item1":"mph", "item2":"kph", "factor":1.609343550606653},
 
-        
+
         {"item1":"kPa", "item2":"Pa", "factor":1000},
         {"item1":"Nm^2", "item2":"Pa", "factor":1},
         {"item1":"Pa", "item2":"bar", "factor":100},
