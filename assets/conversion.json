@@ -37,6 +37,13 @@
             ]
         },
         {
+            "canonical":"mm",
+            "aliases": [
+                "millimeter",
+                "millimetre"
+            ]
+        },
+        {
             "canonical":"km",
             "aliases": [
                 "kilometer",
@@ -230,6 +237,7 @@
         {"item1":"mi", "item2":"ft", "factor":5280},
         {"item1":"m", "item2":"in", "factor":39.37008},
         {"item1":"m", "item2":"cm", "factor":100},
+        {"item1":"cm", "item2":"mm", "factor":10},
         {"item1":"km", "item2":"mi", "factor":0.6213712},
         {"item1":"ft", "item2":"in", "factor":12},
         {"item1":"yd", "item2":"ft", "factor":3},
