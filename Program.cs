@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IHostedService, vassago.ConsoleService>();
 builder.Services.AddDbContext<ChattingContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("ChattingContext")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("ChattingContext") ),ServiceLifetime.Transient);
 
 var app = builder.Build();
 

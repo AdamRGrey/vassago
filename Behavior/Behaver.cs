@@ -77,9 +77,48 @@ public class Behaver
         }
         else if (SelfUser != selfAccount.IsUser)
         {
-            //TODO: collapse
+            CollapseUsers(SelfUser, selfAccount.IsUser);
         }
         SelfAccounts = _db.Accounts.Where(a => a.IsUser == SelfUser).ToList();
+    }
+
+    public bool CollapseUsers(User primary, User secondary)
+    {
+        Console.WriteLine($"{secondary.Id} is being consumed into {primary.Id}");
+        primary.Accounts.AddRange(secondary.Accounts);
+        foreach(var a in secondary.Accounts)
+        {
+            a.IsUser = primary;
+        }
+        secondary.Accounts.Clear();
+        Console.WriteLine("accounts transferred");
+        try
+        {
+            _db.SaveChanges();
+        }
+        catch(Exception e)
+        {
+            Console.WriteLine("First save exception.");
+            Console.Error.WriteLine(e);
+            return false;
+        }
+        Console.WriteLine("saved");
+
+
+        _db.Users.Remove(secondary);
+        Console.WriteLine("old account cleaned up");
+        try
+        {
+            _db.SaveChanges();
+        }
+        catch(Exception e)
+        {
+            Console.WriteLine("Second save exception.");
+            Console.Error.WriteLine(e);
+            return false;
+        }
+        Console.WriteLine("saved, again, separately");
+        return true;
     }
 }
 #pragma warning restore 4014 //the "async not awaited" error

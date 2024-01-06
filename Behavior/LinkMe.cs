@@ -74,44 +74,14 @@ public class LinkClose : Behavior
             return true;
         }
 
-        Console.WriteLine($"{secondary.Id} is being consumed into {_primary.IsUser.Id}");
-        _primary.IsUser.Accounts.AddRange(secondary.Accounts);
-        foreach(var a in secondary.Accounts)
+        if(Behaver.Instance.CollapseUsers(_primary.IsUser, secondary))
         {
-            a.IsUser = _primary.IsUser;
+            await message.Channel.SendMessage("done :)");
         }
-        secondary.Accounts.Clear();
-        Console.WriteLine("accounts transferred");
-        try
+        else
         {
-            await _db.SaveChangesAsync();
+            await message.Channel.SendMessage("failed :(");
         }
-        catch(Exception e)
-        {
-            message.Channel.SendMessage("error in first save");
-            Console.WriteLine("fucks sake if I don't catch Exception it *mysteriously vanishes*");
-            Console.Error.WriteLine(e);
-            return false;
-        }
-        Console.WriteLine("saved");
-
-
-        _db.Users.Remove(secondary);
-        Console.WriteLine("old account cleaned up");
-        try
-        {
-            await _db.SaveChangesAsync();
-        }
-        catch(Exception e)
-        {
-            message.Channel.SendMessage("error in second save");
-            Console.WriteLine("fucks sake if I don't catch Exception it *mysteriously vanishes*");
-            Console.Error.WriteLine(e);
-            return false;
-        }
-        Console.WriteLine("saved, again, separately");
-
-        await message.Channel.SendMessage("done :)");
 
         return true;
     }
