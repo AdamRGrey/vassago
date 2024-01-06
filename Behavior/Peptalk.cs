@@ -15,12 +15,13 @@ public class PepTalk : Behavior
 {
     public override string Name => "PepTalk";
 
-    public override string Trigger => "i need (an? )?(peptalk|inspiration|ego-?boost)";
+    public override string Trigger => "\\bneeds? (an? )?(peptalk|inspiration|ego-?boost)";
 
     public override string Description => "assembles a pep talk from a few pieces";
 
     public override async Task<bool> ActOn(Message message)
-    {var piece1 = new List<string>{
+    {
+        var piece1 = new List<string>{
                 "Champ, ",
                 "Fact: ",
                 "Everybody says ",

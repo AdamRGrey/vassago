@@ -19,8 +19,7 @@ public class Channel
     public string Protocol { get; set; }
     public List<Message> Messages { get; set; }
     public List<Account> Users { get; set; }
-    public ChannelType ChannelType {get; set;}
-    //public Dictionary<string, string> EmoteOverrides{get;set;}
+    public ChannelType ChannelType {get; set; }
 
     [NonSerialized]
     public Func<string, string, Task> SendFile;

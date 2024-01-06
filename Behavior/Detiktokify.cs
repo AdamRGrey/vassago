@@ -26,10 +26,11 @@ public class Detiktokify : Behavior
     }
     public override bool ShouldAct(Message message)
     {
-        if(message.Channel.EffectivePermissions.MaxAttachmentBytes == 0)
+
+        if(Behaver.Instance.IsSelf(message.Author.Id))
             return false;
 
-        if(Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id))
+        if(message.Channel.EffectivePermissions.MaxAttachmentBytes == 0)
             return false;
 
         var wordLikes = message.Content.Split(' ', StringSplitOptions.TrimEntries);

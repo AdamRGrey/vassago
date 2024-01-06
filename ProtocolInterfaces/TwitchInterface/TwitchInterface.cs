@@ -142,10 +142,10 @@ public class TwitchInterface
 
     private async void Client_OnConnected(object sender, OnConnectedArgs e)
     {
-        var selfUser = UpsertAccount(e.BotUsername, protocolAsChannel.Id);
+        var selfAccount = UpsertAccount(e.BotUsername, protocolAsChannel.Id);
 
         await _db.SaveChangesAsync();
-        Behaver.Instance.Selves.Add(selfUser);
+        Behaver.Instance.MarkSelf(selfAccount);
 
         Console.WriteLine($"Connected to {e.AutoJoinChannel}");
     }

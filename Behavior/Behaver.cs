@@ -11,7 +11,8 @@ using System.Collections.Generic;
 public class Behaver
 {
     private ChattingContext _db;
-    public List<Account> Selves { get; internal set; } = new List<Account>();
+    private List<Account> SelfAccounts { get; set; } = new List<Account>();
+    private User SelfUser { get; set; }
     public static List<Behavior> Behaviors { get; private set; } = new List<Behavior>();
     internal Behaver()
     {
@@ -48,7 +49,7 @@ public class Behaver
                 Console.WriteLine("acted on, moving forward");
             }
         }
-        if (message.ActedOn == false && message.MentionsMe && message.Content.Contains('?') && !Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id))
+        if (message.ActedOn == false && message.MentionsMe && message.Content.Contains('?') && !Behaver.Instance.SelfAccounts.Any(acc => acc.Id == message.Author.Id))
         {
             Console.WriteLine("providing bullshit nonanswer / admitting uselessness");
             var responses = new List<string>(){
@@ -59,6 +60,26 @@ public class Behaver
             message.ActedOn = true;
         }
         return message.ActedOn;
+    }
+
+    internal bool IsSelf(Guid AccountId)
+    {
+        var acc = _db.Accounts.Find(AccountId);
+
+        return SelfAccounts.Any(acc => acc.Id == AccountId);
+    }
+
+    public void MarkSelf(Account selfAccount)
+    {
+        if(SelfUser == null)
+        {
+            SelfUser = selfAccount.IsUser;
+        }
+        else if (SelfUser != selfAccount.IsUser)
+        {
+            //TODO: collapse
+        }
+        SelfAccounts = _db.Accounts.Where(a => a.IsUser == SelfUser).ToList();
     }
 }
 #pragma warning restore 4014 //the "async not awaited" error

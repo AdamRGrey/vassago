@@ -20,8 +20,9 @@ public class GeneralSnarkGooglit : Behavior
 
     public override bool ShouldAct(Message message)
     {
-        if(Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id))
+        if(Behaver.Instance.IsSelf(message.Author.Id))
             return false;
+
         return Regex.IsMatch(message.Content, $"(just )?google( (it|that|things|before))?\\b", RegexOptions.IgnoreCase);
     }
 

@@ -117,11 +117,11 @@ public class DiscordInterface
 
     private async Task SelfConnected()
     {
-        var selfUser = UpsertAccount(client.CurrentUser, protocolAsChannel.Id);
-        selfUser.DisplayName = client.CurrentUser.Username;
-
+        var selfAccount = UpsertAccount(client.CurrentUser, protocolAsChannel.Id);
+        selfAccount.DisplayName = client.CurrentUser.Username;
         await _db.SaveChangesAsync();
-        Behaver.Instance.Selves.Add(selfUser);
+
+        Behaver.Instance.MarkSelf(selfAccount);
     }
 
     private async Task MessageReceived(SocketMessage messageParam)
@@ -332,13 +332,11 @@ public class DiscordInterface
         var c = _db.Channels.FirstOrDefault(c => c.ExternalId == msg.Channel.Id.ToString());
         //var preferredEmote = c.EmoteOverrides?[e] ?? e; //TODO: emote overrides
         var preferredEmote = e;
-        Emoji emoji;
-        if (Emoji.TryParse(preferredEmote, out emoji))
+        if (Emoji.TryParse(preferredEmote, out Emoji emoji))
         {
             return msg.AddReactionAsync(emoji);
         }
-        Emote emote;
-        if (!Emote.TryParse(preferredEmote, out emote))
+        if (!Emote.TryParse(preferredEmote, out Emote emote))
         {
             if (preferredEmote == e)
                 Console.Error.WriteLine($"never heard of emote {e}");

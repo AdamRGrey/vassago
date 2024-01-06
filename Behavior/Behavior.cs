@@ -14,7 +14,7 @@ public abstract class Behavior
 
     public virtual bool ShouldAct(Message message)
     {
-        if(Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id))
+        if(Behaver.Instance.IsSelf(message.Author.Id))
             return false;
         return Regex.IsMatch(message.Content, $"{Trigger}\\b", RegexOptions.IgnoreCase);
     }

@@ -21,7 +21,7 @@ public class GeneralSnarkPlaying : Behavior
 
     public override bool ShouldAct(Message message)
     {
-        if(Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id))
+        if(Behaver.Instance.IsSelf(message.Author.Id))
             return false;
 
         if((MeannessFilterLevel)message.Channel.EffectivePermissions.MeannessFilterLevel < MeannessFilterLevel.Medium ||

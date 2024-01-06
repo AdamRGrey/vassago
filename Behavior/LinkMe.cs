@@ -59,6 +59,9 @@ public class LinkClose : Behavior
 
     public override async Task<bool> ActOn(Message message)
     {
+        if(Behaver.Instance.IsSelf(message.Author.Id))
+            return false;
+
         var secondary = message.Author.IsUser;
         if(_primary.IsUser.Id == secondary.Id)
         {

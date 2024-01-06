@@ -61,7 +61,7 @@ public class LaughAtOwnJoke : Behavior
     public override string Trigger => "1 in 8";
 
     public override string Description => Name;
-    private string _punchline{get;set;}
+    private string _punchline { get; set; }
 
     public LaughAtOwnJoke(string punchline)
     {
@@ -69,9 +69,12 @@ public class LaughAtOwnJoke : Behavior
     }
     public override bool ShouldAct(Message message)
     {
+        if(Behaver.Instance.IsSelf(message.Author.Id))
+            return false;
+
         Console.WriteLine($"{message.Content} == {_punchline}");
         return message.Content == _punchline
-        && Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id);
+        && Behaver.Instance.IsSelf(message.Author.Id);
     }
 
     public override async Task<bool> ActOn(Message message)

@@ -19,6 +19,10 @@ public class GeneralSnarkSkynet : Behavior
 
     public override async Task<bool> ActOn(Message message)
     {
+
+        if(Behaver.Instance.IsSelf(message.Author.Id))
+            return false;
+
         switch (Shared.r.Next(5))
         {
             default:

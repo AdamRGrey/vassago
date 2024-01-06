@@ -19,7 +19,7 @@ public class GeneralSnarkCloudNative : Behavior
     public override string Trigger => "certain tech buzzwords that no human uses in normal conversation";
     public override bool ShouldAct(Message message)
     {
-        if(Behaver.Instance.Selves.Any(acc => acc.Id == message.Author.Id))
+        if(Behaver.Instance.IsSelf(message.Author.Id))
             return false;
 
         if(message.Channel.EffectivePermissions.ReactionsPossible)
