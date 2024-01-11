@@ -41,13 +41,11 @@ public class LinkClose : Behavior
 
     public override string Description => "the second half of LinkMe - this is confirmation that you are the other one";
 
-    private ChattingContext _db;
     private string _pw;
     private Account _primary;
 
     public LinkClose(string pw, Account primary)
     {
-        _db = new ChattingContext();
         _pw = pw;
         _primary = primary;
     }
@@ -74,7 +72,7 @@ public class LinkClose : Behavior
             return true;
         }
 
-        if(Behaver.Instance.CollapseUsers(_primary.IsUser, secondary))
+        if(Behaver.Instance.CollapseUsers(_primary.IsUser, secondary, new ChattingContext()))
         {
             await message.Channel.SendMessage("done :)");
         }

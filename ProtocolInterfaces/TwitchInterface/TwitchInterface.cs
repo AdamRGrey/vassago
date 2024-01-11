@@ -115,10 +115,10 @@ public class TwitchInterface
         var m = UpsertMessage(e.WhisperMessage);
         m.Channel.ChannelType = vassago.Models.Enumerations.ChannelType.DM;
         m.MentionsMe = Regex.IsMatch(e.WhisperMessage.Message?.ToLower(), $"\\b@{e.WhisperMessage.BotUsername.ToLower()}\\b");
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         await Behaver.Instance.ActOn(m);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
     private async void Client_OnMessageReceivedAsync(object sender, OnMessageReceivedArgs e)
@@ -134,10 +134,10 @@ public class TwitchInterface
         var m = UpsertMessage(e.ChatMessage);
         m.MentionsMe = Regex.IsMatch(e.ChatMessage.Message?.ToLower(), $"@{e.ChatMessage.BotUsername.ToLower()}\\b") ||
             e.ChatMessage.ChatReply?.ParentUserLogin == e.ChatMessage.BotUsername;
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         await Behaver.Instance.ActOn(m);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
     private async void Client_OnConnected(object sender, OnConnectedArgs e)

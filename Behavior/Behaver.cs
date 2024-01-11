@@ -10,14 +10,11 @@ using System.Collections.Generic;
 
 public class Behaver
 {
-    private ChattingContext _db;
     private List<Account> SelfAccounts { get; set; } = new List<Account>();
     private User SelfUser { get; set; }
     public static List<Behavior> Behaviors { get; private set; } = new List<Behavior>();
     internal Behaver()
     {
-        _db = new ChattingContext();
-
         var subtypes = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(domainAssembly => domainAssembly.GetTypes())
             .Where(type => type.IsSubclassOf(typeof(Behavior)) && !type.IsAbstract &&
@@ -64,25 +61,27 @@ public class Behaver
 
     internal bool IsSelf(Guid AccountId)
     {
-        var acc = _db.Accounts.Find(AccountId);
+        var db = new ChattingContext();
+        var acc = db.Accounts.Find(AccountId);
 
         return SelfAccounts.Any(acc => acc.Id == AccountId);
     }
 
     public void MarkSelf(Account selfAccount)
     {
+        var db = new ChattingContext();
         if(SelfUser == null)
         {
             SelfUser = selfAccount.IsUser;
         }
         else if (SelfUser != selfAccount.IsUser)
         {
-            CollapseUsers(SelfUser, selfAccount.IsUser);
+            CollapseUsers(SelfUser, selfAccount.IsUser, db);
         }
-        SelfAccounts = _db.Accounts.Where(a => a.IsUser == SelfUser).ToList();
+        SelfAccounts = db.Accounts.Where(a => a.IsUser == SelfUser).ToList();
     }
 
-    public bool CollapseUsers(User primary, User secondary)
+    public bool CollapseUsers(User primary, User secondary, ChattingContext db)
     {
         Console.WriteLine($"{secondary.Id} is being consumed into {primary.Id}");
         primary.Accounts.AddRange(secondary.Accounts);
@@ -94,7 +93,7 @@ public class Behaver
         Console.WriteLine("accounts transferred");
         try
         {
-            _db.SaveChanges();
+            db.SaveChangesAsync().Wait();
         }
         catch(Exception e)
         {
@@ -105,11 +104,11 @@ public class Behaver
         Console.WriteLine("saved");
 
 
-        _db.Users.Remove(secondary);
+        db.Users.Remove(secondary);
         Console.WriteLine("old account cleaned up");
         try
         {
-            _db.SaveChanges();
+            db.SaveChangesAsync().Wait();
         }
         catch(Exception e)
         {

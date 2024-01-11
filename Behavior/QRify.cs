@@ -42,10 +42,10 @@ public class QRify : Behavior
         File.WriteAllText($"tmp/qr{todaysnumber}.svg", qrCodeAsSvg);
         if (ExternalProcess.GoPlz("convert", $"tmp/qr{todaysnumber}.svg tmp/qr{todaysnumber}.png"))
         {
-            if(message.Channel.EffectivePermissions.MaxAttachmentBytes < (ulong)(new System.IO.FileInfo($"tmp/qr{todaysnumber}.png").Length))
+            if(message.Channel.EffectivePermissions.MaxAttachmentBytes >= (ulong)(new System.IO.FileInfo($"tmp/qr{todaysnumber}.png").Length))
                 await message.Channel.SendFile($"tmp/qr{todaysnumber}.png", null);
             else
-                await message.Channel.SendMessage("resulting qr image 2 big 4 here");
+                await message.Channel.SendMessage($"resulting qr image 2 big 4 here ({(ulong)(new System.IO.FileInfo($"tmp/qr{todaysnumber}.png").Length)} / {message.Channel.EffectivePermissions.MaxAttachmentBytes})");
             File.Delete($"tmp/qr{todaysnumber}.svg");
             File.Delete($"tmp/qr{todaysnumber}.png");
         }
