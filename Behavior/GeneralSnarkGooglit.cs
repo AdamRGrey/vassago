@@ -20,11 +20,15 @@ public class GeneralSnarkGooglit : Behavior
 
     public override bool ShouldAct(Message message)
     {
-        if(Behaver.Instance.IsSelf(message.Author.Id))
-            return false;
-
-        return Regex.IsMatch(message.Content, $"(just )?google( (it|that|things|before))?\\b", RegexOptions.IgnoreCase);
+        return false;
     }
+    // public override bool ShouldAct(Message message)
+    // {
+    //     if(Behaver.Instance.IsSelf(message.Author.Id))
+    //         return false;
+
+    //     return Regex.IsMatch(message.Content, $"(just )?google( (it|that|things|before))?\\b", RegexOptions.IgnoreCase);
+    // }
 
     public override async Task<bool> ActOn(Message message)
     {
