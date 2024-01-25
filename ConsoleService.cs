@@ -22,7 +22,6 @@ namespace vassago
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             var dbc = new ChattingContext();
-            await dbc.Database.EnsureCreatedAsync();
             await dbc.Database.MigrateAsync();
 
             if (DiscordTokens?.Any() ?? false)
