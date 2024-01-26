@@ -67,7 +67,7 @@ public class Detiktokify : Behavior
                 {
                     Console.Error.WriteLine("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
                     await message.React("problemon");
-                    await message.Channel.SendMessage("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
+                    await message.Channel.SendMessage("tried to dl, failed. \n");
                 }
                 else
                 {
