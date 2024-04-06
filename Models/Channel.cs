@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components.Web;
 using static vassago.Models.Enumerations;
 
 public class Channel
@@ -13,13 +14,20 @@ public class Channel
     public Guid Id { get; set; }
     public string ExternalId { get; set; }
     public string DisplayName { get; set; }
-    public ChannelPermissions Permissions { get; set; }
     public List<Channel> SubChannels { get; set; }
     public Channel ParentChannel { get; set; }
     public string Protocol { get; set; }
     public List<Message> Messages { get; set; }
     public List<Account> Users { get; set; }
     public ChannelType ChannelType {get; set; }
+
+    //Permissions
+    public ulong? MaxAttachmentBytes { get; set; }
+    public uint? MaxTextChars { get; set; }
+    public bool? LinksAllowed { get; set; }
+    public bool? ReactionsPossible { get; set; }
+    public Enumerations.LewdnessFilterLevel? LewdnessFilterLevel { get; set; }
+    public Enumerations.MeannessFilterLevel? MeannessFilterLevel { get; set; }
 
     [NonSerialized]
     public Func<string, string, Task> SendFile;
@@ -32,33 +40,29 @@ public class Channel
     {
         get
         {
-            ChannelPermissions toReturn = Permissions ?? new ChannelPermissions();
-            return GetEffectivePermissions(ref toReturn).Definite();
-        }
-    }
-    private ChannelPermissions GetEffectivePermissions(ref ChannelPermissions settings)
-    {
-        if(settings == null) throw new ArgumentNullException();
-        settings.LewdnessFilterLevel = settings.LewdnessFilterLevel ?? Permissions?.LewdnessFilterLevel;
-        settings.MeannessFilterLevel = settings.MeannessFilterLevel ?? Permissions?.MeannessFilterLevel;
-        settings.LinksAllowed = settings.LinksAllowed ?? Permissions?.LinksAllowed;
-        settings.MaxAttachmentBytes = settings.MaxAttachmentBytes ?? Permissions?.MaxAttachmentBytes;
-        settings.MaxTextChars = settings.MaxTextChars ?? Permissions?.MaxTextChars;
-        settings.ReactionsPossible = settings.ReactionsPossible ?? Permissions?.ReactionsPossible;
+            var path = new Stack<Channel>(); //omg i actually get to use a data structure from university
+            var walker = this;
+            path.Push(this);
+            while(walker.ParentChannel != null)
+            {
+                walker = walker.ParentChannel;
+                path.Push(walker);
+            }
+            DefinitePermissionSettings toReturn = new DefinitePermissionSettings();
+            walker = path.Pop();
+            while(walker != null)
+            {
+                toReturn.LewdnessFilterLevel = LewdnessFilterLevel ?? toReturn.LewdnessFilterLevel;
+                toReturn.MeannessFilterLevel = MeannessFilterLevel ?? toReturn.MeannessFilterLevel;
+                toReturn.LinksAllowed = LinksAllowed ?? toReturn.LinksAllowed;
+                toReturn.MaxAttachmentBytes = MaxAttachmentBytes ?? toReturn.MaxAttachmentBytes;
+                toReturn.MaxTextChars = MaxTextChars ?? toReturn.MaxTextChars;
+                toReturn.ReactionsPossible = ReactionsPossible ?? toReturn.ReactionsPossible;
 
-        if(this.ParentChannel != null &&
-            (settings.LewdnessFilterLevel == null ||
-            settings.MeannessFilterLevel == null ||
-            settings.LinksAllowed  == null ||
-            settings.MaxAttachmentBytes == null ||
-            settings.MaxTextChars == null ||
-            settings.ReactionsPossible == null))
-        {
-            return this.ParentChannel.GetEffectivePermissions(ref settings);
-        }
-        else
-        {
-            return settings;
+                walker = path.Pop();
+            }
+
+            return toReturn;
         }
     }
     public string LineageSummary
@@ -75,4 +79,14 @@ public class Channel
             }
         }
     }
+}
+
+public class DefinitePermissionSettings
+{
+    public ulong MaxAttachmentBytes { get; set; }
+    public uint MaxTextChars { get; set; }
+    public bool LinksAllowed { get; set; }
+    public bool ReactionsPossible { get; set; }
+    public Enumerations.LewdnessFilterLevel LewdnessFilterLevel { get; set; }
+    public Enumerations.MeannessFilterLevel MeannessFilterLevel { get; set; }
 }

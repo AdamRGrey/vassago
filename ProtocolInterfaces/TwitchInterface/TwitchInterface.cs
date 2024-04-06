@@ -39,15 +39,12 @@ public class TwitchInterface
                 protocolAsChannel = new Channel()
                 {
                     DisplayName = "twitch (itself)",
-                    Permissions = new ChannelPermissions()
-                    {
-                        MeannessFilterLevel = Enumerations.MeannessFilterLevel.Medium,
-                        LewdnessFilterLevel = Enumerations.LewdnessFilterLevel.G,
-                        MaxTextChars = 500,
-                        MaxAttachmentBytes = 0,
-                        LinksAllowed = false,
-                        ReactionsPossible = false
-                    },
+                    MeannessFilterLevel = Enumerations.MeannessFilterLevel.Medium,
+                    LewdnessFilterLevel = Enumerations.LewdnessFilterLevel.G,
+                    MaxTextChars = 500,
+                    MaxAttachmentBytes = 0,
+                    LinksAllowed = false,
+                    ReactionsPossible = false,
                     ExternalId = null,
                     Protocol = PROTOCOL,
                     SubChannels = new List<Channel>()

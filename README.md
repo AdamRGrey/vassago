@@ -21,11 +21,7 @@ debating whether to save a copy of every single attachment. Discord allows 25MB 
 
 ### Channel
 
-a place where communication can happen. any level of these can have any number of children. In matrix, everything is a "room" - even spaces and threads. Seems like a fine idea. So for vassago, a discord "channel" is a channel. a "thread" is a child of that channel. a "category" is a parent of that channel. A "server" (formerly "guild") is a parent of that channel. and fuck it, Discord itself is a "channel".
-
-### ChannelPermissions
-
-the permissions Vassago has for a channel. MaxAttachmentBytes, etc. (...shouldn't this be just part of Channel? You're *always* going down the hierarchy until you find an override. permissions should always inherit, right?)
+a place where communication can happen. any level of these can have any number of children. In matrix, everything is a "room" - even spaces and threads. Seems like a fine idea. So for vassago, a discord "channel" is a channel. a "thread" is a child of that channel. a "category" is a parent of that channel. A "server" (formerly "guild") is a parent of that channel. and fuck it, Discord itself is a "channel". Includes permissions vassago has for a channel; MaxAttachmentBytes, etc. go down the hierarchy until you find an override.
 
 ### FeaturePermission
 
