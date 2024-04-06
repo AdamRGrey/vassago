@@ -1,5 +1,6 @@
-namespace vassago.Behavior;
+namespace vassago;
 #pragma warning disable 4014 //the "not awaited" error
+using vassago.Behavior;
 using vassago.Models;
 using System;
 using System.Linq;
@@ -12,18 +13,18 @@ public class Behaver
 {
     private List<Account> SelfAccounts { get; set; } = new List<Account>();
     private User SelfUser { get; set; }
-    public static List<Behavior> Behaviors { get; private set; } = new List<Behavior>();
+    public static List<vassago.Behavior.Behavior> Behaviors { get; private set; } = new List<vassago.Behavior.Behavior>();
     internal Behaver()
     {
         var subtypes = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(domainAssembly => domainAssembly.GetTypes())
-            .Where(type => type.IsSubclassOf(typeof(Behavior)) && !type.IsAbstract &&
+            .Where(type => type.IsSubclassOf(typeof(vassago.Behavior.Behavior)) && !type.IsAbstract &&
                 type.GetCustomAttributes(typeof(StaticPlzAttribute),false)?.Any() == true)
             .ToList();
 
         foreach (var subtype in subtypes)
         {
-            Behaviors.Add((Behavior)Activator.CreateInstance(subtype));
+            Behaviors.Add((vassago.Behavior.Behavior)Activator.CreateInstance(subtype));
         }
     }
     static Behaver() { }

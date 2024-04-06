@@ -44,7 +44,7 @@ namespace vassago
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return null;
         }
     }
 }
