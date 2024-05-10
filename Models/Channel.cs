@@ -49,17 +49,16 @@ public class Channel
                 path.Push(walker);
             }
             DefinitePermissionSettings toReturn = new DefinitePermissionSettings();
-            walker = path.Pop();
-            while(walker != null)
+            
+            while(path.Count > 0)
             {
-                toReturn.LewdnessFilterLevel = LewdnessFilterLevel ?? toReturn.LewdnessFilterLevel;
-                toReturn.MeannessFilterLevel = MeannessFilterLevel ?? toReturn.MeannessFilterLevel;
-                toReturn.LinksAllowed = LinksAllowed ?? toReturn.LinksAllowed;
-                toReturn.MaxAttachmentBytes = MaxAttachmentBytes ?? toReturn.MaxAttachmentBytes;
-                toReturn.MaxTextChars = MaxTextChars ?? toReturn.MaxTextChars;
-                toReturn.ReactionsPossible = ReactionsPossible ?? toReturn.ReactionsPossible;
-
                 walker = path.Pop();
+                toReturn.LewdnessFilterLevel = walker.LewdnessFilterLevel ?? toReturn.LewdnessFilterLevel;
+                toReturn.MeannessFilterLevel = walker.MeannessFilterLevel ?? toReturn.MeannessFilterLevel;
+                toReturn.LinksAllowed = walker.LinksAllowed ?? toReturn.LinksAllowed;
+                toReturn.MaxAttachmentBytes = walker.MaxAttachmentBytes ?? toReturn.MaxAttachmentBytes;
+                toReturn.MaxTextChars = walker.MaxTextChars ?? toReturn.MaxTextChars;
+                toReturn.ReactionsPossible = walker.ReactionsPossible ?? toReturn.ReactionsPossible;
             }
 
             return toReturn;
