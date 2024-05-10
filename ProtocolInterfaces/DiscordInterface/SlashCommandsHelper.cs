@@ -9,7 +9,6 @@ using Discord.Net;
 
 namespace vassago.DiscordInterface
 {
-
     public static class SlashCommandsHelper
     {
         private static List<CommandSetup> slashCommands = new List<CommandSetup>()
