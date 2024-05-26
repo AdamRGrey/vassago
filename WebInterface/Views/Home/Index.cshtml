@@ -2,62 +2,59 @@
     ViewData["Title"] = "Home Page";
 }
 <div id="tree"></div>
-<div>
-    <a href="Users">Users</a>
-</div>
-<div>
-    <a href="Accounts">Accounts</a>
-</div>
-<div>
-    <a href="Channels">Channels</a>
-</div>
-<div>
-    <a href="Behaviors">Behaviors</a>
-</div>
-
-<div id="tree"></div>
-
+tree above.
 
 @section Scripts{
-<script type="text/javascript">
-    function getTree() {
-    // Some logic to retrieve, or generate tree structure
-            var tree = [
-        {
-            text: "Parent 1",
-            nodes: [
-            {
-                text: "Child 1",
-                nodes: [
+    <script type="text/javascript">
+        function getTree() {
+            // Some logic to retrieve, or generate tree structure
+            var tree = @Html.Raw(ViewData["treeString"]);
+            console.log(tree);
+            @* var channels = {text: "channels", nodes: []};
+            @{
+                var doThing = (currentChannel) => {};
+                foreach(Channel c in ViewData["Channels"])
                 {
-                    text: "Grandchild 1"
-                },
-                {
-                    text: "Grandchild 2"
+                    channels.push(currentChannel);
                 }
-                ]
-            },
-            {
-                text: "Child 2"
-            }
-            ]
-        },
-        {
-            text: "Parent 2"
-        },
-        {
-            text: "Parent 3"
-        },
-        {
-            text: "Parent 4"
-        },
-        {
-            text: "Parent 5"
+            } *@
+            var throwaway = 
+                [
+                    {
+                        text: "Parent 1",
+                        nodes: [
+                            {
+                                text: "Child 1",
+                                nodes: [
+                                    {
+                                        text: "Grandchild 1"
+                                    },
+                                    {
+                                        text: "Grandchild 2"
+                                    }
+                                ]
+                            },
+                            {
+                                text: "Child 2"
+                            }
+                        ]
+                    },
+                    {
+                        text: "Parent 2"
+                    },
+                    {
+                        text: "Parent 3"
+                    },
+                    {
+                        text: "Parent 4"
+                    },
+                    {
+                        text: "Parent 5"
+                    }
+                ];
+            return tree;
         }
-        ];
-        return tree;
-    }
 
-    $('#tree').bstreeview({data: getTree()});
-</script>
+        $('#tree').bstreeview({ data: getTree() });
+    </script>
 }
