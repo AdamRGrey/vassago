@@ -27,7 +27,8 @@ public class HomeController : Controller
         sb.Append("{text: \"channels\", nodes: [");
 
         var first = true;
-        foreach (var topLevelChannel in _db.Channels.Where(x => x.ParentChannel == null))
+        var topLevelChannels = _db.Channels.Where(x => x.ParentChannel == null);
+        foreach (var topLevelChannel in topLevelChannels)
         {
             if (first)
             {
@@ -66,7 +67,7 @@ public class HomeController : Controller
         }
         if (allAccounts.Any())
         {
-            sb.Append("{text: \"orphaned accounts\",  nodes: [");
+            sb.Append("{text: \"channelless accounts\",  nodes: [");
             first = true;
             foreach (var acc in allAccounts)
             {
@@ -79,6 +80,31 @@ public class HomeController : Controller
                     sb.Append(',');
                 }
                 serializeAccount(ref sb, acc);
+            }
+            sb.Append("]}");
+        }
+        var users = _db.Users.ToList();
+        if(topLevelChannels.Any() && users.Any())
+        {
+            sb.Append(',');
+        }
+        if(users.Any())
+        {
+            sb.Append("{text: \"users\", nodes: [");
+            first=true;
+            //refresh list; we'll be knocking them out again in serializeUser
+            allAccounts = _db.Accounts.ToList(); 
+            foreach(var user in users)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    sb.Append(',');
+                }
+                serializeUser(ref sb, ref allAccounts, user);
             }
             sb.Append("]}");
         }
@@ -146,7 +172,7 @@ public class HomeController : Controller
         sb.Append($"{{\"text\": \"{currentUser.DisplayName}\", ");
         var ownedAccounts = allAccounts.Where(a => a.IsUser == currentUser);
         sb.Append("nodes: [");
-        sb.Append($"{{\"text\": \"owned accounts:\", \"nodes\": [");
+        sb.Append($"{{\"text\": \"owned accounts:\", \"expanded\":true, \"nodes\": [");
         if (ownedAccounts != null)
         {
             foreach (var acc in ownedAccounts)
