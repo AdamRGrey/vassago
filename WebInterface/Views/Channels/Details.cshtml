@@ -1,0 +1,60 @@
+@model Channel
+
+@Html.Raw(ViewData["breadcrumbs"])
+
+<table class="table">
+  <tbody>
+    <tr>
+      <th scope="row">Display Name</th>
+      <td>@Model.DisplayName</td>
+    </tr>
+    <tr>
+      <th scope="row">Channel type</th>
+      <td>@Model.ChannelType</td>
+    </tr>
+    <tr>
+      <th scope="row">Lewdness Filter Level</th>
+      <td>@Model.LewdnessFilterLevel</td>
+    </tr>
+    <tr>
+      <th scope="row">Links Allowed</th>
+      <td>@Model.LinksAllowed</td>
+    </tr>
+    <tr>
+      <th scope="row">Lineage summary</th>
+      <td>@Model.LineageSummary</td>
+    </tr>
+    <tr>
+      <th scope="row">max attachment bytes</th>
+      <td>@Model.MaxAttachmentBytes (i hear there's "ByteSize")</td>
+    </tr>
+    <tr>
+      <th scope="row">max message length</th>
+      <td>@Model.MaxTextChars</td>
+    </tr>
+    <tr>
+      <th scope="row">Meanness Filter Level</th>
+      <td>@Model.MeannessFilterLevel</td>
+    </tr>
+    <tr>
+      <th scope="row">Messages (count)</th>
+      <td>@(Model.Messages?.Count ?? 0)</td>
+    </tr>
+    <tr>
+      <th scope="row">Protocol</th>
+      <td>@Model.Protocol</td>
+    </tr>
+    <tr>
+      <th scope="row">Reactions Possible</th>
+      <td>@Model.ReactionsPossible</td>
+    </tr>
+    <tr>
+      <th scope="row">Sub Channels</th>
+      <td>@Model.SubChannels</td>
+    </tr>
+    <tr>
+      <th scope="row">Users</th>
+      <td>@Model.Users</td>
+    </tr>
+  </tbody>
+</table>

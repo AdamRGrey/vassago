@@ -67,7 +67,7 @@ public class HomeController : Controller
         }
         if (allAccounts.Any())
         {
-            sb.Append("{text: \"channelless accounts\",  nodes: [");
+            sb.Append("{text: \"channelless accounts\", nodes: [");
             first = true;
             foreach (var acc in allAccounts)
             {
@@ -115,7 +115,8 @@ public class HomeController : Controller
     private void serializeChannel(ref StringBuilder sb, ref List<Channel> allChannels, ref List<Account> allAccounts, Channel currentChannel)
     {
         allChannels.Remove(currentChannel);
-        sb.Append($"{{\"text\": \"{currentChannel.DisplayName}\"");
+        //"but adam", you say, "there's an href attribute, why make a link?" because that makes the entire bar a link, and trying to expand the node will probably click the link
+        sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Channels", values: new {id = currentChannel.Id})}\\\">{currentChannel.DisplayName}</a>\"");
         var theseAccounts = allAccounts.Where(a => a.SeenInChannel?.Id == currentChannel.Id);
         allAccounts.RemoveAll(a => a.SeenInChannel?.Id == currentChannel.Id);
         var first = true;

@@ -24,9 +24,17 @@ public class ChannelsController : Controller
     }
     public async Task<IActionResult> Details(Guid id)
     {
-        return _db.Channels != null ?
-            View(await _db.Channels.Include(u => u.ParentChannel).FirstAsync(u => u.Id == id)) :
-            Problem("Entity set '_db.Channels' is null.");
+        if(_db.Channels == null)
+            return Problem("Entity set '_db.Channels' is null.");
+        var channel = await _db.Channels.Include(u => u.ParentChannel).FirstAsync(u => u.Id == id);
+        var walker = channel;
+        while(walker != null)
+        {
+            ViewData["breadcrumbs"] = $"<a href=\"{Url.ActionLink(action: "Details", controller: "Channels", values: new {id = walker.Id})}\">{walker.DisplayName}</a>/" + 
+                ViewData["breadcrumbs"];
+            walker = walker.ParentChannel;
+        }
+        return View(channel);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
