@@ -14,11 +14,11 @@
     </tr>
     <tr>
       <th scope="row">Lewdness Filter Level</th>
-      <td>@Model.LewdnessFilterLevel</td>
+      <td>@(Model.LewdnessFilterLevel?.ToString() ?? "inherited")</td>
     </tr>
     <tr>
       <th scope="row">Links Allowed</th>
-      <td>@Model.LinksAllowed</td>
+      <td>@(Model.LinksAllowed?.ToString() ?? "unknown")</td>
     </tr>
     <tr>
       <th scope="row">Lineage summary</th>
@@ -30,11 +30,11 @@
     </tr>
     <tr>
       <th scope="row">max message length</th>
-      <td>@Model.MaxTextChars</td>
+      <td>@(Model.MaxTextChars?.ToString() ?? "inherited")</td>
     </tr>
     <tr>
       <th scope="row">Meanness Filter Level</th>
-      <td>@Model.MeannessFilterLevel</td>
+      <td>@(Model.MeannessFilterLevel?.ToString() ?? "inherited")</td>
     </tr>
     <tr>
       <th scope="row">Messages (count)</th>
@@ -46,15 +46,15 @@
     </tr>
     <tr>
       <th scope="row">Reactions Possible</th>
-      <td>@Model.ReactionsPossible</td>
+      <td>@(Model.ReactionsPossible?.ToString() ?? "inherited")</td>
     </tr>
     <tr>
       <th scope="row">Sub Channels</th>
-      <td>@Model.SubChannels</td>
+      <td>@(Model.SubChannels?.Count ?? 0)</td>
     </tr>
     <tr>
       <th scope="row">Users</th>
-      <td>@Model.Users</td>
+      <td>@(Model.Users?.Count ?? 0)</td>
     </tr>
   </tbody>
 </table>
