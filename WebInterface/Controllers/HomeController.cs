@@ -2,6 +2,7 @@
 using System.Text;
 using System.Web;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
 using vassago.Models;
 
@@ -21,7 +22,7 @@ public class HomeController : Controller
     public IActionResult Index()
     {
         var allAccounts = _db.Accounts.ToList();
-        var allChannels = _db.Channels.ToList();
+        var allChannels = _db.Channels.Include(c => c.Users).ToList();
         var sb = new StringBuilder();
         sb.Append("[");
         sb.Append("{text: \"channels\", nodes: [");
@@ -41,11 +42,11 @@ public class HomeController : Controller
 
             serializeChannel(ref sb, ref allChannels, ref allAccounts, topLevelChannel);
         }
-        sb.Append("]},");
+        sb.Append("]}");
 
         if (allChannels.Any())
         {
-            sb.Append("{text: \"orphaned channels\", nodes: [");
+            sb.Append(",{text: \"orphaned channels\", nodes: [");
             first = true;
             while (true)
             {
@@ -63,11 +64,11 @@ public class HomeController : Controller
                     break;
                 }
             }
-            sb.Append("]},");
+            sb.Append("]}");
         }
         if (allAccounts.Any())
         {
-            sb.Append("{text: \"channelless accounts\", nodes: [");
+            sb.Append(",{text: \"channelless accounts\", nodes: [");
             first = true;
             foreach (var acc in allAccounts)
             {
@@ -84,13 +85,9 @@ public class HomeController : Controller
             sb.Append("]}");
         }
         var users = _db.Users.ToList();
-        if(topLevelChannels.Any() && users.Any())
-        {
-            sb.Append(',');
-        }
         if(users.Any())
         {
-            sb.Append("{text: \"users\", nodes: [");
+            sb.Append(",{text: \"users\", nodes: [");
             first=true;
             //refresh list; we'll be knocking them out again in serializeUser
             allAccounts = _db.Accounts.ToList(); 
@@ -117,7 +114,7 @@ public class HomeController : Controller
         allChannels.Remove(currentChannel);
         //"but adam", you say, "there's an href attribute, why make a link?" because that makes the entire bar a link, and trying to expand the node will probably click the link
         sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Channels", values: new {id = currentChannel.Id})}\\\">{currentChannel.DisplayName}</a>\"");
-        var theseAccounts = allAccounts.Where(a => a.SeenInChannel?.Id == currentChannel.Id);
+        var theseAccounts = allAccounts.Where(a => a.SeenInChannel?.Id == currentChannel.Id).ToList();
         allAccounts.RemoveAll(a => a.SeenInChannel?.Id == currentChannel.Id);
         var first = true;
         if (currentChannel.SubChannels != null || theseAccounts != null)
@@ -140,7 +137,6 @@ public class HomeController : Controller
             }
             if (theseAccounts != null)
             {
-
                 sb.Append(',');
             }
         }
@@ -170,7 +166,11 @@ public class HomeController : Controller
     }
     private void serializeUser(ref StringBuilder sb, ref List<Account> allAccounts, User currentUser)
     {
-        sb.Append($"{{\"text\": \"{currentUser.DisplayName}\", ");
+        sb.Append($"{{\"text\": " + 
+        $"\"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Users", values: new {id = currentUser.Id})}\\\">" 
+            + currentUser.DisplayName + 
+            "</a>\", ");
+//         \"{currentUser.DisplayName}\", ");
         var ownedAccounts = allAccounts.Where(a => a.IsUser == currentUser);
         sb.Append("nodes: [");
         sb.Append($"{{\"text\": \"owned accounts:\", \"expanded\":true, \"nodes\": [");

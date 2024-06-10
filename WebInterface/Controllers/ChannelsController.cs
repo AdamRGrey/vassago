@@ -26,7 +26,7 @@ public class ChannelsController : Controller
     {
         if(_db.Channels == null)
             return Problem("Entity set '_db.Channels' is null.");
-        var channel = await _db.Channels.Include(u => u.ParentChannel).FirstAsync(u => u.Id == id);
+        var channel = await _db.Channels.Include(u => u.SubChannels).Include(u => u.Users).Include(u => u.ParentChannel).FirstAsync(u => u.Id == id);
         var walker = channel;
         while(walker != null)
         {

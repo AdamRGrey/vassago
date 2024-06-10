@@ -114,7 +114,7 @@ public class DiscordInterface
 
     private async Task SelfConnected()
     {
-        var selfAccount = UpsertAccount(client.CurrentUser, protocolAsChannel.Id);
+        var selfAccount = UpsertAccount(client.CurrentUser, protocolAsChannel);
         selfAccount.DisplayName = client.CurrentUser.Username;
         await _db.SaveChangesAsync();
 
@@ -150,7 +150,7 @@ public class DiscordInterface
         var guild = UpsertChannel(arg.Guild);
         var defaultChannel = UpsertChannel(arg.Guild.DefaultChannel);
         defaultChannel.ParentChannel = guild;
-        var u = UpsertAccount(arg, guild.Id);
+        var u = UpsertAccount(arg, guild);
         u.DisplayName = arg.DisplayName;
     }
     private async Task ButtonHandler(SocketMessageComponent component)
@@ -226,8 +226,7 @@ public class DiscordInterface
         m.ExternalId = dMessage.Id.ToString();
         m.Timestamp = dMessage.EditedTimestamp ?? dMessage.CreatedAt;
         m.Channel = UpsertChannel(dMessage.Channel);
-        m.Author = UpsertAccount(dMessage.Author, m.Channel.Id);
-        m.Author.SeenInChannel = m.Channel;
+        m.Author = UpsertAccount(dMessage.Author, m.Channel);
         if(dMessage.Channel is IGuildChannel)
         {
             m.Author.DisplayName = (dMessage.Author as IGuildUser).DisplayName;//discord forgot how display names work.
@@ -301,9 +300,9 @@ public class DiscordInterface
         c.SendFile = (f, t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; send file"); };
         return c;
     }
-    internal Account UpsertAccount(IUser user, Guid inChannel)
+    internal Account UpsertAccount(IUser user, Channel inChannel)
     {
-        var acc = _db.Accounts.FirstOrDefault(ui => ui.ExternalId == user.Id.ToString() && ui.SeenInChannel.Id == inChannel);
+        var acc = _db.Accounts.FirstOrDefault(ui => ui.ExternalId == user.Id.ToString() && ui.SeenInChannel.Id == inChannel.Id);
         if (acc == null)
         {
             acc = new Account();
@@ -313,6 +312,7 @@ public class DiscordInterface
         acc.ExternalId = user.Id.ToString();
         acc.IsBot = user.IsBot || user.IsWebhook;
         acc.Protocol = PROTOCOL;
+        acc.SeenInChannel = inChannel;
 
         acc.IsUser = _db.Users.FirstOrDefault(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol));
         if(acc.IsUser == null)
