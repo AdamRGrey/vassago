@@ -45,7 +45,7 @@ public static class Enumerations
         Type type = enumerationValue.GetType();
         if (!type.IsEnum)
         {
-            throw new ArgumentException("EnumerationValue must be of Enum type", "enumerationValue");
+            throw new ArgumentException("EnumerationValue must be of Enum type", nameof(enumerationValue));
         }
 
         //Tries to find a DescriptionAttribute for a potential friendly name

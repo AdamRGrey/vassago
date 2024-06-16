@@ -1,3 +1,5 @@
+@using System.ComponentModel
+@using Newtonsoft.Json
 @model Channel
 
 @Html.Raw(ViewData["breadcrumbs"])
@@ -10,11 +12,19 @@
     </tr>
     <tr>
       <th scope="row">Channel type</th>
-      <td>@Model.ChannelType</td>
+      <td>@(Model.ChannelType != null ? Enumerations.GetDescription(Model.ChannelType) : "?")</td>
     </tr>
     <tr>
       <th scope="row">Lewdness Filter Level</th>
-      <td>@(Model.LewdnessFilterLevel?.ToString() ?? "inherited")</td>
+      <td>
+        <select name="LewdnessFilterLevel" id="LewdnessFilterLevel" onchange="postmodelupdate(jsonifyChannel())">
+          <!option value="" @(Model.LewdnessFilterLevel == null ? "selected" : "")>inhereted</!option>
+          @foreach (Enumerations.LewdnessFilterLevel enumVal in Enum.GetValues(typeof(Enumerations.LewdnessFilterLevel)))
+          {
+            <!option value="@((int)enumVal)" @(Model.LewdnessFilterLevel == enumVal ? "selected" : "")>@(Enumerations.GetDescription<Enumerations.LewdnessFilterLevel>(enumVal))</!option>
+          }
+        </select>
+      </td>
     </tr>
     <tr>
       <th scope="row">Links Allowed</th>
@@ -34,7 +44,7 @@
     </tr>
     <tr>
       <th scope="row">Meanness Filter Level</th>
-      <td>@(Model.MeannessFilterLevel?.ToString() ?? "inherited")</td>
+      <td>@(Model.MeannessFilterLevel != null ? Enumerations.GetDescription<Enumerations.MeannessFilterLevel>(Model.MeannessFilterLevel.GetValueOrDefault()) : "inherited")</td>
     </tr>
     <tr>
       <th scope="row">Messages (count)</th>
@@ -58,3 +68,23 @@
     </tr>
   </tbody>
 </table>
+
+
+@section Scripts{
+  <script type="text/javascript">
+      @{
+        var modelAsString = JsonConvert.SerializeObject(Model, new JsonSerializerSettings 
+        { 
+          ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+        });
+      }
+    const channelOnLoad = @Html.Raw(modelAsString);
+    function jsonifyChannel()
+    {
+     var channelNow = channelOnLoad;
+     channelNow.LewdnessFilterLevel = document.querySelector("#LewdnessFilterLevel").value;
+     console.log(channelNow);
+     return channelNow;
+    }
+  </script>
+}
