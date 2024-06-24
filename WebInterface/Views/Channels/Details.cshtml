@@ -17,11 +17,13 @@
     <tr>
       <th scope="row">Lewdness Filter Level</th>
       <td>
-        <select name="LewdnessFilterLevel" id="LewdnessFilterLevel" onchange="postmodelupdate(jsonifyChannel())">
+        <select name="LewdnessFilterLevel" id="LewdnessFilterLevel" onchange="patchModel(jsonifyChannel())">
           <!option value="" @(Model.LewdnessFilterLevel == null ? "selected" : "")>inhereted</!option>
-          @foreach (Enumerations.LewdnessFilterLevel enumVal in Enum.GetValues(typeof(Enumerations.LewdnessFilterLevel)))
+          @foreach (Enumerations.LewdnessFilterLevel enumVal in
+          Enum.GetValues(typeof(Enumerations.LewdnessFilterLevel)))
           {
-            <!option value="@((int)enumVal)" @(Model.LewdnessFilterLevel == enumVal ? "selected" : "")>@(Enumerations.GetDescription<Enumerations.LewdnessFilterLevel>(enumVal))</!option>
+            <!option value="@((int)enumVal)" @(Model.LewdnessFilterLevel == enumVal ? "selected" : "")>
+              @(Enumerations.GetDescription<Enumerations.LewdnessFilterLevel>(enumVal))</!option>
           }
         </select>
       </td>
@@ -44,7 +46,17 @@
     </tr>
     <tr>
       <th scope="row">Meanness Filter Level</th>
-      <td>@(Model.MeannessFilterLevel != null ? Enumerations.GetDescription<Enumerations.MeannessFilterLevel>(Model.MeannessFilterLevel.GetValueOrDefault()) : "inherited")</td>
+      <td>
+        <select name="MeannessFilterLevel" id="MeannessFilterLevel" onchange="patchModel(jsonifyChannel())">
+          <!option value="" @(Model.MeannessFilterLevel == null ? "selected" : "")>⤵ inhereted</!option>
+          @foreach (Enumerations.MeannessFilterLevel enumVal in
+          Enum.GetValues(typeof(Enumerations.MeannessFilterLevel)))
+          {
+            <!option value="@((int)enumVal)" @(Model.MeannessFilterLevel == enumVal ? "selected" : "")>
+              @(Enumerations.GetDescription<Enumerations.MeannessFilterLevel>(enumVal))</!option>
+          }
+        </select>
+      </td>
     </tr>
     <tr>
       <th scope="row">Messages (count)</th>
@@ -72,19 +84,24 @@
 
 @section Scripts{
   <script type="text/javascript">
-      @{
-        var modelAsString = JsonConvert.SerializeObject(Model, new JsonSerializerSettings 
-        { 
-          ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-        });
-      }
-    const channelOnLoad = @Html.Raw(modelAsString);
-    function jsonifyChannel()
-    {
-     var channelNow = channelOnLoad;
-     channelNow.LewdnessFilterLevel = document.querySelector("#LewdnessFilterLevel").value;
-     console.log(channelNow);
-     return channelNow;
+    @{
+      var modelAsString = JsonConvert.SerializeObject(Model, new JsonSerializerSettings
+              {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+              });
+    }
+      const channelOnLoad = @Html.Raw(modelAsString);
+    function jsonifyChannel() {
+      var channelNow = structuredClone(channelOnLoad);
+      channelNow.SubChannels = null;
+      channelNow.ParentChannel = null;
+      channelNow.Messages = null;
+      channelNow.Users = null;
+      
+      channelNow.LewdnessFilterLevel = document.querySelector("#LewdnessFilterLevel").value;
+      channelNow.MeannessFilterLevel = document.querySelector("#MeannessFilterLevel").value;
+      console.log(channelNow);
+      return channelNow;
     }
   </script>
 }

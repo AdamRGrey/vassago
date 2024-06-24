@@ -7,7 +7,7 @@ function testfunct(caller){
     console.log("[gibberish]");
     console.log(caller);
 }
-function postmodelupdate(model)
+function patchModel(model)
 {
     //structure the model your (dang) self into a nice object
     console.log(model);
@@ -28,7 +28,7 @@ function postmodelupdate(model)
     console.log("dexter impression: I am now ready to post the following content:");
     console.log(JSON.stringify(model));
     fetch(apiUrl, {
-        method: 'POST',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },

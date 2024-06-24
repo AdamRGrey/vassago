@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using vassago.Models;
+
+#pragma warning disable CA2254
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IHostedService, vassago.ConsoleService>();
 builder.Services.AddDbContext<ChattingContext>();
+builder.Services.AddControllers().AddNewtonsoftJson();
+builder.Services.AddProblemDetails();
 builder.Services.Configure<RazorViewEngineOptions>(o => {
     o.ViewLocationFormats.Clear();
     o.ViewLocationFormats.Add("/WebInterface/Views/{1}/{0}" + RazorViewEngine.ViewExtension);
@@ -36,5 +41,13 @@ app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "api");
 });
+
+app.UseExceptionHandler();
+app.UseStatusCodePages();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
 
 app.Run();

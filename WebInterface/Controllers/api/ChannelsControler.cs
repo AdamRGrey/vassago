@@ -18,18 +18,27 @@ public class ChannelsController : ControllerBase
         _db = db;
     }
 
-	[HttpGet("{id}")]
-	[Produces("application/json")]
-	public Channel Get(Guid id)
-	{
-		return _db.Find<Channel>(id);
-	}
+    [HttpGet("{id}")]
+    [Produces("application/json")]
+    public Channel Get(Guid id)
+    {
+        return _db.Find<Channel>(id);
+    }
 
-	[HttpPost]
-	[Produces("application/json")]
-	public Channel Post([FromBody] Channel channel)
-	{
-		// Write logic to insert employee data
-		return new Channel();
-	}
+    [HttpPatch]
+    [Produces("application/json")]
+    public IActionResult Patch([FromBody] Channel channel)
+    {
+        var fromDb = _db.Channels.Find(channel.Id);
+        if (fromDb == null)
+		{
+			_logger.LogError($"attempt to update channel {channel.Id}, not found"); //ca2254 is moronic. maybe if it wasn't filed under "code quality" and instead was filed under "you didn't include a workaround for the weaknesses of other external junk" i'd be kinder to it ;)
+			return NotFound();
+        }
+		//settable values: lewdness filter level, meanness filter level. maybe i could decorate them... 
+		fromDb.LewdnessFilterLevel = channel.LewdnessFilterLevel;
+		fromDb.MeannessFilterLevel = channel.MeannessFilterLevel;
+		_db.SaveChanges();
+        return Ok(fromDb);
+    }
 }
