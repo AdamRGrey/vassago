@@ -32,7 +32,7 @@ public class ChannelsController : ControllerBase
         var fromDb = _db.Channels.Find(channel.Id);
         if (fromDb == null)
 		{
-			_logger.LogError($"attempt to update channel {channel.Id}, not found"); //ca2254 is moronic. maybe if it wasn't filed under "code quality" and instead was filed under "you didn't include a workaround for the weaknesses of other external junk" i'd be kinder to it ;)
+			_logger.LogError($"attempt to update channel {channel.Id}, not found");
 			return NotFound();
         }
 		//settable values: lewdness filter level, meanness filter level. maybe i could decorate them... 
