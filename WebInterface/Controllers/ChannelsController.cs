@@ -27,7 +27,16 @@ public class ChannelsController : Controller
     {
         if(_db.Channels == null)
             return Problem("Entity set '_db.Channels' is null.");
-        var channel = await _db.Channels.Include(u => u.SubChannels).Include(u => u.Users).Include(u => u.ParentChannel).FirstAsync(u => u.Id == id);
+        //"but adam", says the strawman, "why load *every* channel and walk your way up? surely there's a .Load command that works or something."
+        //eh. I checked. Not really. You could make an SQL view that recurses its way up, meh idk how. You could just eagerly load *every* related object...
+        //but that would take in all the messages. 
+        //realistically I expect this will have less than 1MB of total "channels", and several GB of total messages per (text) channel.
+        var AllChannels = await _db.Channels
+            .Include(u => u.SubChannels)
+            .Include(u => u.Users)
+            .Include(u => u.ParentChannel)
+            .ToListAsync();
+        var channel = AllChannels.First(u => u.Id == id);
         var walker = channel;
         while(walker != null)
         {
@@ -35,7 +44,10 @@ public class ChannelsController : Controller
                 ViewData["breadcrumbs"];
             walker = walker.ParentChannel;
         }
-        return View(channel);
+        return View(
+            new Tuple<Channel, Enumerations.LewdnessFilterLevel, Enumerations.MeannessFilterLevel>(
+                channel, channel.EffectivePermissions.LewdnessFilterLevel, channel.EffectivePermissions.MeannessFilterLevel
+            ));
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
