@@ -1,21 +1,62 @@
 @model User
+@using System.Text
 @{
     ViewData["Title"] = "User details";
 }
+<table class="table">
+  <tbody>
+    <tr>
+      <th scope="row">Display Name</th>
+      <td>@Model.DisplayName</td>
+    </tr>
+    <tr>
+        <th scope="row">Accounts</th>
+        <td>
+            <div id="accountsTree"></div>
+        </td>
+    </tr>
+    <tr>
+        <th scope="row">Permission Tags</th>
+        <td>
+            <div id="tagsTree"></div>
+        </td>
+    </tr>
+  </tbody>
+</table>
 
-User @Model.DisplayName<br />
 
-<div class="permissions">
 
-</div>
+@section Scripts{
+    
+    <script type="text/javascript">
+        var detailLink='<a asp-controller="Accounts" asp-action="Details" asp-route-id="accid">Details</a>;
+        @foreach (var acc in Model.Accounts)
+        {
+            <div class="account @acc.Protocol">
+                <div class="protocol-icon">&nbsp;</div>
+                @Html.DisplayFor(acc => acc.DisplayName)
+                <a asp-controller="Accounts" asp-action="Details" asp-route-id="@acc.Id">Details</a>
+            </div>
+        }
+        function getTree() {
+            @{
+                var sb = new StringBuilder();
+                sb.Append("[{text: \"accounts\", \"expanded\":true, nodes: [");
+                var first = true;
+                foreach (var acc in Model.Accounts)
+                {
+                    if(!first)
+                        sb.Append(',');
+                    sb.Append($"{{text: \"<div class=\"account {acc.Protocol}\"><div class=\"protocol-icon\">&nbsp;</div>{Html.DisplayFor(acc => acc.DisplayName)}Details\"}}");
+                    first=false;
+                }
+                sb.Append("}]");
+            }
+            var tree = @Html.Raw(sb.ToString());
+            console.log(tree);
+            return tree;
+        }
 
-<div class="accounts">
-@foreach (var acc in Model.Accounts)
-{
-    <div class="account @acc.Protocol">
-        <div class="protocol-icon">&nbsp;</div>
-        @Html.DisplayFor(acc => acc.DisplayName)
-        <a asp-controller="Accounts" asp-action="Details" asp-route-id="@acc.Id">Details</a>
-    </div>
+        $('#accountsTree').bstreeview({ data: getTree() });
+    </script>
 }
-</div>

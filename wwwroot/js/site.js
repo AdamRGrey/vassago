@@ -2,10 +2,10 @@
 // for details on configuring this project to bundle and minify static web assets.
 
 // Write your JavaScript code.
-
-function testfunct(caller){
-    console.log("[gibberish]");
-    console.log(caller);
+function Account(displayName, accountId, protocol){
+  this.displayName = displayName;
+  this.accountId = accountId;
+  this.protocol = protocol;
 }
 //todo: figure out what the URL actually needs to be, rather than assuming you get a whole-ass server to yourself.
 //you selfish fuck... What are you, fox?
