@@ -12,7 +12,7 @@ public class User
     public List<Account> Accounts { get; set; }
 
     //if I ever get lots and lots of tags, or some automatic way to register a feature's arbitrary tags, then I can move this off.
-    public bool Tag_CanTwitchSummon { get; set; }
+    //public bool Tag_CanTwitchSummon { get; set; }
 
     public string DisplayName
     {

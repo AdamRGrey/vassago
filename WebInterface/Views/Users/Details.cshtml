@@ -1,4 +1,5 @@
 @model User
+@using Newtonsoft.Json
 @using System.Text
 @{
     ViewData["Title"] = "User details";
@@ -6,39 +7,42 @@
 <table class="table">
   <tbody>
     <tr>
-      <th scope="row">Display Name</th>
-      <td>@Model.DisplayName</td>
+      <td><input type="text" id="displayName" value="@Model.DisplayName"></input> <button onclick="patchModel(jsonifyUser(), @Html.Raw("'/api/Users/'"))">update</button></td>
     </tr>
     <tr>
-        <th scope="row">Accounts</th>
         <td>
             <div id="accountsTree"></div>
         </td>
     </tr>
     <tr>
-        <th scope="row">Permission Tags</th>
         <td>
             <div id="tagsTree"></div>
         </td>
     </tr>
   </tbody>
 </table>
-
+<a asp-controller="Accounts" asp-action="Details" asp-route-id="1">placeholderlink</a>
 
 
 @section Scripts{
     
     <script type="text/javascript">
-        var detailLink='<a asp-controller="Accounts" asp-action="Details" asp-route-id="accid">Details</a>;
-        @foreach (var acc in Model.Accounts)
+    @{
+        var userAsString = JsonConvert.SerializeObject(Model, new JsonSerializerSettings
         {
-            <div class="account @acc.Protocol">
-                <div class="protocol-icon">&nbsp;</div>
-                @Html.DisplayFor(acc => acc.DisplayName)
-                <a asp-controller="Accounts" asp-action="Details" asp-route-id="@acc.Id">Details</a>
-            </div>
+        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+        });
+    }
+      const userOnLoad = @Html.Raw(userAsString);
+        function jsonifyUser() {
+            var userNow = structuredClone(userOnLoad);
+            userNow.Accounts = null;
+            userNow.DisplayName = document.querySelector("#displayName").value;
+            //userNow.Tag_CanTwitchSummon = document.querySelector("#tagCanTwitchSummon").checked;
+            console.log(userNow);
+            return userNow;
         }
-        function getTree() {
+        function getAccountsTree() {
             @{
                 var sb = new StringBuilder();
                 sb.Append("[{text: \"accounts\", \"expanded\":true, nodes: [");
@@ -47,16 +51,36 @@
                 {
                     if(!first)
                         sb.Append(',');
-                    sb.Append($"{{text: \"<div class=\"account {acc.Protocol}\"><div class=\"protocol-icon\">&nbsp;</div>{Html.DisplayFor(acc => acc.DisplayName)}Details\"}}");
+                    sb.Append($"{{text: \"<div class=\\\"account {acc.Protocol}\\\"><div class=\\\"protocol-icon\\\">&nbsp;</div>{acc.SeenInChannel.LineageSummary}/<a href=\\\"/Accounts/Details/{acc.Id}\\\">{acc.DisplayName}</a>\"}}");
                     first=false;
                 }
-                sb.Append("}]");
+                sb.Append("]}]");
             }
+            console.log(@Html.Raw(sb.ToString()));
             var tree = @Html.Raw(sb.ToString());
-            console.log(tree);
             return tree;
         }
 
-        $('#accountsTree').bstreeview({ data: getTree() });
+        function getTagsTree() {
+            @{
+                sb = new StringBuilder();
+                sb.Append("[{text: \"permission tags\", \"expanded\":true, nodes: [");
+                first = true;
+                for(int i = 0; i < 1; i++)
+                {
+                    if(!first)
+                        sb.Append(',');
+                    sb.Append($"{{text: \"<input type=\\\"checkbox\\\" > is goated (w/ sauce)</input>\"}}");
+                    first=false;
+                }
+                sb.Append("]}]");
+            }
+            console.log(@Html.Raw(sb.ToString()));
+            var tree = @Html.Raw(sb.ToString());
+            return tree;
+        }
+        $('#accountsTree').bstreeview({ data: getAccountsTree() });
+        $('#tagsTree').bstreeview({ data: getTagsTree() });
+        document.querySelectorAll("input[type=checkbox]").forEach(node => {node.onchange = () => {patchModel(jsonifyUser(), '/api/Users/')}});
     </script>
 }
