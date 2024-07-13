@@ -42,7 +42,7 @@ public class GeneralSnarkMisspellDefinitely : Behavior
 
         foreach(var k in snarkmap.Keys)
         {
-            if( Regex.IsMatch(message.Content, "\\b"+k+"\\b", RegexOptions.IgnoreCase))
+            if( Regex.IsMatch(message.Content?.ToLower(), "\\b"+k+"\\b", RegexOptions.IgnoreCase))
                 return true;
         }
         return false;
