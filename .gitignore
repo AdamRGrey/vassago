@@ -1,5 +1,6 @@
 appsettings.Development.json
 assets/exchangepairs.json
+fail*/
 
 # ---> VisualStudio
 ## Ignore Visual Studio temporary files, build results, and
