@@ -139,10 +139,11 @@ public class TwitchInterface
 
     private async void Client_OnConnected(object sender, OnConnectedArgs e)
     {
+        Console.WriteLine($"twitch marking selfaccount as seeninchannel {protocolAsChannel.Id}");
         var selfAccount = UpsertAccount(e.BotUsername, protocolAsChannel.Id);
+        Behaver.Instance.MarkSelf(selfAccount);
 
         await _db.SaveChangesAsync();
-        Behaver.Instance.MarkSelf(selfAccount);
 
         Console.WriteLine($"Connected to {e.AutoJoinChannel}");
     }
@@ -159,10 +160,12 @@ public class TwitchInterface
 
     private Account UpsertAccount(string username, Guid inChannel)
     {
+        var seenInChannel = _db.Channels.FirstOrDefault(c => c.Id == inChannel);
         var acc = _db.Accounts.FirstOrDefault(ui => ui.ExternalId == username && ui.SeenInChannel.Id == inChannel);
         if (acc == null)
         {
             acc = new Account();
+            acc.SeenInChannel = seenInChannel;
             _db.Accounts.Add(acc);
         }
         acc.Username = username;

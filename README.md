@@ -13,11 +13,11 @@ that's read messages/view channels, send messages, send messages in threads, and
 
 ### Accounts
 
-a `User` can have multiple `Account`s. e.g., @adam:greyn.club? that's an "account". I, however, am a `User`. An `Account` has references to the `Channels` its seen in.
+a `User` can have multiple `Account`s. e.g., @adam:greyn.club? that's an "account". I, however, am a `User`. An `Account` has references to the `Channels` its seen in - as in, leaf-level. If you're in a subchannel, you'll have an appropriate listing there - i.e., you will never have an account in "discord (itself)", you'll have one in the guild text-channels
 
 ### Attachment
 
-debating whether to save a copy of every single attachment. Discord allows 25MB attachments, and shtikbot lives in several art channels.
+debating whether to save a copy of every single attachment. Discord allows 100MB attachments for turbo users, and shtikbot lives in several art channels. (unfortunately, being that shtikbot doesn't have a viable SMS spam vector, it's limited to 8MB, in contradiction to discord itself reporting a server that doesn't agree to put its own name on discord's finer-grained rules has a limit of 10MB)
 
 ### Channel
 
