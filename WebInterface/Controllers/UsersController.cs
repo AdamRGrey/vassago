@@ -24,8 +24,16 @@ public class UsersController : Controller
     }
     public async Task<IActionResult> Details(Guid id)
     {
+        var user = await _db.Users
+                .Include(u => u.Accounts)
+                .FirstAsync(u => u.Id == id);
+        var allTheChannels = await _db.Channels.ToListAsync();
+        foreach(var acc in user.Accounts)
+        {
+            acc.SeenInChannel = allTheChannels.FirstOrDefault(c => c.Id == acc.SeenInChannel.Id);
+        }
         return _db.Users != null ?
-            View(await _db.Users.Include(u => u.Accounts).FirstAsync(u => u.Id == id)) :
+            View(user) :
             Problem("Entity set '_db.Users' is null.");
     }
 

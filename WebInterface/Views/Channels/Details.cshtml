@@ -23,7 +23,7 @@
     <tr>
       <th scope="row">Lewdness Filter Level</th>
       <td>
-        <select name="LewdnessFilterLevel" id="LewdnessFilterLevel" onchange="patchModel(jsonifyChannel())">
+        <select name="LewdnessFilterLevel" id="LewdnessFilterLevel" onchange="patchModel(jsonifyChannel(), '/api/Channels/')">
           <!option value="" @(ThisChannel.LewdnessFilterLevel == null ? "selected" : "")>⤵ inherited - @Enumerations.GetDescription(IfInheritedLewdnessFilterLevel)</!option>
           @foreach (Enumerations.LewdnessFilterLevel enumVal in
           Enum.GetValues(typeof(Enumerations.LewdnessFilterLevel)))
@@ -53,7 +53,7 @@
     <tr>
       <th scope="row">Meanness Filter Level</th>
       <td>
-        <select name="MeannessFilterLevel" id="MeannessFilterLevel" onchange="patchModel(jsonifyChannel())">
+        <select name="MeannessFilterLevel" id="MeannessFilterLevel" onchange="patchModel(jsonifyChannel(), '/api/Channels/')">
           <!option value="" @(ThisChannel.MeannessFilterLevel == null ? "selected" : "")>⤵ inherited - @Enumerations.GetDescription(IfInheritedMeannessFilterLevel)</!option>
           @foreach (Enumerations.MeannessFilterLevel enumVal in
           Enum.GetValues(typeof(Enumerations.MeannessFilterLevel)))
@@ -81,7 +81,7 @@
       <td>@(ThisChannel.SubChannels?.Count ?? 0)</td>
     </tr>
     <tr>
-      <th scope="row">Users</th>
+      <th scope="row">Accounts</th>
       <td>@(ThisChannel.Users?.Count ?? 0)</td>
     </tr>
   </tbody>
@@ -109,5 +109,12 @@
       console.log(channelNow);
       return channelNow;
     }
+    function getTree() {
+        var tree = @Html.Raw(ViewData["treeString"]);
+        console.log(tree);
+        return tree;
+    }
+
+    $('#tree').bstreeview({ data: getTree() });
   </script>
 }

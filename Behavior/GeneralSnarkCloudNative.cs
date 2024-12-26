@@ -22,7 +22,7 @@ public class GeneralSnarkCloudNative : Behavior
         if(Behaver.Instance.IsSelf(message.Author.Id))
             return false;
 
-        if(message.Channel.EffectivePermissions.ReactionsPossible)
+        if(!message.Channel.EffectivePermissions.ReactionsPossible)
             return false;
 
         if((MeannessFilterLevel)message.Channel.EffectivePermissions.MeannessFilterLevel < MeannessFilterLevel.Medium)

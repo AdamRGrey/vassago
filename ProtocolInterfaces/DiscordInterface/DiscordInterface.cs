@@ -138,10 +138,9 @@ public class DiscordInterface
             var mentionOfMe = "<@" + client.CurrentUser.Id + ">";
             m.MentionsMe = true;
         }
-        if (await Behaver.Instance.ActOn(m))
-        {
-            m.ActedOn = true;
-        }
+        await Behaver.Instance.ActOn(m);
+        m.ActedOn = true; // for its own ruposess it might act on it later, but either way, fuck it, we checked.
+        
         _db.SaveChanges();
     }
 

@@ -2,12 +2,15 @@
 // for details on configuring this project to bundle and minify static web assets.
 
 // Write your JavaScript code.
-
-function testfunct(caller){
-    console.log("[gibberish]");
-    console.log(caller);
+function Account(displayName, accountId, protocol){
+  this.displayName = displayName;
+  this.accountId = accountId;
+  this.protocol = protocol;
 }
-function patchModel(model)
+//todo: figure out what the URL actually needs to be, rather than assuming you get a whole-ass server to yourself.
+//you selfish fuck... What are you, fox?
+//as it stands, you want something like /api/Channels/, trailing slash intentional
+function patchModel(model, apiUrl)
 {
     //structure the model your (dang) self into a nice object
     console.log(model);
@@ -16,14 +19,11 @@ function patchModel(model)
     var components = window.location.pathname.split('/');
     if(components[2] !== "Details")
     {
-        console.log("wtf are you doing? " + components[2] + " is something other than Details")
+        console.log("wtf are you doing? " + components[2] + " is something other than Details");
+        //add different endpoings here, if you like
     }
     var type=components[1];
     var id=components[3];
-
-    //todo: figure out what the URL actually needs to be, rather than assuming you get a whole-ass server to yourself.
-    //you selfish fuck. What are you, fox?
-    var apiUrl = "/api/Channels/"
 
     console.log("dexter impression: I am now ready to post the following content:");
     console.log(JSON.stringify(model));

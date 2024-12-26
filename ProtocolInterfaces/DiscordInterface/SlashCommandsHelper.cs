@@ -16,7 +16,7 @@ namespace vassago.DiscordInterface
             new CommandSetup(){
                 Id = "freedomunits",
                 UpdatedAt = new DateTime(2023, 5, 21, 13, 3, 0),
-                guild = 825293851110801428,
+                guild = 825293851110801428, //TODO: demagic this magic number
                 register = register_FreedomUnits
             }
         };
