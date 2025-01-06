@@ -24,6 +24,11 @@ case "$1" in
 		dotnet ef database update --connection "$connnectionstr"
 		;;
 
+	"db-fullreset")
+		sudo -u postgres psql -c "drop database ${servicename}_dev;"
+		sudo -u postgres psql -c "delete user $servicename"
+		$0 "initial"
+		;;
     *)
         echo "Unknown command '$1', try 'initial'" 
         ;;
