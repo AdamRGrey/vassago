@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using vassago.Models;
@@ -44,6 +45,25 @@ public class ChannelsController : Controller
                 ViewData["breadcrumbs"];
             walker = walker.ParentChannel;
         }
+        var sb = new StringBuilder();
+        sb.Append("[");
+        sb.Append("{text: \"channels\", nodes: [");
+        var first=true;
+        foreach(var subChannel in channel.SubChannels)
+        {
+            if(!first)
+            {
+                sb.Append(',');
+            }
+            else
+            {
+                first = false;
+            }
+            sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Channels", values: new {id = subChannel.Id})}\\\">{subChannel.DisplayName}</a>\"");
+        }
+        sb.Append("]");
+
+        ViewData.Add("channelsTree", sb.ToString());
         return View(
             new Tuple<Channel, Enumerations.LewdnessFilterLevel, Enumerations.MeannessFilterLevel>(
                 channel, channel.EffectivePermissions.LewdnessFilterLevel, channel.EffectivePermissions.MeannessFilterLevel

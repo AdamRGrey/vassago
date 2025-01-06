@@ -7,7 +7,7 @@
   var IfInheritedMeannessFilterLevel = Model.Item3;
 }
 
-
+<a href="/">home</a>/
 @Html.Raw(ViewData["breadcrumbs"])
 
 <table class="table">
@@ -78,7 +78,16 @@
     </tr>
     <tr>
       <th scope="row">Sub Channels</th>
-      <td>@(ThisChannel.SubChannels?.Count ?? 0)</td>
+      <td>
+        @if((ThisChannel.SubChannels?.Count ?? 0) > 0)
+        {
+          @Html.Raw("<div id=\"channelsTree\"></div>");
+        }
+        else
+        {
+          @Html.Raw("0")
+        }
+      </td>
     </tr>
     <tr>
       <th scope="row">Accounts</th>
@@ -86,7 +95,6 @@
     </tr>
   </tbody>
 </table>
-
 
 @section Scripts{
   <script type="text/javascript">
@@ -109,12 +117,15 @@
       console.log(channelNow);
       return channelNow;
     }
-    function getTree() {
-        var tree = @Html.Raw(ViewData["treeString"]);
-        console.log(tree);
-        return tree;
+  @if((ThisChannel.SubChannels?.Count ?? 0) > 0)
+  {
+    /*
+    function channelsTree() {
+      var tree = @Html.Raw(ViewData["treeString"]);
+      return tree;
     }
-
-    $('#tree').bstreeview({ data: getTree() });
+    $('#channelsTree').bstreeview({ data: channelsTree() });
+    */
+  }
   </script>
 }
