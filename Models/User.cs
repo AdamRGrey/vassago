@@ -18,11 +18,18 @@ public class User
     {
         get
         {
-            return Accounts.Select(a => a.DisplayName).Distinct()
-                .MaxBy(distinctName =>
-                    Accounts.Select(a => a.DisplayName)
-                    .Where(selectedName => selectedName == distinctName).Count()
-                );
+            if (Accounts?.Any() ?? false)
+            {
+                return Accounts.Select(a => a.DisplayName).Distinct()
+                    .MaxBy(distinctName =>
+                        Accounts.Select(a => a.DisplayName)
+                        .Where(selectedName => selectedName == distinctName).Count()
+                    );
+            }
+            else
+            {
+                return $"[accountless {Id}";
+            }
         }
     }
 }
