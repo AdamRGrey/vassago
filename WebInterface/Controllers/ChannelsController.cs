@@ -47,7 +47,7 @@ public class ChannelsController : Controller
         }
         var sb = new StringBuilder();
         sb.Append("[");
-        sb.Append("{text: \"channels\", nodes: [");
+        sb.Append($"{{text: \"{channel.SubChannels?.Count}\", nodes: [");
         var first=true;
         foreach(var subChannel in channel.SubChannels)
         {
@@ -59,9 +59,9 @@ public class ChannelsController : Controller
             {
                 first = false;
             }
-            sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Channels", values: new {id = subChannel.Id})}\\\">{subChannel.DisplayName}</a>\"");
+            sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Channels", values: new {id = subChannel.Id})}\\\">{subChannel.DisplayName}</a>\"}}");
         }
-        sb.Append("]");
+        sb.Append("]}]");
 
         ViewData.Add("channelsTree", sb.ToString());
         return View(

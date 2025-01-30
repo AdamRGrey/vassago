@@ -93,6 +93,11 @@
       <th scope="row">Accounts</th>
       <td>@(ThisChannel.Users?.Count ?? 0)</td>
     </tr>
+    <tr>
+      <td colspan="2">
+        <button onclick="forget()">forget</button>
+      </td>
+    </tr>
   </tbody>
 </table>
 
@@ -117,15 +122,18 @@
       console.log(channelNow);
       return channelNow;
     }
-  @if((ThisChannel.SubChannels?.Count ?? 0) > 0)
-  {
-    /*
+    function forget(){
+      console.log("here we go");
+      if(window.confirm("delete? really really?") == true){
+        deleteModel(jsonifyChannel(), '/api/Channels/');
+      }
+    }
+    
     function channelsTree() {
-      var tree = @Html.Raw(ViewData["treeString"]);
+      var tree = @Html.Raw(ViewData["channelsTree"]);
       return tree;
     }
     $('#channelsTree').bstreeview({ data: channelsTree() });
-    */
-  }
+
   </script>
 }

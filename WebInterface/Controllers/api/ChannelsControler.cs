@@ -41,4 +41,53 @@ public class ChannelsController : ControllerBase
 		_db.SaveChanges();
         return Ok(fromDb);
     }
+    [HttpDelete]
+    [Produces("application/json")]
+    public IActionResult Delete([FromBody] Channel channel)
+    {
+        var fromDb = _db.Channels.Find(channel.Id);
+        if (fromDb == null)
+		{
+			_logger.LogError($"attempt to delete channel {channel.Id}, not found");
+			return NotFound();
+        }
+        deleteChannel(fromDb);
+        _db.SaveChanges();
+        return Ok();
+    }
+    private void deleteChannel(Channel channel)
+    {
+        if (channel.SubChannels?.Count > 0)
+        {
+            foreach (var childChannel in channel.SubChannels)
+            {
+                deleteChannel(childChannel);
+            }
+        }
+
+        if(channel.Users?.Count > 0)
+        {
+            foreach(var account in channel.Users)
+            {
+                deleteAccount(account);
+            }
+        }
+
+        if(channel.Messages?.Count > 0)
+        {
+            _db.Remove(channel.Messages);
+        }
+
+        _db.Remove(channel);
+    }
+    private void deleteAccount(Account account)
+    {
+        var user = account.IsUser;
+        var usersOnlyAccount = user.Accounts?.Count == 1;
+        
+        _db.Remove(account);
+        
+        if(usersOnlyAccount)
+            _db.Users.Remove(user);
+    }
 }

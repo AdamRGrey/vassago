@@ -198,7 +198,7 @@ public class DiscordInterface
         a.Filename = dAttachment.Filename;
         a.Size = dAttachment.Size;
         a.Source = new Uri(dAttachment.Url);
-
+        db.SaveChanges();
         return a;
     }
     internal Message UpsertMessage(IUserMessage dMessage)
@@ -234,6 +234,7 @@ public class DiscordInterface
 
         m.Reply = (t) => { return dMessage.ReplyAsync(t); };
         m.React = (e) => { return attemptReact(dMessage, e); };
+        db.SaveChangesAsync();
         return m;
     }
     internal Channel UpsertChannel(IMessageChannel channel)
@@ -276,6 +277,7 @@ public class DiscordInterface
                 c.DisplayName = "DM: " + (channel as IPrivateChannel).Recipients?.FirstOrDefault(u => u.Id != client.CurrentUser.Id).Username;
                 break;
         }
+        db.SaveChangesAsync();
         return c;
     }
     internal Channel UpsertChannel(IGuild channel)
@@ -286,6 +288,7 @@ public class DiscordInterface
         {
             c = new Channel();
             db.Channels.Add(c);
+            Console.WriteLine($"upserting channel {channel.Name} from discord, have to create a new one in the DB");
         }
 
         c.DisplayName = channel.Name;
@@ -299,6 +302,7 @@ public class DiscordInterface
 
         c.SendMessage = (t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; cannot accept text"); };
         c.SendFile = (f, t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; send file"); };
+        db.SaveChanges();
         return c;
     }
     internal Account UpsertAccount(IUser user, Channel inChannel)
@@ -323,6 +327,7 @@ public class DiscordInterface
             acc.IsUser = new User() { Accounts = new List<Account>() { acc } };
             db.Users.Add(acc.IsUser);
         }
+        db.SaveChanges();
         return acc;
     }
 

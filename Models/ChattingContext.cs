@@ -16,7 +16,7 @@ public class ChattingContext : DbContext
     public ChattingContext() : base() { }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseNpgsql(Shared.DBConnectionString)
-            .EnableSensitiveDataLogging(true); //who the fuck is looking at log output but not allowed to see it? this should be on by default.
+        optionsBuilder.UseNpgsql(Shared.DBConnectionString);
+            //.EnableSensitiveDataLogging(true); //"sensitive" is one thing. writing "did something" every time you think a thought is a different thing.
     }
 }

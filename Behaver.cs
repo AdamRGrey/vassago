@@ -31,6 +31,8 @@ public class Behaver
 
     private static readonly Behaver _instance = new Behaver();
 
+    //TODO: you know why I didn't make this a static class? lifecycle issues with the dbcontext. but now that we don't have a stored instance, 
+    //no need to have a... *checks over shoulder*... *whispers*: singleton
     public static Behaver Instance
     {
         get { return _instance; }
@@ -80,6 +82,7 @@ public class Behaver
             CollapseUsers(SelfUser, selfAccount.IsUser, db);
         }
         SelfAccounts = db.Accounts.Where(a => a.IsUser == SelfUser).ToList();
+        db.SaveChanges();
     }
 
     public bool CollapseUsers(User primary, User secondary, ChattingContext db)
