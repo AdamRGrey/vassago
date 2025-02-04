@@ -20,9 +20,14 @@ public class DiscordInterface
     internal const string PROTOCOL = "discord";
     internal DiscordSocketClient client;
     private bool eventsSignedUp = false;
+    private ChattingContext _db;
     private static SemaphoreSlim discordChannelSetup = new SemaphoreSlim(1, 1);
     private Channel protocolAsChannel;
 
+    public DiscordInterface()
+    {
+        _db = new ChattingContext();
+    }
 
     public async Task Init(string token)
     {
@@ -47,8 +52,7 @@ public class DiscordInterface
 
         try
         {
-            var db = new ChattingContext();
-            protocolAsChannel = db.Channels.FirstOrDefault(c => c.ParentChannel == null && c.Protocol == PROTOCOL);
+            protocolAsChannel = _db.Channels.FirstOrDefault(c => c.ParentChannel == null && c.Protocol == PROTOCOL);
             if (protocolAsChannel == null)
             {
                 protocolAsChannel = new Channel()
@@ -66,8 +70,8 @@ public class DiscordInterface
                 };
                 protocolAsChannel.SendMessage = (t) => { throw new InvalidOperationException($"discord itself cannot accept text"); };
                 protocolAsChannel.SendFile = (f, t) => { throw new InvalidOperationException($"discord itself cannot send file"); };
-                db.Channels.Add(protocolAsChannel);
-                db.SaveChanges();
+                _db.Channels.Add(protocolAsChannel);
+                _db.SaveChanges();
             }
         }
         finally
@@ -110,10 +114,9 @@ public class DiscordInterface
 
     private async Task SelfConnected()
     {
-        var db = new ChattingContext();
         var selfAccount = UpsertAccount(client.CurrentUser, protocolAsChannel);
         selfAccount.DisplayName = client.CurrentUser.Username;
-        await db.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         Behaver.Instance.MarkSelf(selfAccount);
     }
@@ -137,7 +140,8 @@ public class DiscordInterface
         }
         await Behaver.Instance.ActOn(m);
         m.ActedOn = true; // for its own ruposess it might act on it later, but either way, fuck it, we checked.
-
+        
+        _db.SaveChanges();
     }
 
     private void UserJoined(SocketGuildUser arg)
@@ -185,31 +189,28 @@ public class DiscordInterface
     }
     internal vassago.Models.Attachment UpsertAttachment(IAttachment dAttachment)
     {
-
-        var db = new ChattingContext();
-        var a = db.Attachments.FirstOrDefault(ai => ai.ExternalId == dAttachment.Id);
+        var a = _db.Attachments.FirstOrDefault(ai => ai.ExternalId == dAttachment.Id);
         if (a == null)
         {
             a = new vassago.Models.Attachment();
-            db.Attachments.Add(a);
+            _db.Attachments.Add(a);
         }
         a.ContentType = dAttachment.ContentType;
         a.Description = dAttachment.Description;
         a.Filename = dAttachment.Filename;
         a.Size = dAttachment.Size;
         a.Source = new Uri(dAttachment.Url);
-        db.SaveChanges();
+
         return a;
     }
     internal Message UpsertMessage(IUserMessage dMessage)
     {
-        var db = new ChattingContext();
-        var m = db.Messages.FirstOrDefault(mi => mi.ExternalId == dMessage.Id.ToString() && mi.Protocol == PROTOCOL);
+        var m = _db.Messages.FirstOrDefault(mi => mi.ExternalId == dMessage.Id.ToString() && mi.Protocol == PROTOCOL);
         if (m == null)
         {
             m = new Message();
             m.Protocol = PROTOCOL;
-            db.Messages.Add(m);
+            _db.Messages.Add(m);
         }
         m.Attachments = m.Attachments ?? new List<vassago.Models.Attachment>();
         if (dMessage.Attachments?.Any() == true)
@@ -234,18 +235,15 @@ public class DiscordInterface
 
         m.Reply = (t) => { return dMessage.ReplyAsync(t); };
         m.React = (e) => { return attemptReact(dMessage, e); };
-        db.SaveChanges();
         return m;
     }
     internal Channel UpsertChannel(IMessageChannel channel)
     {
-
-        var db = new ChattingContext();
-        Channel c = db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
+        Channel c = _db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
         if (c == null)
         {
             c = new Channel();
-            db.Channels.Add(c);
+            _db.Channels.Add(c);
         }
 
         c.DisplayName = channel.Name;
@@ -255,7 +253,7 @@ public class DiscordInterface
         c.Protocol = PROTOCOL;
         if (channel is IGuildChannel)
         {
-            c.ParentChannel = UpsertChannel((channel as IGuildChannel).Guild, db);
+            c.ParentChannel = UpsertChannel((channel as IGuildChannel).Guild);
             c.ParentChannel.SubChannels.Add(c);
         }
         else if (channel is IPrivateChannel)
@@ -277,24 +275,15 @@ public class DiscordInterface
                 c.DisplayName = "DM: " + (channel as IPrivateChannel).Recipients?.FirstOrDefault(u => u.Id != client.CurrentUser.Id).Username;
                 break;
         }
-        db.SaveChanges();
         return c;
     }
-    internal Channel UpsertChannel(IGuild channel, ChattingContext db = null)
+    internal Channel UpsertChannel(IGuild channel)
     {
-        db = db ?? new ChattingContext();
-        Console.WriteLine($"upserting *guild*: {channel.Id}");
-        Channel c = db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
+        Channel c = _db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
         if (c == null)
         {
-            Console.WriteLine($"don't have one already. Creating.");
             c = new Channel();
-            db.Channels.Add(c);
-            Console.WriteLine($"upserting channel {channel.Name} from discord, have to create a new one in the DB");
-        }
-        else
-        {
-            Console.WriteLine($"found one.");
+            _db.Channels.Add(c);
         }
 
         c.DisplayName = channel.Name;
@@ -308,17 +297,15 @@ public class DiscordInterface
 
         c.SendMessage = (t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; cannot accept text"); };
         c.SendFile = (f, t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; send file"); };
-        db.SaveChanges();
         return c;
     }
     internal Account UpsertAccount(IUser user, Channel inChannel)
     {
-        var db = new ChattingContext();
-        var acc = db.Accounts.FirstOrDefault(ui => ui.ExternalId == user.Id.ToString() && ui.SeenInChannel.Id == inChannel.Id);
+        var acc = _db.Accounts.FirstOrDefault(ui => ui.ExternalId == user.Id.ToString() && ui.SeenInChannel.Id == inChannel.Id);
         if (acc == null)
         {
             acc = new Account();
-            db.Accounts.Add(acc);
+            _db.Accounts.Add(acc);
         }
         acc.Username = user.Username;
         acc.ExternalId = user.Id.ToString();
@@ -326,21 +313,18 @@ public class DiscordInterface
         acc.Protocol = PROTOCOL;
         acc.SeenInChannel = inChannel;
 
-        acc.IsUser = db.Users.FirstOrDefault(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol));
+        acc.IsUser = _db.Users.FirstOrDefault(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol));
         if(acc.IsUser == null)
         {
             acc.IsUser = new User() { Accounts = new List<Account>() { acc } };
-            db.Users.Add(acc.IsUser);
+            _db.Users.Add(acc.IsUser);
         }
-        db.SaveChanges();
         return acc;
     }
 
     private Task attemptReact(IUserMessage msg, string e)
     {
-
-        var db = new ChattingContext();
-        var c = db.Channels.FirstOrDefault(c => c.ExternalId == msg.Channel.Id.ToString());
+        var c = _db.Channels.FirstOrDefault(c => c.ExternalId == msg.Channel.Id.ToString());
         //var preferredEmote = c.EmoteOverrides?[e] ?? e; //TODO: emote overrides
         var preferredEmote = e;
         if (Emoji.TryParse(preferredEmote, out Emoji emoji))
