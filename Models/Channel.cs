@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.EntityFrameworkCore;
 using static vassago.Models.Enumerations;
 
 public class Channel
@@ -14,10 +15,13 @@ public class Channel
     public Guid Id { get; set; }
     public string ExternalId { get; set; }
     public string DisplayName { get; set; }
+    [DeleteBehavior(DeleteBehavior.Cascade)]
     public List<Channel> SubChannels { get; set; }
     public Channel ParentChannel { get; set; }
     public string Protocol { get; set; }
+    [DeleteBehavior(DeleteBehavior.Cascade)]
     public List<Message> Messages { get; set; }
+    [DeleteBehavior(DeleteBehavior.Cascade)]
     public List<Account> Users { get; set; }
     public ChannelType ChannelType {get; set; }
 

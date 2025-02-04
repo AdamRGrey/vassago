@@ -234,7 +234,7 @@ public class DiscordInterface
 
         m.Reply = (t) => { return dMessage.ReplyAsync(t); };
         m.React = (e) => { return attemptReact(dMessage, e); };
-        db.SaveChangesAsync();
+        db.SaveChanges();
         return m;
     }
     internal Channel UpsertChannel(IMessageChannel channel)
@@ -255,7 +255,7 @@ public class DiscordInterface
         c.Protocol = PROTOCOL;
         if (channel is IGuildChannel)
         {
-            c.ParentChannel = UpsertChannel((channel as IGuildChannel).Guild);
+            c.ParentChannel = UpsertChannel((channel as IGuildChannel).Guild, db);
             c.ParentChannel.SubChannels.Add(c);
         }
         else if (channel is IPrivateChannel)
@@ -277,18 +277,24 @@ public class DiscordInterface
                 c.DisplayName = "DM: " + (channel as IPrivateChannel).Recipients?.FirstOrDefault(u => u.Id != client.CurrentUser.Id).Username;
                 break;
         }
-        db.SaveChangesAsync();
+        db.SaveChanges();
         return c;
     }
-    internal Channel UpsertChannel(IGuild channel)
+    internal Channel UpsertChannel(IGuild channel, ChattingContext db = null)
     {
-        var db = new ChattingContext();
+        db = db ?? new ChattingContext();
+        Console.WriteLine($"upserting *guild*: {channel.Id}");
         Channel c = db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
         if (c == null)
         {
+            Console.WriteLine($"don't have one already. Creating.");
             c = new Channel();
             db.Channels.Add(c);
             Console.WriteLine($"upserting channel {channel.Name} from discord, have to create a new one in the DB");
+        }
+        else
+        {
+            Console.WriteLine($"found one.");
         }
 
         c.DisplayName = channel.Name;
@@ -307,7 +313,6 @@ public class DiscordInterface
     }
     internal Account UpsertAccount(IUser user, Channel inChannel)
     {
-
         var db = new ChattingContext();
         var acc = db.Accounts.FirstOrDefault(ui => ui.ExternalId == user.Id.ToString() && ui.SeenInChannel.Id == inChannel.Id);
         if (acc == null)

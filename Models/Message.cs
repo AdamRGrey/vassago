@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using System.Threading.Tasks;
 using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
 
 public class Message
 {
@@ -17,6 +18,7 @@ public class Message
     public bool MentionsMe { get; set; }
     public DateTimeOffset Timestamp { get; set; }
     public bool ActedOn { get; set; }
+    [DeleteBehavior(DeleteBehavior.Cascade)]
     public List<Attachment> Attachments { get; set; }
     public Account Author { get; set; }
     public Channel Channel { get; set; }
