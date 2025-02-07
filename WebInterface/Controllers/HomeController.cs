@@ -166,7 +166,6 @@ public class HomeController : Controller
     }
     private void serializeUser(ref StringBuilder sb, ref List<Account> allAccounts, User currentUser)
     {
-        Console.WriteLine(currentUser);
         sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Users", values: new {id = currentUser.Id})}\\\">");
         sb.Append(currentUser.DisplayName);
         sb.Append("</a>\", ");

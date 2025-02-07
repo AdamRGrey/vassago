@@ -39,7 +39,6 @@ namespace vassago
                     await t.Init(tc);
                     ProtocolInterfaces.ProtocolList.twitchs.Add(t);
                 }
-            Console.WriteLine("survived initting");
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

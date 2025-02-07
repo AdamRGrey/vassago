@@ -72,55 +72,31 @@ public class Behaver
 
     public void MarkSelf(Account selfAccount)
     {
-        var db = new ChattingContext();
         if(SelfUser == null)
         {
             SelfUser = selfAccount.IsUser;
         }
         else if (SelfUser != selfAccount.IsUser)
         {
-            CollapseUsers(SelfUser, selfAccount.IsUser, db);
+            CollapseUsers(SelfUser, selfAccount.IsUser);
         }
-        SelfAccounts = db.Accounts.Where(a => a.IsUser == SelfUser).ToList();
-        db.SaveChanges();
+        SelfAccounts = Rememberer.SearchAccounts(a => a.IsUser == SelfUser);
+        Rememberer.RememberAccount(selfAccount);
     }
 
-    public bool CollapseUsers(User primary, User secondary, ChattingContext db)
+    public bool CollapseUsers(User primary, User secondary)
     {
-        Console.WriteLine($"{secondary.Id} is being consumed into {primary.Id}");
-        primary.Accounts.AddRange(secondary.Accounts);
+        if(primary.Accounts == null)
+            primary.Accounts = new List<Account>();
+        if(secondary.Accounts != null)
+            primary.Accounts.AddRange(secondary.Accounts);
         foreach(var a in secondary.Accounts)
         {
             a.IsUser = primary;
         }
         secondary.Accounts.Clear();
-        Console.WriteLine("accounts transferred");
-        try
-        {
-            db.SaveChangesAsync().Wait();
-        }
-        catch(Exception e)
-        {
-            Console.WriteLine("First save exception.");
-            Console.Error.WriteLine(e);
-            return false;
-        }
-        Console.WriteLine("saved");
-
-
-        db.Users.Remove(secondary);
-        Console.WriteLine("old account cleaned up");
-        try
-        {
-            db.SaveChangesAsync().Wait();
-        }
-        catch(Exception e)
-        {
-            Console.WriteLine("Second save exception.");
-            Console.Error.WriteLine(e);
-            return false;
-        }
-        Console.WriteLine("saved, again, separately");
+        Rememberer.ForgetUser(secondary);
+        Rememberer.RememberUser(primary);
         return true;
     }
 }

@@ -72,7 +72,7 @@ public class LinkClose : Behavior
             return true;
         }
 
-        if(Behaver.Instance.CollapseUsers(_primary.IsUser, secondary, new ChattingContext()))
+        if(Behaver.Instance.CollapseUsers(_primary.IsUser, secondary))
         {
             await message.Channel.SendMessage("done :)");
         }
