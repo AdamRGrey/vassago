@@ -2,37 +2,31 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using vassago.Models;
+using vassago.WebInterface.Models;
 
-namespace vassago.Controllers;
+namespace vassago.WebInterface.Controllers;
 
-public class UsersController : Controller
+public class UsersController(ChattingContext db) : Controller
 {
-    private readonly ILogger<UsersController> _logger;
-    private readonly ChattingContext _db;
+    private ChattingContext Database => db;
 
-    public UsersController(ILogger<UsersController> logger, ChattingContext db)
+    public async Task<IActionResult> Index()
     {
-        _logger = logger;
-        _db = db;
-    }
-
-    public async Task<IActionResult> Index(string searchString)
-    {
-        return _db.Users != null ?
-            View(await _db.Users.Include(u => u.Accounts).ToListAsync()) :
+        return Database.Users != null ?
+            View(await Database.Users.Include(u => u.Accounts).ToListAsync()) :
             Problem("Entity set '_db.Users' is null.");
     }
     public async Task<IActionResult> Details(Guid id)
     {
-        var user = await _db.Users
+        var user = await Database.Users
                 .Include(u => u.Accounts)
                 .FirstAsync(u => u.Id == id);
-        var allTheChannels = await _db.Channels.ToListAsync();
+        var allTheChannels = await Database.Channels.ToListAsync();
         foreach(var acc in user.Accounts)
         {
             acc.SeenInChannel = allTheChannels.FirstOrDefault(c => c.Id == acc.SeenInChannel.Id);
         }
-        return _db.Users != null ?
+        return Database.Users != null ?
             View(user) :
             Problem("Entity set '_db.Users' is null.");
     }

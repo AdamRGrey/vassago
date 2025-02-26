@@ -4,6 +4,7 @@ namespace vassago
     using vassago;
     using vassago.Models;
     using vassago.TwitchInterface;
+    using vassago.ProtocolInterfaces.DiscordInterface;
 
     internal class ConsoleService : IHostedService
     {
@@ -27,7 +28,7 @@ namespace vassago
             if (DiscordTokens?.Any() ?? false)
                 foreach (var dt in DiscordTokens)
                 {
-                    var d = new DiscordInterface.DiscordInterface();
+                    var d = new DiscordInterface();
                     await d.Init(dt);
                     ProtocolInterfaces.ProtocolList.discords.Add(d);
                 }

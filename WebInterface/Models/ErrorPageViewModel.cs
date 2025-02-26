@@ -1,8 +1,8 @@
-namespace vassago.Models;
+namespace vassago.WebInterface.Models;
 
 public class ErrorPageViewModel
 {
-    public string? RequestId { get; set; }
+    public string RequestId { get; set; }
 
     public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
 }

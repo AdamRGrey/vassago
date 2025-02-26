@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
 using vassago.Models;
+using vassago.WebInterface.Models;
 
 namespace vassago.Controllers;
 
