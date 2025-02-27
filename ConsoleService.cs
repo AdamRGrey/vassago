@@ -5,10 +5,10 @@ namespace vassago
     using vassago.Models;
     using vassago.TwitchInterface;
     using vassago.ProtocolInterfaces.DiscordInterface;
+    using System.Runtime.CompilerServices;
 
     internal class ConsoleService : IHostedService
     {
-
         public ConsoleService(IConfiguration aspConfig)
         {
             Shared.DBConnectionString = aspConfig["DBConnectionString"];
@@ -22,14 +22,15 @@ namespace vassago
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            var initTasks = new List<Task>();
             var dbc = new ChattingContext();
-            await dbc.Database.MigrateAsync();
+            await dbc.Database.MigrateAsync(cancellationToken);
 
             if (DiscordTokens?.Any() ?? false)
                 foreach (var dt in DiscordTokens)
                 {
                     var d = new DiscordInterface();
-                    await d.Init(dt);
+                    initTasks.Add(d.Init(dt));
                     ProtocolInterfaces.ProtocolList.discords.Add(d);
                 }
 
@@ -37,9 +38,11 @@ namespace vassago
                 foreach (var tc in TwitchConfigs)
                 {
                     var t = new TwitchInterface.TwitchInterface();
-                    await t.Init(tc);
+                    initTasks.Add(t.Init(tc));
                     ProtocolInterfaces.ProtocolList.twitchs.Add(t);
                 }
+            
+            Task.WaitAll(initTasks, cancellationToken);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

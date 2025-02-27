@@ -70,7 +70,8 @@ public class DiscordInterface
             protocolAsChannel.DisplayName = "discord (itself)";
             protocolAsChannel.SendMessage = (t) => { throw new InvalidOperationException($"protocol isn't a real channel, cannot accept text"); };
             protocolAsChannel.SendFile = (f, t) => { throw new InvalidOperationException($"protocol isn't a real channel, cannot send file"); };
-            Rememberer.RememberChannel(protocolAsChannel);
+            protocolAsChannel= Rememberer.RememberChannel(protocolAsChannel);
+            Console.WriteLine($"protocol as channel addeed; {protocolAsChannel}");
         }
         finally
         {
@@ -110,11 +111,20 @@ public class DiscordInterface
         }
     }
 
-    private void SelfConnected()
+    private async Task SelfConnected()
     {
-        var selfAccount = UpsertAccount(client.CurrentUser, protocolAsChannel);
-        selfAccount.DisplayName = client.CurrentUser.Username;
-        Behaver.Instance.MarkSelf(selfAccount);
+        await discordChannelSetup.WaitAsync();
+
+        try 
+        {
+            var selfAccount = UpsertAccount(client.CurrentUser, protocolAsChannel);
+            selfAccount.DisplayName = client.CurrentUser.Username;
+            Behaver.Instance.MarkSelf(selfAccount);
+        }
+        finally
+        {
+            discordChannelSetup.Release();
+        }
     }
 
     private async Task MessageReceived(SocketMessage messageParam)
@@ -195,7 +205,6 @@ public class DiscordInterface
                 Protocol = PROTOCOL
             };
 
-
         if (dMessage.Attachments?.Count > 0)
         {
             m.Attachments = [];
@@ -209,6 +218,7 @@ public class DiscordInterface
         m.Timestamp = dMessage.EditedTimestamp ?? dMessage.CreatedAt;
         m.Channel = UpsertChannel(dMessage.Channel);
         m.Author = UpsertAccount(dMessage.Author, m.Channel);
+        Console.WriteLine($"received message; author: {m.Author.DisplayName}, {m.Author.Id}");
         if (dMessage.Channel is IGuildChannel)
         {
             m.Author.DisplayName = (dMessage.Author as IGuildUser).DisplayName;//discord forgot how display names work.
@@ -218,7 +228,7 @@ public class DiscordInterface
 
         m.Reply = (t) => { return dMessage.ReplyAsync(t); };
         m.React = (e) => { return AttemptReact(dMessage, e); };
-        Rememberer.RememberChannel(m.Channel);
+        Rememberer.RememberMessage(m);
         return m;
     }
     internal Channel UpsertChannel(IMessageChannel channel)
@@ -237,7 +247,8 @@ public class DiscordInterface
         c.Protocol = PROTOCOL;
         if (channel is IGuildChannel)
         {
-            UpsertChannel((channel as IGuildChannel).Guild);
+            Console.WriteLine($"{channel.Name} is a guild channel. So i'm going to upsert the guild, {(channel as IGuildChannel).Guild}");
+            c.ParentChannel = UpsertChannel((channel as IGuildChannel).Guild);
         }
         else if (channel is IPrivateChannel)
         {
@@ -255,12 +266,15 @@ public class DiscordInterface
                 c.DisplayName = "DM: " + (channel as IPrivateChannel).Recipients?.FirstOrDefault(u => u.Id != client.CurrentUser.Id).Username;
                 break;
         }
-        Rememberer.RememberChannel(c);
 
         Channel parentChannel = null;
         if (channel is IGuildChannel)
         {
             parentChannel = Rememberer.SearchChannel(c => c.ExternalId == (channel as IGuildChannel).Guild.Id.ToString() && c.Protocol == PROTOCOL);
+            if(parentChannel is null)
+            {
+                Console.Error.WriteLine("why am I still null?");
+            }
         }
         else if (channel is IPrivateChannel)
         {
@@ -273,11 +287,11 @@ public class DiscordInterface
         }
         parentChannel.SubChannels ??= [];
         parentChannel.SubChannels.Add(c);
-        Rememberer.RememberChannel(parentChannel);
 
         c.SendMessage = (t) => { return channel.SendMessageAsync(t); };
         c.SendFile = (f, t) => { return channel.SendFileAsync(f, t); };
-        return c;
+        
+        return Rememberer.RememberChannel(c);
     }
     internal Channel UpsertChannel(IGuild channel)
     {
@@ -285,7 +299,6 @@ public class DiscordInterface
         if (c == null)
         {
             c = new Channel();
-            Rememberer.RememberChannel(c);
         }
 
         c.DisplayName = channel.Name;
@@ -299,8 +312,8 @@ public class DiscordInterface
 
         c.SendMessage = (t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; cannot accept text"); };
         c.SendFile = (f, t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; send file"); };
-        Rememberer.RememberChannel(c);
-        return c;
+        
+        return Rememberer.RememberChannel(c);
     }
     internal static Account UpsertAccount(IUser user, Channel inChannel)
     {
@@ -314,10 +327,9 @@ public class DiscordInterface
         acc.SeenInChannel = inChannel;
 
         acc.IsUser = Rememberer.SearchUser(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol));
-        //db.Users.FirstOrDefault(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol));
-        
-            acc.IsUser ??= new User() { Accounts = [ acc ] };
-        
+        acc.IsUser ??= new User() { Accounts = [ acc ] };
+        inChannel.Users ??= [];
+        inChannel.Users.Add(acc);
         Rememberer.RememberAccount(acc);
         return acc;
     }
