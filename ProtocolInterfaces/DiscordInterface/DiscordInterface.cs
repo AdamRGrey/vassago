@@ -236,8 +236,8 @@ public class DiscordInterface
         Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
         if (c == null)
         {
+            Console.WriteLine($"couldn't find channel under protocol {PROTOCOL} with externalId {channel.Id.ToString()}");
             c = new Channel();
-            Console.WriteLine($"adding channel {channel.Name}");
         }
 
         c.DisplayName = channel.Name;
@@ -298,6 +298,7 @@ public class DiscordInterface
         Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
         if (c == null)
         {
+            Console.WriteLine($"couldn't find channel under protocol {PROTOCOL} with externalId {channel.Id.ToString()}");
             c = new Channel();
         }
 
