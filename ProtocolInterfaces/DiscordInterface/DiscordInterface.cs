@@ -70,7 +70,7 @@ public class DiscordInterface
             protocolAsChannel.DisplayName = "discord (itself)";
             protocolAsChannel.SendMessage = (t) => { throw new InvalidOperationException($"protocol isn't a real channel, cannot accept text"); };
             protocolAsChannel.SendFile = (f, t) => { throw new InvalidOperationException($"protocol isn't a real channel, cannot send file"); };
-            protocolAsChannel= Rememberer.RememberChannel(protocolAsChannel);
+            protocolAsChannel = Rememberer.RememberChannel(protocolAsChannel);
             Console.WriteLine($"protocol as channel addeed; {protocolAsChannel}");
         }
         finally
@@ -115,7 +115,7 @@ public class DiscordInterface
     {
         await discordChannelSetup.WaitAsync();
 
-        try 
+        try
         {
             var selfAccount = UpsertAccount(client.CurrentUser, protocolAsChannel);
             selfAccount.DisplayName = client.CurrentUser.Username;
@@ -129,7 +129,7 @@ public class DiscordInterface
 
     private async Task MessageReceived(SocketMessage messageParam)
     {
-        if(messageParam is not SocketUserMessage)
+        if (messageParam is not SocketUserMessage)
         {
             Console.WriteLine($"{messageParam.Content}, but not a user message");
             return;
@@ -271,7 +271,7 @@ public class DiscordInterface
         if (channel is IGuildChannel)
         {
             parentChannel = Rememberer.SearchChannel(c => c.ExternalId == (channel as IGuildChannel).Guild.Id.ToString() && c.Protocol == PROTOCOL);
-            if(parentChannel is null)
+            if (parentChannel is null)
             {
                 Console.Error.WriteLine("why am I still null?");
             }
@@ -290,7 +290,7 @@ public class DiscordInterface
 
         c.SendMessage = (t) => { return channel.SendMessageAsync(t); };
         c.SendFile = (f, t) => { return channel.SendFileAsync(f, t); };
-        
+
         return Rememberer.RememberChannel(c);
     }
     internal Channel UpsertChannel(IGuild channel)
@@ -313,14 +313,19 @@ public class DiscordInterface
 
         c.SendMessage = (t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; cannot accept text"); };
         c.SendFile = (f, t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; send file"); };
-        
+
         return Rememberer.RememberChannel(c);
     }
     internal static Account UpsertAccount(IUser user, Channel inChannel)
     {
         var acc = Rememberer.SearchAccount(ui => ui.ExternalId == user.Id.ToString() && ui.SeenInChannel.Id == inChannel.Id);
-        acc ??= new Account();
-        
+        Console.WriteLine($"upserting account, retrieved {acc?.Id}.");
+        if (acc != null)
+        {
+            Console.WriteLine($"acc's user: {acc.IsUser?.Id}");
+        }
+        acc ??= new Account() { IsUser = new User() };
+
         acc.Username = user.Username;
         acc.ExternalId = user.Id.ToString();
         acc.IsBot = user.IsBot || user.IsWebhook;
@@ -328,9 +333,18 @@ public class DiscordInterface
         acc.SeenInChannel = inChannel;
 
         acc.IsUser = Rememberer.SearchUser(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol));
-        acc.IsUser ??= new User() { Accounts = [ acc ] };
-        inChannel.Users ??= [];
-        inChannel.Users.Add(acc);
+
+        Console.WriteLine($"we asked rememberer to search for acc's user. {acc.IsUser?.Id}");
+        if (acc.IsUser != null)
+        {
+            Console.WriteLine($"user has record of {acc.IsUser.Accounts?.Count ?? 0} accounts");
+        }
+        acc.IsUser ??= new User() { Accounts = [acc] };
+        if (inChannel.Users?.Count > 0)
+        {
+            Console.WriteLine($"channel has {inChannel.Users.Count} accounts");
+        }
+        inChannel.Users ??= [acc];
         Rememberer.RememberAccount(acc);
         return acc;
     }

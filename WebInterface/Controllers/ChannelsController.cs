@@ -8,30 +8,26 @@ using vassago.WebInterface.Models;
 
 namespace vassago.WebInterface.Controllers;
 
-public class ChannelsController(ChattingContext db) : Controller
+public class ChannelsController() : Controller
 {
-    private ChattingContext Database => db;
-
     public IActionResult Index()
     {
-        return Database.Channels != null ?
-            View(Database.Channels.Include(u => u.ParentChannel).ToList().OrderBy(c => c.LineageSummary)) :
+        var channels = Rememberer.ChannelsOverview();
+        return channels != null ?
+            View(channels.OrderBy(c => c.LineageSummary)) :
             Problem("Entity set '_db.Channels' is null.");
     }
     public async Task<IActionResult> Details(Guid id)
     {
-        if(Database.Channels == null)
+        var allChannels = Rememberer.ChannelsOverview();
+        if(allChannels == null)
             return Problem("Entity set '_db.Channels' is null.");
         //"but adam", says the strawman, "why load *every* channel and walk your way up? surely there's a .Load command that works or something."
         //eh. I checked. Not really. You could make an SQL view that recurses its way up, meh idk how. You could just eagerly load *every* related object...
         //but that would take in all the messages. 
         //realistically I expect this will have less than 1MB of total "channels", and several GB of total messages per (text) channel.
-        var AllChannels = await Database.Channels
-            .Include(u => u.SubChannels)
-            .Include(u => u.Users)
-            .Include(u => u.ParentChannel)
-            .ToListAsync();
-        var channel = AllChannels.First(u => u.Id == id);
+
+        var channel = allChannels.First(u => u.Id == id);
         var walker = channel;
         while(walker != null)
         {

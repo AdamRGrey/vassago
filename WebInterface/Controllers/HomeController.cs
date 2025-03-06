@@ -12,24 +12,23 @@ namespace vassago.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
-    private readonly ChattingContext _db;
 
-    public HomeController(ILogger<HomeController> logger, ChattingContext db)
+    public HomeController(ILogger<HomeController> logger)
     {
         _logger = logger;
-        _db = db;
     }
 
     public IActionResult Index()
     {
-        var allAccounts = _db.Accounts.ToList();
-        var allChannels = _db.Channels.Include(c => c.Users).ToList();
+        var allAccounts = Rememberer.AccountsOverview();
+        var allChannels = Rememberer.ChannelsOverview();
+        Console.WriteLine($"accounts: {allAccounts?.Count ?? 0}, channels: {allChannels?.Count ?? 0}");
         var sb = new StringBuilder();
-        sb.Append("[");
+        sb.Append('[');
         sb.Append("{text: \"channels\", nodes: [");
 
         var first = true;
-        var topLevelChannels = _db.Channels.Where(x => x.ParentChannel == null);
+        var topLevelChannels = Rememberer.ChannelsOverview().Where(x => x.ParentChannel == null);
         foreach (var topLevelChannel in topLevelChannels)
         {
             if (first)
@@ -85,13 +84,13 @@ public class HomeController : Controller
             }
             sb.Append("]}");
         }
-        var users = _db.Users.ToList();
+        var users = Rememberer.UsersOverview();// _db.Users.ToList();
         if(users.Any())
         {
             sb.Append(",{text: \"users\", nodes: [");
             first=true;
             //refresh list; we'll be knocking them out again in serializeUser
-            allAccounts = _db.Accounts.ToList(); 
+            allAccounts = Rememberer.AccountsOverview();
             foreach(var user in users)
             {
                 if (first)

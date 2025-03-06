@@ -2,13 +2,14 @@ namespace vassago;
 
 using System.Linq.Expressions;
 using vassago.Models;
+using Microsoft.EntityFrameworkCore;
 
 public static class Rememberer
 {
     private static readonly ChattingContext db = new();
     public static Account SearchAccount(Expression<Func<Account, bool>> predicate)
     {
-        return (new ChattingContext()).Accounts.FirstOrDefault(predicate);
+        return (new ChattingContext()).Accounts.Include(a => a.IsUser).FirstOrDefault(predicate);
     }
     public static List<Account> SearchAccounts(Expression<Func<Account, bool>> predicate)
     {
@@ -28,30 +29,30 @@ public static class Rememberer
     }
     public static User SearchUser(Expression<Func<User, bool>> predicate)
     {
-        return (new ChattingContext()).Users.FirstOrDefault(predicate);
+        return (new ChattingContext()).Users.Include(u => u.Accounts).FirstOrDefault(predicate);
     }
     public static void RememberAccount(Account toRemember)
     {
-        db.Update(toRemember);
+        toRemember.IsUser ??= new User{ Accounts = [toRemember]};
+        db.Update(toRemember.IsUser);
         db.SaveChanges();
     }
     public static void RememberAttachment(Attachment toRemember)
     {
-        db.Update(toRemember);
-
+        toRemember.Message ??= new Message() { Attachments = [toRemember]};
+        db.Update(toRemember.Message);
         db.SaveChanges();
     }
     public static Channel RememberChannel(Channel toRemember)
     {
         db.Update(toRemember);
-
         db.SaveChanges();
         return toRemember;
     }
     public static void RememberMessage(Message toRemember)
     {
-        db.Update(toRemember);
-
+        toRemember.Channel ??= new (){ Messages = [toRemember] };
+        db.Update(toRemember.Channel);
         db.SaveChanges();
     }
     public static void RememberUser(User toRemember)
@@ -65,5 +66,24 @@ public static class Rememberer
         db.Users.Remove(toForget);
 
         db.SaveChanges();
+    }
+    public static List<Account> AccountsOverview()
+    {
+        return db.Accounts.ToList();
+    }
+    public static List<Channel> ChannelsOverview()
+    {
+        return db.Channels.Include(u => u.SubChannels).Include(c => c.ParentChannel).ToList();
+    }
+    public static Channel ChannelDetail(Guid Id)
+    {
+        return db.Channels.Find(Id);
+            // .Include(u => u.SubChannels)
+            // .Include(u => u.Users)
+            // .Include(u => u.ParentChannel);
+    }
+    public static List<User> UsersOverview()
+    {
+        return db.Users.ToList();
     }
 }
