@@ -5,7 +5,7 @@ using vassago.Models;
 
 public static class Rememberer
 {
-    private static readonly SemaphoreSlim dbAccessSemaphore = new(1, 1);
+    private static readonly ChattingContext db = new();
     public static Account SearchAccount(Expression<Func<Account, bool>> predicate)
     {
         return (new ChattingContext()).Accounts.FirstOrDefault(predicate);
@@ -32,93 +32,38 @@ public static class Rememberer
     }
     public static void RememberAccount(Account toRemember)
     {
-        dbAccessSemaphore.Wait();
-        try
-        {
-            var db = new ChattingContext();
-            db.Update(toRemember);
-            db.ChangeTracker.Clear();
-            db.SaveChanges();
-        }
-        finally
-        {
-            dbAccessSemaphore.Release();
-        }
+        db.Update(toRemember);
+        db.SaveChanges();
     }
     public static void RememberAttachment(Attachment toRemember)
     {
-        dbAccessSemaphore.Wait();
-        try
-        {
-            var db = new ChattingContext();
-            db.Update(toRemember);
-            db.ChangeTracker.Clear();
-            db.SaveChanges();
-        }
-        finally
-        {
-            dbAccessSemaphore.Release();
-        }
+        db.Update(toRemember);
+
+        db.SaveChanges();
     }
     public static Channel RememberChannel(Channel toRemember)
     {
-        dbAccessSemaphore.Wait();
-        try
-        {
-            var db = new ChattingContext();
-            db.Update(toRemember);
-            db.ChangeTracker.Clear();
-            db.SaveChanges();
-        }
-        finally
-        {
-            dbAccessSemaphore.Release();
-        }
+        db.Update(toRemember);
+
+        db.SaveChanges();
         return toRemember;
     }
     public static void RememberMessage(Message toRemember)
     {
-        dbAccessSemaphore.Wait();
-        try
-        {
-            var db = new ChattingContext();
-            db.Update(toRemember);
-            db.ChangeTracker.Clear();
-            db.SaveChanges();
-        }
-        finally
-        {
-            dbAccessSemaphore.Release();
-        }
+        db.Update(toRemember);
+
+        db.SaveChanges();
     }
     public static void RememberUser(User toRemember)
     {
-        dbAccessSemaphore.Wait();
-        try
-        {
-            var db = new ChattingContext();
-            db.Users.Update(toRemember);
-            db.ChangeTracker.Clear();
-            db.SaveChanges();
-        }
-        finally
-        {
-            dbAccessSemaphore.Release();
-        }
+        db.Users.Update(toRemember);
+
+        db.SaveChanges();
     }
     public static void ForgetUser(User toForget)
     {
-        dbAccessSemaphore.Wait();
-        try
-        {
-            var db = new ChattingContext();
-            db.Users.Remove(toForget);
-            db.ChangeTracker.Clear();
-            db.SaveChanges();
-        }
-        finally
-        {
-            dbAccessSemaphore.Release();
-        }
+        db.Users.Remove(toForget);
+
+        db.SaveChanges();
     }
 }
