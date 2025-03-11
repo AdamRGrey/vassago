@@ -9,27 +9,27 @@ public static class Rememberer
     private static readonly ChattingContext db = new();
     public static Account SearchAccount(Expression<Func<Account, bool>> predicate)
     {
-        return (new ChattingContext()).Accounts.Include(a => a.IsUser).FirstOrDefault(predicate);
+        return db.Accounts.Include(a => a.IsUser).FirstOrDefault(predicate);
     }
     public static List<Account> SearchAccounts(Expression<Func<Account, bool>> predicate)
     {
-        return (new ChattingContext()).Accounts.Where(predicate).ToList();
+        return db.Accounts.Where(predicate).ToList();
     }
     public static Attachment SearchAttachment(Expression<Func<Attachment, bool>> predicate)
     {
-        return (new ChattingContext()).Attachments.FirstOrDefault(predicate);
+        return db.Attachments.FirstOrDefault(predicate);
     }
     public static Channel SearchChannel(Expression<Func<Channel, bool>> predicate)
     {
-        return (new ChattingContext()).Channels.FirstOrDefault(predicate);
+        return db.Channels.FirstOrDefault(predicate);
     }
     public static Message SearchMessage(Expression<Func<Message, bool>> predicate)
     {
-        return (new ChattingContext()).Messages.FirstOrDefault(predicate);
+        return db.Messages.FirstOrDefault(predicate);
     }
     public static User SearchUser(Expression<Func<User, bool>> predicate)
     {
-        return (new ChattingContext()).Users.Include(u => u.Accounts).FirstOrDefault(predicate);
+        return db.Users.Include(u => u.Accounts).FirstOrDefault(predicate);
     }
     public static void RememberAccount(Account toRemember)
     {

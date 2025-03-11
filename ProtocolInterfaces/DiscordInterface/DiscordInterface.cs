@@ -324,15 +324,16 @@ public class DiscordInterface
         {
             Console.WriteLine($"acc's user: {acc.IsUser?.Id}");
         }
-        acc ??= new Account() { IsUser = new User() };
+        acc ??= new Account() { 
+            IsUser = Rememberer.SearchUser(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol))
+                ?? new User() 
+        };
 
         acc.Username = user.Username;
         acc.ExternalId = user.Id.ToString();
         acc.IsBot = user.IsBot || user.IsWebhook;
         acc.Protocol = PROTOCOL;
         acc.SeenInChannel = inChannel;
-
-        acc.IsUser = Rememberer.SearchUser(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol));
 
         Console.WriteLine($"we asked rememberer to search for acc's user. {acc.IsUser?.Id}");
         if (acc.IsUser != null)
