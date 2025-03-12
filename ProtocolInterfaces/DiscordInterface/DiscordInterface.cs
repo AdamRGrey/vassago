@@ -255,6 +255,7 @@ public class DiscordInterface
         else if (channel is IPrivateChannel)
         {
             c.ParentChannel = protocolAsChannel;
+            Console.WriteLine("i'm a private channel so I'm setting my parent channel to the protocol as channel");
         }
         else
         {
@@ -262,11 +263,20 @@ public class DiscordInterface
             Console.Error.WriteLine($"trying to upsert channel {channel.Id}/{channel.Name}, but it's neither guildchannel nor private channel. shrug.jpg");
         }
 
+        Console.WriteLine($"upsertion of channel {c.DisplayName}, it's type {c.ChannelType}");
         switch (c.ChannelType)
         {
             case vassago.Models.Enumerations.ChannelType.DM:
                 var asPriv =(channel as IPrivateChannel);
-                c.DisplayName = "DM: " + asPriv?.Recipients?.FirstOrDefault(u => u.Id != client.CurrentUser.Id).Username;
+                var sender = asPriv?.Recipients?.FirstOrDefault(u => u.Id != client.CurrentUser.Id); // why yes, there's a list of recipients, and it's the sender.
+                if(sender != null)
+                {
+                    c.DisplayName = "DM: " + sender.Username;
+                }
+                else
+                {
+                    //I sent it, so I don't know the recipient's name.
+                }
                 break;
             default:
                 c.DisplayName = channel.Name;
