@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using static vassago.Models.Enumerations;
 
 public class Channel
@@ -17,6 +18,7 @@ public class Channel
     public string DisplayName { get; set; }
     [DeleteBehavior(DeleteBehavior.Cascade)]
     public List<Channel> SubChannels { get; set; }
+    [JsonIgnore]
     public Channel ParentChannel { get; set; }
     public string Protocol { get; set; }
     [DeleteBehavior(DeleteBehavior.Cascade)]
@@ -81,6 +83,23 @@ public class Channel
                 return this.Protocol;
             }
         }
+    }
+
+    ///<summary>
+    ///break self-referencing loops for library-agnostic serialization
+    ///</summary>
+    public Channel AsSerializable()
+    {
+        var toReturn = this.MemberwiseClone() as Channel;
+        toReturn.ParentChannel = null;
+        if(toReturn.Users?.Count > 0)
+        {
+            foreach (var account in toReturn.Users)
+            {
+                account.SeenInChannel = null;
+            }
+        }
+        return toReturn;
     }
 }
 

@@ -34,6 +34,10 @@ public class ChannelsController : ControllerBase
 			_logger.LogError($"attempt to update channel {channel.Id}, not found");
 			return NotFound();
         }
+        else
+        {
+            _logger.LogDebug($"patching {channel.DisplayName} (id: {channel.Id})");
+        }
 		//settable values: lewdness filter level, meanness filter level. maybe i could decorate them... 
 		fromDb.LewdnessFilterLevel = channel.LewdnessFilterLevel;
 		fromDb.MeannessFilterLevel = channel.MeannessFilterLevel;
