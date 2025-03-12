@@ -237,10 +237,12 @@ public class DiscordInterface
         if (c == null)
         {
             Console.WriteLine($"couldn't find channel under protocol {PROTOCOL} with externalId {channel.Id.ToString()}");
-            c = new Channel();
+            c = new Channel()
+            {
+                Users = []
+            };
         }
 
-        c.DisplayName = channel.Name;
         c.ExternalId = channel.Id.ToString();
         c.ChannelType = (channel is IPrivateChannel) ? vassago.Models.Enumerations.ChannelType.DM : vassago.Models.Enumerations.ChannelType.Normal;
         c.Messages ??= [];
@@ -263,7 +265,11 @@ public class DiscordInterface
         switch (c.ChannelType)
         {
             case vassago.Models.Enumerations.ChannelType.DM:
-                c.DisplayName = "DM: " + (channel as IPrivateChannel).Recipients?.FirstOrDefault(u => u.Id != client.CurrentUser.Id).Username;
+                var asPriv =(channel as IPrivateChannel);
+                c.DisplayName = "DM: " + asPriv?.Recipients?.FirstOrDefault(u => u.Id != client.CurrentUser.Id).Username;
+                break;
+            default:
+                c.DisplayName = channel.Name;
                 break;
         }
 
@@ -286,12 +292,23 @@ public class DiscordInterface
             Console.Error.WriteLine($"trying to upsert channel {channel.Id}/{channel.Name}, but it's neither guildchannel nor private channel. shrug.jpg");
         }
         parentChannel.SubChannels ??= [];
-        parentChannel.SubChannels.Add(c);
+        if(!parentChannel.SubChannels.Contains(c))
+        {
+            parentChannel.SubChannels.Add(c);
+        }
 
         c.SendMessage = (t) => { return channel.SendMessageAsync(t); };
         c.SendFile = (f, t) => { return channel.SendFileAsync(f, t); };
 
-        return Rememberer.RememberChannel(c);
+        c = Rememberer.RememberChannel(c);
+
+        var selfAccountInChannel = c.Users.FirstOrDefault(a => a.ExternalId == client.CurrentUser.Id.ToString());
+        if(selfAccountInChannel == null)
+        {
+            selfAccountInChannel = UpsertAccount(client.CurrentUser, c);
+        }
+
+        return c;
     }
     internal Channel UpsertChannel(IGuild channel)
     {
@@ -316,22 +333,22 @@ public class DiscordInterface
 
         return Rememberer.RememberChannel(c);
     }
-    internal static Account UpsertAccount(IUser user, Channel inChannel)
+    internal static Account UpsertAccount(IUser discordUser, Channel inChannel)
     {
-        var acc = Rememberer.SearchAccount(ui => ui.ExternalId == user.Id.ToString() && ui.SeenInChannel.Id == inChannel.Id);
+        var acc = Rememberer.SearchAccount(ui => ui.ExternalId == discordUser.Id.ToString() && ui.SeenInChannel.Id == inChannel.Id);
         Console.WriteLine($"upserting account, retrieved {acc?.Id}.");
         if (acc != null)
         {
             Console.WriteLine($"acc's user: {acc.IsUser?.Id}");
         }
         acc ??= new Account() { 
-            IsUser = Rememberer.SearchUser(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol))
+            IsUser = Rememberer.SearchUser(u => u.Accounts.Any(a => a.ExternalId == discordUser.Id.ToString() && a.Protocol == PROTOCOL))
                 ?? new User() 
         };
 
-        acc.Username = user.Username;
-        acc.ExternalId = user.Id.ToString();
-        acc.IsBot = user.IsBot || user.IsWebhook;
+        acc.Username = discordUser.Username;
+        acc.ExternalId = discordUser.Id.ToString();
+        acc.IsBot = discordUser.IsBot || discordUser.IsWebhook;
         acc.Protocol = PROTOCOL;
         acc.SeenInChannel = inChannel;
 
@@ -345,8 +362,13 @@ public class DiscordInterface
         {
             Console.WriteLine($"channel has {inChannel.Users.Count} accounts");
         }
-        inChannel.Users ??= [acc];
         Rememberer.RememberAccount(acc);
+        inChannel.Users ??= [];
+        if(!inChannel.Users.Contains(acc))
+        {
+            inChannel.Users.Add(acc);
+            Rememberer.RememberChannel(inChannel);
+        }
         return acc;
     }
 

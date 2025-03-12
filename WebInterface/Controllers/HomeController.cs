@@ -25,7 +25,7 @@ public class HomeController : Controller
         Console.WriteLine($"accounts: {allAccounts?.Count ?? 0}, channels: {allChannels?.Count ?? 0}");
         var sb = new StringBuilder();
         sb.Append('[');
-        sb.Append("{text: \"channels\", nodes: [");
+        sb.Append("{text: \"channels\", expanded:true, nodes: [");
 
         var first = true;
         var topLevelChannels = Rememberer.ChannelsOverview().Where(x => x.ParentChannel == null);
@@ -46,7 +46,7 @@ public class HomeController : Controller
 
         if (allChannels.Any())
         {
-            sb.Append(",{text: \"orphaned channels\", nodes: [");
+            sb.Append(",{text: \"orphaned channels\", expanded:true, nodes: [");
             first = true;
             while (true)
             {
@@ -68,7 +68,7 @@ public class HomeController : Controller
         }
         if (allAccounts.Any())
         {
-            sb.Append(",{text: \"channelless accounts\", nodes: [");
+            sb.Append(",{text: \"channelless accounts\", expanded:true, nodes: [");
             first = true;
             foreach (var acc in allAccounts)
             {
@@ -87,7 +87,7 @@ public class HomeController : Controller
         var users = Rememberer.UsersOverview();// _db.Users.ToList();
         if(users.Any())
         {
-            sb.Append(",{text: \"users\", nodes: [");
+            sb.Append(",{text: \"users\", expanded:true, nodes: [");
             first=true;
             //refresh list; we'll be knocking them out again in serializeUser
             allAccounts = Rememberer.AccountsOverview();
@@ -105,7 +105,7 @@ public class HomeController : Controller
             }
             sb.Append("]}");
         }
-        sb.Append("]");
+        sb.Append(']');
         ViewData.Add("treeString", sb.ToString());
         return View("Index");
     }
@@ -114,6 +114,7 @@ public class HomeController : Controller
         allChannels.Remove(currentChannel);
         //"but adam", you say, "there's an href attribute, why make a link?" because that makes the entire bar a link, and trying to expand the node will probably click the link
         sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Channels", values: new {id = currentChannel.Id})}\\\">{currentChannel.DisplayName}</a>\"");
+        sb.Append(", expanded:true ");
         var theseAccounts = allAccounts.Where(a => a.SeenInChannel?.Id == currentChannel.Id).ToList();
         allAccounts.RemoveAll(a => a.SeenInChannel?.Id == currentChannel.Id);
         var first = true;
@@ -123,7 +124,7 @@ public class HomeController : Controller
         }
         if (currentChannel.SubChannels != null)
         {
-            foreach (var subChannel in currentChannel.SubChannels ?? new List<Channel>())
+            foreach (var subChannel in currentChannel.SubChannels)
             {
                 if (first)
                 {
@@ -135,7 +136,7 @@ public class HomeController : Controller
                 }
                 serializeChannel(ref sb, ref allChannels, ref allAccounts, subChannel);
             }
-            if (theseAccounts != null)
+            if (theseAccounts != null && !first) //"first" here tells us that we have at least one subchannel
             {
                 sb.Append(',');
             }

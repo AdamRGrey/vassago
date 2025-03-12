@@ -61,6 +61,27 @@ public static class Rememberer
 
         db.SaveChanges();
     }
+    public static void ForgetAccount(Account toForget)
+    {
+        var user = toForget.IsUser;
+        var usersOnlyAccount = user.Accounts?.Count == 1;
+                
+        if(usersOnlyAccount)
+        {
+            Rememberer.ForgetUser(user);
+        }
+        else
+        {
+            db.Accounts.Remove(toForget);
+            db.SaveChanges();
+        }
+    }
+    public static void ForgetChannel(Channel toForget)
+    {
+        db.Channels.Remove(toForget);
+
+        db.SaveChanges();
+    }
     public static void ForgetUser(User toForget)
     {
         db.Users.Remove(toForget);
@@ -69,11 +90,11 @@ public static class Rememberer
     }
     public static List<Account> AccountsOverview()
     {
-        return db.Accounts.ToList();
+        return [..db.Accounts];
     }
     public static List<Channel> ChannelsOverview()
     {
-        return db.Channels.Include(u => u.SubChannels).Include(c => c.ParentChannel).ToList();
+        return [..db.Channels.Include(u => u.SubChannels).Include(c => c.ParentChannel)];
     }
     public static Channel ChannelDetail(Guid Id)
     {
