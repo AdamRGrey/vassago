@@ -5,35 +5,37 @@
     ViewData["Title"] = "User details";
 }
 <table class="table">
-  <tbody>
-    <tr>
-      <td><input type="text" id="displayName" value="@Model.DisplayName"></input> <button onclick="patchModel(jsonifyUser(), @Html.Raw("'/api/Users/'"))">update</button></td>
-    </tr>
-    <tr>
-        <td>
-            <div id="accountsTree"></div>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <div id="tagsTree"></div>
-        </td>
-    </tr>
-  </tbody>
+    <tbody>
+        <tr>
+            <th scope="row">Display Name (here)</th>
+            <td><input type="text" id="displayName" value="@Model.DisplayName"></input> <button
+                    onclick="patchModel(jsonifyUser(), @Html.Raw("'/api/Users/'"))" disabled alt"todo">update</button></td>
+        </tr>
+        <tr>
+            <th scope="row">Accounts</th>
+            <td>
+                <div id="accountsTree"></div>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Permission Tags</th>
+            <td>
+                <div id="tagsTree"></div>
+            </td>
+        </tr>
+    </tbody>
 </table>
-<a asp-controller="Accounts" asp-action="Details" asp-route-id="1">placeholderlink</a>
-
 
 @section Scripts{
-    
+
     <script type="text/javascript">
-    @{
-        var userAsString = JsonConvert.SerializeObject(Model, new JsonSerializerSettings
-        {
-        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-        });
-    }
-      const userOnLoad = @Html.Raw(userAsString);
+        @{
+            var userAsString = JsonConvert.SerializeObject(Model, new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
+        }
+          const userOnLoad = @Html.Raw(userAsString);
         function jsonifyUser() {
             var userNow = structuredClone(userOnLoad);
             userNow.Accounts = null;
@@ -43,44 +45,44 @@
             return userNow;
         }
         function getAccountsTree() {
-            @{
-                var sb = new StringBuilder();
-                sb.Append("[{text: \"accounts\", \"expanded\":true, nodes: [");
-                var first = true;
-                foreach (var acc in Model.Accounts)
-                {
-                    if(!first)
-                        sb.Append(',');
-                    sb.Append($"{{text: \"<div class=\\\"account {acc.Protocol}\\\"><div class=\\\"protocol-icon\\\">&nbsp;</div>{acc.SeenInChannel.LineageSummary}/<a href=\\\"/Accounts/Details/{acc.Id}\\\">{acc.DisplayName}</a>\"}}");
-                    first=false;
-                }
-                sb.Append("]}]");
+        @{
+            var sb = new StringBuilder();
+            sb.Append("[{text: \"accounts\", \"expanded\":true, nodes: [");
+            var first = true;
+            foreach (var acc in Model.Accounts.OrderBy(a => a.SeenInChannel.LineageSummary))
+            {
+                if (!first)
+                    sb.Append(',');
+                sb.Append($"{{text: \"<div class=\\\"account {acc.Protocol}\\\"><div class=\\\"protocol-icon\\\">&nbsp;</div>{acc.SeenInChannel.LineageSummary}/<a href=\\\"/Accounts/Details/{acc.Id}\\\">{acc.DisplayName}</a>\"}}");
+                first = false;
             }
-            console.log(@Html.Raw(sb.ToString()));
+            sb.Append("]}]");
+        }
+                console.log(@Html.Raw(sb.ToString()));
             var tree = @Html.Raw(sb.ToString());
             return tree;
         }
 
         function getTagsTree() {
-            @{
-                sb = new StringBuilder();
-                sb.Append("[{text: \"permission tags\", \"expanded\":true, nodes: [");
-                first = true;
-                for(int i = 0; i < 1; i++)
-                {
-                    if(!first)
-                        sb.Append(',');
-                    sb.Append($"{{text: \"<input type=\\\"checkbox\\\" > is goated (w/ sauce)</input>\"}}");
-                    first=false;
-                }
-                sb.Append("]}]");
+        @{
+            sb = new StringBuilder();
+            sb.Append("[{text: \"permission tags\", \"expanded\":true, nodes: [");
+            first = true;
+            for (int i = 0; i < 1; i++)
+            {
+                if (!first)
+                    sb.Append(',');
+                sb.Append($"{{text: \"<input type=\\\"checkbox\\\" > is goated (w/ sauce)</input>\"}}");
+                first = false;
             }
-            console.log(@Html.Raw(sb.ToString()));
+            sb.Append("]}]");
+        }
+                console.log(@Html.Raw(sb.ToString()));
             var tree = @Html.Raw(sb.ToString());
             return tree;
         }
         $('#accountsTree').bstreeview({ data: getAccountsTree() });
         $('#tagsTree').bstreeview({ data: getTagsTree() });
-        document.querySelectorAll("input[type=checkbox]").forEach(node => {node.onchange = () => {patchModel(jsonifyUser(), '/api/Users/')}});
+        document.querySelectorAll("input[type=checkbox]").forEach(node => { node.onchange = () => { patchModel(jsonifyUser(), '/api/Users/') } });
     </script>
 }

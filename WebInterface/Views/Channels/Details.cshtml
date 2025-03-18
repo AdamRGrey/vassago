@@ -1,5 +1,6 @@
 @using System.ComponentModel
 @using Newtonsoft.Json
+@using System.Text; 
 @model Tuple<Channel, Enumerations.LewdnessFilterLevel, Enumerations.MeannessFilterLevel>
 @{
   var ThisChannel = Model.Item1;
@@ -91,7 +92,16 @@
     </tr>
     <tr>
       <th scope="row">Accounts</th>
-      <td>@(ThisChannel.Users?.Count ?? 0)</td>
+      <td>
+        @if((ThisChannel.Users?.Count ?? 0) > 0)
+        {
+          @Html.Raw("<div id=\"accountsTree\"></div>");
+        }
+        else
+        {
+          @Html.Raw("none")
+        }
+      </td>
     </tr>
     <tr>
       <td colspan="2">
@@ -105,9 +115,9 @@
   <script type="text/javascript">
     @{
       var modelAsString = JsonConvert.SerializeObject(ThisChannel, new JsonSerializerSettings
-              {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-              });
+      {
+        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+      });
     }
       const channelOnLoad = @Html.Raw(modelAsString);
     function jsonifyChannel() {
@@ -133,7 +143,27 @@
       var tree = @Html.Raw(ViewData["channelsTree"]);
       return tree;
     }
+
+    function accountsTree() {
+      @{
+        var sb = new StringBuilder();
+        sb.Append("[{text: \"accounts\", \"expanded\":true, nodes: [");
+        var first = true;
+        foreach (var acc in ThisChannel.Users.OrderBy(a => a.SeenInChannel.LineageSummary))
+        {
+            if(!first)
+                sb.Append(',');
+            sb.Append($"{{text: \"<div class=\\\"account {acc.Protocol}\\\"><div class=\\\"protocol-icon\\\">&nbsp;</div>{acc.SeenInChannel.LineageSummary}/<a href=\\\"/Accounts/Details/{acc.Id}\\\">{acc.DisplayName}</a>\"}}");
+            first=false;
+        }
+        sb.Append("]}]");
+      }
+      //console.log(@Html.Raw(sb.ToString()));
+      var tree = @Html.Raw(sb.ToString());
+      return tree;
+    }
     $('#channelsTree').bstreeview({ data: channelsTree() });
+    $('#accountsTree').bstreeview({ data: accountsTree() });
 
   </script>
 }

@@ -163,7 +163,7 @@ public class HomeController : Controller
     }
     private void serializeAccount(ref StringBuilder sb, Account currentAccount)
     {
-        sb.Append($"{{\"text\": \"{currentAccount.DisplayName}\"}}");
+        sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Accounts", values: new {id = currentAccount.Id})}\\\">{currentAccount.DisplayName}</a>\"}}");
     }
     private void serializeUser(ref StringBuilder sb, ref List<Account> allAccounts, User currentUser)
     {
