@@ -5,7 +5,7 @@
 namespace vassago.Migrations
 {
     /// <inheritdoc />
-    public partial class channeltype : Migration
+    public partial class ChannelType : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -13,7 +13,7 @@ namespace vassago.Migrations
 {
     [DbContext(typeof(ChattingContext))]
     [Migration("20230704160720_initial")]
-    partial class initial
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

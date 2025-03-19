@@ -17,23 +17,25 @@ namespace vassago.ProtocolInterfaces.DiscordInterface
                 Id = "freedomunits",
                 UpdatedAt = new DateTime(2023, 5, 21, 13, 3, 0),
                 guild = 825293851110801428, //TODO: demagic this magic number
-                register = register_FreedomUnits
+                register = Register_FreedomUnits
             }
         };
         public static async Task Register(DiscordSocketClient client)
         {
-            return;
-            var commandsInContext = await client.GetGlobalApplicationCommandsAsync();
-            await Register(client, commandsInContext, null);
-            foreach (var guild in client.Guilds)
+            if(Shared.SetupSlashCommands)
             {
-                try
+                var commandsInContext = await client.GetGlobalApplicationCommandsAsync();
+                await Register(client, commandsInContext, null);
+                foreach (var guild in client.Guilds)
                 {
-                    await Register(client, await guild.GetApplicationCommandsAsync(), guild);
-                }
-                catch (HttpException ex)
-                {
-                    Console.Error.WriteLine($"error registering slash commands for guild {guild.Name} (id {guild.Id}) - {ex.Message}");
+                    try
+                    {
+                        await Register(client, await guild.GetApplicationCommandsAsync(), guild);
+                    }
+                    catch (HttpException ex)
+                    {
+                        Console.Error.WriteLine($"error registering slash commands for guild {guild.Name} (id {guild.Id}) - {ex.Message}");
+                    }
                 }
             }
         }
@@ -66,7 +68,7 @@ namespace vassago.ProtocolInterfaces.DiscordInterface
             }
         }
 
-        private static async Task register_FreedomUnits(bool isNew, DiscordSocketClient client, SocketGuild guild)
+        private static async Task Register_FreedomUnits(bool isNew, DiscordSocketClient client, SocketGuild guild)
         {
             var builtCommand = new SlashCommandBuilder()
             .WithName("freedomunits")

@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace vassago.Migrations
 {
     /// <inheritdoc />
-    public partial class channelpermissions_partofchannel : Migration
+    public partial class Channelpermissions_partofchannel : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

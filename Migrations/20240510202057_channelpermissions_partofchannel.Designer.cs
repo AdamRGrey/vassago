@@ -13,7 +13,7 @@ namespace vassago.Migrations
 {
     [DbContext(typeof(ChattingContext))]
     [Migration("20240510202057_channelpermissions_partofchannel")]
-    partial class channelpermissions_partofchannel
+    partial class Channelpermissions_partofchannel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

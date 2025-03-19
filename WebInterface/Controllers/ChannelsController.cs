@@ -10,7 +10,7 @@ namespace vassago.WebInterface.Controllers;
 
 public class ChannelsController() : Controller
 {
-    public async Task<IActionResult> Details(Guid id)
+    public IActionResult Details(Guid id)
     {
         var allChannels = Rememberer.ChannelsOverview();
         if(allChannels == null)

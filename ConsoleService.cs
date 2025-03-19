@@ -12,6 +12,7 @@ namespace vassago
         public ConsoleService(IConfiguration aspConfig)
         {
             Shared.DBConnectionString = aspConfig["DBConnectionString"];
+            Shared.SetupSlashCommands = aspConfig["SetupSlashCommands"]?.ToLower() == "true";
             DiscordTokens = aspConfig.GetSection("DiscordTokens").Get<IEnumerable<string>>();
             TwitchConfigs = aspConfig.GetSection("TwitchConfigs").Get<IEnumerable<TwitchConfig>>();
             Conversion.Converter.Load(aspConfig["ExchangePairsLocation"]);

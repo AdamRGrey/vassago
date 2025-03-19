@@ -5,7 +5,7 @@
 namespace vassago.Migrations
 {
     /// <inheritdoc />
-    public partial class cascade : Migration
+    public partial class Cascade : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

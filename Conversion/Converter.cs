@@ -80,12 +80,12 @@ namespace vassago.Conversion
 
         public static string Convert(decimal numericTerm, string sourceunit, string destinationUnit)
         {
-            var normalizedSourceUnit = normalizeUnit(sourceunit);
+            var normalizedSourceUnit = NormalizeUnit(sourceunit);
             if (string.IsNullOrWhiteSpace(normalizedSourceUnit))
             {
                 return $"parse failure: what's {sourceunit}?";
             }
-            var normalizedDestUnit = normalizeUnit(destinationUnit);
+            var normalizedDestUnit = NormalizeUnit(destinationUnit);
             if (string.IsNullOrWhiteSpace(normalizedDestUnit))
             {
                 return $"parse failure: what's {destinationUnit}?";
@@ -127,11 +127,10 @@ namespace vassago.Conversion
                         return $"{String.Format("{0:N}", accumulator)} {normalizedDestUnit}";
                     }
                 }
-                return "you can never read this.";
             }
             return "dimensional analysis failure - I know those units but can't find a path between them.";
         }
-        private static string normalizeUnit(string unit)
+        private static string NormalizeUnit(string unit)
         {
             if(string.IsNullOrWhiteSpace(unit))
                 return null;
@@ -150,11 +149,11 @@ namespace vassago.Conversion
             }
             if (normalizedUnit.EndsWith("es"))
             {
-                return normalizeUnit(normalizedUnit.Substring(0, normalizedUnit.Length - 2));
+                return NormalizeUnit(normalizedUnit.Substring(0, normalizedUnit.Length - 2));
             }
             else if (normalizedUnit.EndsWith('s'))
             {
-                return normalizeUnit(normalizedUnit.Substring(0, normalizedUnit.Length - 1));
+                return NormalizeUnit(normalizedUnit.Substring(0, normalizedUnit.Length - 1));
             }
             return null;
         }
