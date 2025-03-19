@@ -13,21 +13,15 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Reactive.Linq;
 
-namespace vassago.DiscordInterface;
+namespace vassago.ProtocolInterfaces.DiscordInterface;
 
 public class DiscordInterface
 {
     internal const string PROTOCOL = "discord";
     internal DiscordSocketClient client;
     private bool eventsSignedUp = false;
-    private ChattingContext _db;
-    private static SemaphoreSlim discordChannelSetup = new SemaphoreSlim(1, 1);
+    private static readonly SemaphoreSlim discordChannelSetup = new(1, 1);
     private Channel protocolAsChannel;
-
-    public DiscordInterface()
-    {
-        _db = new ChattingContext();
-    }
 
     public async Task Init(string token)
     {
@@ -39,8 +33,8 @@ public class DiscordInterface
             Console.WriteLine(msg.ToString());
             return Task.CompletedTask;
         };
-        client.Connected += SelfConnected;
-        client.Ready += ClientReady;
+        client.Connected += () => Task.Run(SelfConnected);
+        client.Ready += () => Task.Run(ClientReady);
 
         await client.LoginAsync(TokenType.Bot, token);
         await client.StartAsync();
@@ -52,7 +46,7 @@ public class DiscordInterface
 
         try
         {
-            protocolAsChannel = _db.Channels.FirstOrDefault(c => c.ParentChannel == null && c.Protocol == PROTOCOL);
+            protocolAsChannel = Rememberer.SearchChannel(c => c.ParentChannel == null && c.Protocol == PROTOCOL);
             if (protocolAsChannel == null)
             {
                 protocolAsChannel = new Channel()
@@ -66,13 +60,18 @@ public class DiscordInterface
                     ReactionsPossible = true,
                     ExternalId = null,
                     Protocol = PROTOCOL,
-                    SubChannels = new List<Channel>()
+                    SubChannels = []
                 };
-                protocolAsChannel.SendMessage = (t) => { throw new InvalidOperationException($"discord itself cannot accept text"); };
-                protocolAsChannel.SendFile = (f, t) => { throw new InvalidOperationException($"discord itself cannot send file"); };
-                _db.Channels.Add(protocolAsChannel);
-                _db.SaveChanges();
             }
+            else
+            {
+                Console.WriteLine($"discord, channel with id {protocolAsChannel.Id}, already exists");
+            }
+            protocolAsChannel.DisplayName = "discord (itself)";
+            protocolAsChannel.SendMessage = (t) => { throw new InvalidOperationException($"protocol isn't a real channel, cannot accept text"); };
+            protocolAsChannel.SendFile = (f, t) => { throw new InvalidOperationException($"protocol isn't a real channel, cannot send file"); };
+            protocolAsChannel = Rememberer.RememberChannel(protocolAsChannel);
+            Console.WriteLine($"protocol as channel addeed; {protocolAsChannel}");
         }
         finally
         {
@@ -89,7 +88,7 @@ public class DiscordInterface
 
             client.MessageReceived += MessageReceived;
             // _client.MessageUpdated +=
-            //client.UserJoined += UserJoined;
+            client.UserJoined += UserJoined;
             client.SlashCommandExecuted += SlashCommandHandler;
             //client.ChannelCreated +=
             // _client.ChannelDestroyed +=
@@ -114,21 +113,29 @@ public class DiscordInterface
 
     private async Task SelfConnected()
     {
-        var selfAccount = UpsertAccount(client.CurrentUser, protocolAsChannel);
-        selfAccount.DisplayName = client.CurrentUser.Username;
-        await _db.SaveChangesAsync();
+        await discordChannelSetup.WaitAsync();
 
-        Behaver.Instance.MarkSelf(selfAccount);
+        try
+        {
+            var selfAccount = UpsertAccount(client.CurrentUser, protocolAsChannel);
+            selfAccount.DisplayName = client.CurrentUser.Username;
+            Behaver.Instance.MarkSelf(selfAccount);
+        }
+        finally
+        {
+            discordChannelSetup.Release();
+        }
     }
 
     private async Task MessageReceived(SocketMessage messageParam)
     {
-        var suMessage = messageParam as SocketUserMessage;
-        if (suMessage == null)
+        if (messageParam is not SocketUserMessage)
         {
             Console.WriteLine($"{messageParam.Content}, but not a user message");
             return;
         }
+        var suMessage = messageParam as SocketUserMessage;
+
         Console.WriteLine($"#{suMessage.Channel}[{DateTime.Now}][{suMessage.Author.Username} [id={suMessage.Author.Id}]][msg id: {suMessage.Id}] {suMessage.Content}");
 
         var m = UpsertMessage(suMessage);
@@ -140,26 +147,16 @@ public class DiscordInterface
         }
         await Behaver.Instance.ActOn(m);
         m.ActedOn = true; // for its own ruposess it might act on it later, but either way, fuck it, we checked.
-        
-        _db.SaveChanges();
     }
 
-    private void UserJoined(SocketGuildUser arg)
+    private Task UserJoined(SocketGuildUser arg)
     {
         var guild = UpsertChannel(arg.Guild);
         var defaultChannel = UpsertChannel(arg.Guild.DefaultChannel);
         defaultChannel.ParentChannel = guild;
         var u = UpsertAccount(arg, guild);
         u.DisplayName = arg.DisplayName;
-    }
-    private async Task ButtonHandler(SocketMessageComponent component)
-    {
-        switch (component.Data.CustomId)
-        {
-            case "custom-id":
-                await component.RespondAsync($"{component.User.Mention}, it's been here the whole time!");
-                break;
-        }
+        return null;
     }
     internal static async Task SlashCommandHandler(SocketSlashCommand command)
     {
@@ -187,35 +184,30 @@ public class DiscordInterface
                 break;
         }
     }
-    internal vassago.Models.Attachment UpsertAttachment(IAttachment dAttachment)
+    internal static vassago.Models.Attachment UpsertAttachment(IAttachment dAttachment)
     {
-        var a = _db.Attachments.FirstOrDefault(ai => ai.ExternalId == dAttachment.Id);
-        if (a == null)
-        {
-            a = new vassago.Models.Attachment();
-            _db.Attachments.Add(a);
-        }
+        var a = Rememberer.SearchAttachment(ai => ai.ExternalId == dAttachment.Id)
+            ?? new vassago.Models.Attachment();
+
         a.ContentType = dAttachment.ContentType;
         a.Description = dAttachment.Description;
         a.Filename = dAttachment.Filename;
         a.Size = dAttachment.Size;
         a.Source = new Uri(dAttachment.Url);
-
+        Rememberer.RememberAttachment(a);
         return a;
     }
     internal Message UpsertMessage(IUserMessage dMessage)
     {
-        var m = _db.Messages.FirstOrDefault(mi => mi.ExternalId == dMessage.Id.ToString() && mi.Protocol == PROTOCOL);
-        if (m == null)
+        var m = Rememberer.SearchMessage(mi => mi.ExternalId == dMessage.Id.ToString() && mi.Protocol == PROTOCOL)
+            ?? new()
+            {
+                Protocol = PROTOCOL
+            };
+
+        if (dMessage.Attachments?.Count > 0)
         {
-            m = new Message();
-            m.Protocol = PROTOCOL;
-            _db.Messages.Add(m);
-        }
-        m.Attachments = m.Attachments ?? new List<vassago.Models.Attachment>();
-        if (dMessage.Attachments?.Any() == true)
-        {
-            m.Attachments = new List<vassago.Models.Attachment>();
+            m.Attachments = [];
             foreach (var da in dMessage.Attachments)
             {
                 m.Attachments.Add(UpsertAttachment(da));
@@ -226,7 +218,8 @@ public class DiscordInterface
         m.Timestamp = dMessage.EditedTimestamp ?? dMessage.CreatedAt;
         m.Channel = UpsertChannel(dMessage.Channel);
         m.Author = UpsertAccount(dMessage.Author, m.Channel);
-        if(dMessage.Channel is IGuildChannel)
+        Console.WriteLine($"received message; author: {m.Author.DisplayName}, {m.Author.Id}");
+        if (dMessage.Channel is IGuildChannel)
         {
             m.Author.DisplayName = (dMessage.Author as IGuildUser).DisplayName;//discord forgot how display names work.
         }
@@ -234,97 +227,164 @@ public class DiscordInterface
             && (dMessage.MentionedUserIds?.FirstOrDefault(muid => muid == client.CurrentUser.Id) > 0));
 
         m.Reply = (t) => { return dMessage.ReplyAsync(t); };
-        m.React = (e) => { return attemptReact(dMessage, e); };
+        m.React = (e) => { return AttemptReact(dMessage, e); };
+        Rememberer.RememberMessage(m);
         return m;
     }
     internal Channel UpsertChannel(IMessageChannel channel)
     {
-        Channel c = _db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
+        Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
         if (c == null)
         {
-            c = new Channel();
-            _db.Channels.Add(c);
+            Console.WriteLine($"couldn't find channel under protocol {PROTOCOL} with externalId {channel.Id.ToString()}");
+            c = new Channel()
+            {
+                Users = []
+            };
         }
 
-        c.DisplayName = channel.Name;
         c.ExternalId = channel.Id.ToString();
         c.ChannelType = (channel is IPrivateChannel) ? vassago.Models.Enumerations.ChannelType.DM : vassago.Models.Enumerations.ChannelType.Normal;
-        c.Messages = c.Messages ?? new List<Message>();
+        c.Messages ??= [];
         c.Protocol = PROTOCOL;
         if (channel is IGuildChannel)
         {
+            Console.WriteLine($"{channel.Name} is a guild channel. So i'm going to upsert the guild, {(channel as IGuildChannel).Guild}");
             c.ParentChannel = UpsertChannel((channel as IGuildChannel).Guild);
-            c.ParentChannel.SubChannels.Add(c);
         }
         else if (channel is IPrivateChannel)
         {
             c.ParentChannel = protocolAsChannel;
+            Console.WriteLine("i'm a private channel so I'm setting my parent channel to the protocol as channel");
         }
         else
         {
             c.ParentChannel = protocolAsChannel;
             Console.Error.WriteLine($"trying to upsert channel {channel.Id}/{channel.Name}, but it's neither guildchannel nor private channel. shrug.jpg");
         }
-        c.SubChannels = c.SubChannels ?? new List<Channel>();
+
+        Console.WriteLine($"upsertion of channel {c.DisplayName}, it's type {c.ChannelType}");
+        switch (c.ChannelType)
+        {
+            case vassago.Models.Enumerations.ChannelType.DM:
+                var asPriv =(channel as IPrivateChannel);
+                var sender = asPriv?.Recipients?.FirstOrDefault(u => u.Id != client.CurrentUser.Id); // why yes, there's a list of recipients, and it's the sender.
+                if(sender != null)
+                {
+                    c.DisplayName = "DM: " + sender.Username;
+                }
+                else
+                {
+                    //I sent it, so I don't know the recipient's name.
+                }
+                break;
+            default:
+                c.DisplayName = channel.Name;
+                break;
+        }
+
+        Channel parentChannel = null;
+        if (channel is IGuildChannel)
+        {
+            parentChannel = Rememberer.SearchChannel(c => c.ExternalId == (channel as IGuildChannel).Guild.Id.ToString() && c.Protocol == PROTOCOL);
+            if (parentChannel is null)
+            {
+                Console.Error.WriteLine("why am I still null?");
+            }
+        }
+        else if (channel is IPrivateChannel)
+        {
+            parentChannel = protocolAsChannel;
+        }
+        else
+        {
+            parentChannel = protocolAsChannel;
+            Console.Error.WriteLine($"trying to upsert channel {channel.Id}/{channel.Name}, but it's neither guildchannel nor private channel. shrug.jpg");
+        }
+        parentChannel.SubChannels ??= [];
+        if(!parentChannel.SubChannels.Contains(c))
+        {
+            parentChannel.SubChannels.Add(c);
+        }
+
         c.SendMessage = (t) => { return channel.SendMessageAsync(t); };
         c.SendFile = (f, t) => { return channel.SendFileAsync(f, t); };
 
-        switch(c.ChannelType)
+        c = Rememberer.RememberChannel(c);
+
+        var selfAccountInChannel = c.Users.FirstOrDefault(a => a.ExternalId == client.CurrentUser.Id.ToString());
+        if(selfAccountInChannel == null)
         {
-            case vassago.Models.Enumerations.ChannelType.DM:
-                c.DisplayName = "DM: " + (channel as IPrivateChannel).Recipients?.FirstOrDefault(u => u.Id != client.CurrentUser.Id).Username;
-                break;
+            selfAccountInChannel = UpsertAccount(client.CurrentUser, c);
         }
+
         return c;
     }
     internal Channel UpsertChannel(IGuild channel)
     {
-        Channel c = _db.Channels.FirstOrDefault(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
+        Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
         if (c == null)
         {
+            Console.WriteLine($"couldn't find channel under protocol {PROTOCOL} with externalId {channel.Id.ToString()}");
             c = new Channel();
-            _db.Channels.Add(c);
         }
 
         c.DisplayName = channel.Name;
         c.ExternalId = channel.Id.ToString();
-        c.ChannelType = vassago.Models.Enumerations.ChannelType.Normal;
-        c.Messages = c.Messages ?? new List<Message>();
+        c.ChannelType = vassago.Models.Enumerations.ChannelType.OU;
+        c.Messages ??= [];
         c.Protocol = protocolAsChannel.Protocol;
         c.ParentChannel = protocolAsChannel;
-        c.SubChannels = c.SubChannels ?? new List<Channel>();
+        c.SubChannels ??= [];
         c.MaxAttachmentBytes = channel.MaxUploadLimit;
 
         c.SendMessage = (t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; cannot accept text"); };
         c.SendFile = (f, t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; send file"); };
-        return c;
+
+        return Rememberer.RememberChannel(c);
     }
-    internal Account UpsertAccount(IUser user, Channel inChannel)
+    internal static Account UpsertAccount(IUser discordUser, Channel inChannel)
     {
-        var acc = _db.Accounts.FirstOrDefault(ui => ui.ExternalId == user.Id.ToString() && ui.SeenInChannel.Id == inChannel.Id);
-        if (acc == null)
+        var acc = Rememberer.SearchAccount(ui => ui.ExternalId == discordUser.Id.ToString() && ui.SeenInChannel.Id == inChannel.Id);
+        Console.WriteLine($"upserting account, retrieved {acc?.Id}.");
+        if (acc != null)
         {
-            acc = new Account();
-            _db.Accounts.Add(acc);
+            Console.WriteLine($"acc's user: {acc.IsUser?.Id}");
         }
-        acc.Username = user.Username;
-        acc.ExternalId = user.Id.ToString();
-        acc.IsBot = user.IsBot || user.IsWebhook;
+        acc ??= new Account() { 
+            IsUser = Rememberer.SearchUser(u => u.Accounts.Any(a => a.ExternalId == discordUser.Id.ToString() && a.Protocol == PROTOCOL))
+                ?? new User() 
+        };
+
+        acc.Username = discordUser.Username;
+        acc.ExternalId = discordUser.Id.ToString();
+        acc.IsBot = discordUser.IsBot || discordUser.IsWebhook;
         acc.Protocol = PROTOCOL;
         acc.SeenInChannel = inChannel;
 
-        acc.IsUser = _db.Users.FirstOrDefault(u => u.Accounts.Any(a => a.ExternalId == acc.ExternalId && a.Protocol == acc.Protocol));
-        if(acc.IsUser == null)
+        Console.WriteLine($"we asked rememberer to search for acc's user. {acc.IsUser?.Id}");
+        if (acc.IsUser != null)
         {
-            acc.IsUser = new User() { Accounts = new List<Account>() { acc } };
-            _db.Users.Add(acc.IsUser);
+            Console.WriteLine($"user has record of {acc.IsUser.Accounts?.Count ?? 0} accounts");
+        }
+        acc.IsUser ??= new User() { Accounts = [acc] };
+        if (inChannel.Users?.Count > 0)
+        {
+            Console.WriteLine($"channel has {inChannel.Users.Count} accounts");
+        }
+        Rememberer.RememberAccount(acc);
+        inChannel.Users ??= [];
+        if(!inChannel.Users.Contains(acc))
+        {
+            inChannel.Users.Add(acc);
+            Rememberer.RememberChannel(inChannel);
         }
         return acc;
     }
 
-    private Task attemptReact(IUserMessage msg, string e)
+    private static Task AttemptReact(IUserMessage msg, string e)
     {
-        var c = _db.Channels.FirstOrDefault(c => c.ExternalId == msg.Channel.Id.ToString());
+        var c = Rememberer.SearchChannel(c => c.ExternalId == msg.Channel.Id.ToString());// db.Channels.FirstOrDefault(c => c.ExternalId == msg.Channel.Id.ToString());
         //var preferredEmote = c.EmoteOverrides?[e] ?? e; //TODO: emote overrides
         var preferredEmote = e;
         if (Emoji.TryParse(preferredEmote, out Emoji emoji))

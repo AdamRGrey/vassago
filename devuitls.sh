@@ -26,7 +26,7 @@ case "$1" in
 
 	"db-fullreset")
 		sudo -u postgres psql -c "drop database ${servicename}_dev;"
-		sudo -u postgres psql -c "delete user $servicename"
+		sudo -u postgres psql -c "drop user $servicename"
 		$0 "initial"
 		;;
     *)

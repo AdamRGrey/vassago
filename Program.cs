@@ -11,7 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IHostedService, vassago.ConsoleService>();
 builder.Services.AddDbContext<ChattingContext>();
-builder.Services.AddControllers().AddNewtonsoftJson();
+builder.Services.AddControllers().AddNewtonsoftJson(options => {
+        options.SerializerSettings.ReferenceLoopHandling =
+            Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+    });
 builder.Services.AddProblemDetails();
 builder.Services.Configure<RazorViewEngineOptions>(o => {
     o.ViewLocationFormats.Clear();

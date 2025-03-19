@@ -11,6 +11,16 @@ that's read messages/view channels, send messages, send messages in threads, and
 
 ## Data Types
 
+database diagram. is a fancy term.
+
+message 1:n attachment
+user 1:n account
+channel 1:n account
+channel 1:n message
+account 1:n message
+
+featurepermission n:n ?
+
 ### Accounts
 
 a `User` can have multiple `Account`s. e.g., @adam:greyn.club? that's an "account". I, however, am a `User`. An `Account` has references to the `Channels` its seen in - as in, leaf-level. If you're in a subchannel, you'll have an appropriate listing there - i.e., you will never have an account in "discord (itself)", you'll have one in the guild text-channels
