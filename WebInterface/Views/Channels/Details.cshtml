@@ -152,7 +152,7 @@
         foreach (var acc in ThisChannel.Users.OrderBy(a => a.SeenInChannel.LineageSummary))
         {
             if(!first)
-                sb.Append(',');
+                sb.Append(','); 
             sb.Append($"{{text: \"<div class=\\\"account {acc.Protocol}\\\"><div class=\\\"protocol-icon\\\">&nbsp;</div>{acc.SeenInChannel.LineageSummary}/<a href=\\\"/Accounts/Details/{acc.Id}\\\">{acc.DisplayName}</a>\"}}");
             first=false;
         }

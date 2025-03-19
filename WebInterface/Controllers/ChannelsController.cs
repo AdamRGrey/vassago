@@ -10,13 +10,6 @@ namespace vassago.WebInterface.Controllers;
 
 public class ChannelsController() : Controller
 {
-    public IActionResult Index()
-    {
-        var channels = Rememberer.ChannelsOverview();
-        return channels != null ?
-            View(channels.OrderBy(c => c.LineageSummary)) :
-            Problem("Entity set '_db.Channels' is null.");
-    }
     public async Task<IActionResult> Details(Guid id)
     {
         var allChannels = Rememberer.ChannelsOverview();

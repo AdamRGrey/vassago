@@ -4,11 +4,13 @@
 @{
     ViewData["Title"] = "User details";
 }
+
+<a href="/">home</a>/@Html.Raw(ViewData["breadcrumbs"])
 <table class="table">
     <tbody>
         <tr>
             <th scope="row">Display Name (here)</th>
-            <td><input type="text" id="displayName" value="@Model.DisplayName"></input> <button
+            <td><input type="text" id="displayName" value="@Model.DisplayName" disabled alt="todo"></input> <button
                     onclick="patchModel(jsonifyUser(), @Html.Raw("'/api/Users/'"))" disabled alt"todo">update</button></td>
         </tr>
         <tr>

@@ -4,16 +4,18 @@
 @{
     ViewData["Title"] = "Account details";
 }
+
+<a href="/">home</a>/@Html.Raw(ViewData["breadcrumbs"])
 <table class="table">
     <tbody>
         <tr>
             <th scope="row">belongs to user</th>
             <td>@Model.IsUser.DisplayName</td>
-            <td><button alt="to do" disabled>separate</button></td>
+            <td><button alt="to do" disabled>separate</button></2td>
         </tr>
         <tr>
             <th scope="row">Seen in channel</th>
-            <td><div class="protocol-icon">&nbsp;</div>@Model.SeenInChannel.LineageSummary<a href="/Channels/Details/@Model.SeenInChannel.Id">@Model.SeenInChannel.DisplayName</a></td>
+            <td class="account @Model.SeenInChannel.Protocol"><div class="protocol-icon">&nbsp;</div>@Model.SeenInChannel.LineageSummary<a href="/Channels/Details/@Model.SeenInChannel.Id">@Model.SeenInChannel.DisplayName</a></td>
         </tr>
         <tr>
             <th scope="row">Permission Tags</th>
