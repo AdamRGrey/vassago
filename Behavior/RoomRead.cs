@@ -10,7 +10,7 @@ public class RoomRead : Behavior
 {
     public override string Name => "Room Read";
 
-    public override string Trigger => "roomread";
+    public override string Trigger => "!roomread";
 
     public override async Task<bool> ActOn(Message message)
     {
