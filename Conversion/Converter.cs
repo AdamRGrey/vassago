@@ -127,6 +127,7 @@ namespace vassago.Conversion
                         return $"{String.Format("{0:N}", accumulator)} {normalizedDestUnit}";
                     }
                 }
+                return "you can never read this.";
             }
             return "dimensional analysis failure - I know those units but can't find a path between them.";
         }
@@ -170,9 +171,9 @@ namespace vassago.Conversion
             {
                 if (conv.Item1 == last && currentPath.Contains(conv.Item2) == false && conv.Item3 != null)
                 {
-                    var test = exhaustiveBreadthFirst(dest, currentPath.Append(conv.Item2));
-                    if (test != null)
-                        return test;
+                        var test = exhaustiveBreadthFirst(dest, currentPath.Append(conv.Item2));
+                        if (test != null)
+                            return test;
                 }
                 if (conv.Item2 == last && currentPath.Contains(conv.Item1) == false && conv.Item4 != null)
                 {
