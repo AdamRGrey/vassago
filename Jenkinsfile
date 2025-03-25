@@ -3,10 +3,39 @@ pipeline {
     environment {
         linuxServiceAccount=credentials("a83b97d0-dbc6-42d9-96c9-f07a7f2dfab5")
         linuxServiceAccountID="3ca1be00-3d9f-42a1-bab2-48a4d7b99fb0"
-        database_connectionString=credentials("e0e068dd-57e4-4e2b-b6b2-9d9f0d21adeb")
+        database_connectionString=credentials("7ab58922-c647-42e5-ae15-84faa0c1ee7d")
         targetHost="alloces.lan"
     }
     stages {
+
+         stage("environment setup") { //my environment, here on the jenkins agent
+            steps {
+                script {
+
+                    sh """#!/bin/bash
+                        function testcmd(){
+                            if ! command -v \$1 2>&1 >/dev/null
+                            then
+                                echo "this agent doesn't have \$1"
+                                exit 1
+                            fi    
+                        }
+
+                        testcmd mktemp
+                        testcmd curl
+                        testcmd git
+                        testcmd sed
+                        testcmd ssh
+                        testcmd ssh-keyscan
+                        testcmd ssh-keygen
+                        testcmd scp
+                        testcmd dotnet
+
+                        dotnet tool install dotnet-ef
+                    """
+                }
+            }
+        }
         stage('clean old'){
             steps{
                 sh 'rm -rf bin obj'
@@ -14,8 +43,8 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh 'dotnet publish vassago.csproj --configuration Release --os linux'
-                archiveArtifacts artifacts: 'bin/Release/net9.0/linux-x64/publish/*'
+                dotnetBuild(outputDirectory: "./dist", project: "vassago.csproj")
+                archiveArtifacts artifacts: 'dist/*'
             }
         }
         stage ('upload') {
@@ -44,7 +73,7 @@ pipeline {
                 withCredentials([sshUserPrivateKey(credentialsId: env.linuxServiceAccountID, keyFileVariable: 'PK')])
                 {
                     sh """#!/bin/bash
-                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'systemctl --user stop test274'
+                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'systemctl --user stop vassago'
                     """
                 }
             }
@@ -77,7 +106,7 @@ pipeline {
                 {
                     sh """#!/bin/bash
                         ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'mv dist/appsettings.json appsettings.json'
-                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'rm -rf dist/ && mv temp_deploy/ dist/'
+                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'rm -rf dist/ && shopt -s dotglob & mv temp_deploy/* dist/'
                         ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'mv appsettings.json dist/appsettings.json'
                     """
                 }
@@ -92,7 +121,7 @@ pipeline {
                 withCredentials([sshUserPrivateKey(credentialsId: env.linuxServiceAccountID, keyFileVariable: 'PK')])
                 {
                     sh """#!/bin/bash
-                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'systemctl --user start test274'
+                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'systemctl --user start vassago'
                     """
                 }
             }
