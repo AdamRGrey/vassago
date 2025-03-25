@@ -42,7 +42,7 @@ namespace vassago
                     ProtocolInterfaces.ProtocolList.twitchs.Add(t);
                 }
             
-            Task.WaitAll(initTasks, cancellationToken);
+            Task.WaitAll(initTasks.ToArray(), cancellationToken);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
