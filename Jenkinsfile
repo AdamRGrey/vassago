@@ -31,7 +31,7 @@ pipeline {
                         testcmd scp
                         testcmd dotnet
 
-                        dotnet tool install --global dotnet-ef
+                        dotnet tool install dotnet-ef
                     """
                 }
             }
