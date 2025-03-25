@@ -44,7 +44,7 @@ pipeline {
                 withCredentials([sshUserPrivateKey(credentialsId: env.linuxServiceAccountID, keyFileVariable: 'PK')])
                 {
                     sh """#!/bin/bash
-                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'systemctl --user stop test274'
+                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'systemctl --user stop vassgo'
                     """
                 }
             }
@@ -92,7 +92,7 @@ pipeline {
                 withCredentials([sshUserPrivateKey(credentialsId: env.linuxServiceAccountID, keyFileVariable: 'PK')])
                 {
                     sh """#!/bin/bash
-                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'systemctl --user start test274'
+                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'systemctl --user start vassago'
                     """
                 }
             }
