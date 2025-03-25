@@ -14,8 +14,8 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh 'dotnet publish vassago.csproj --configuration Release --os linux'
-                archiveArtifacts artifacts: 'bin/Release/net8.0/linux-x64/publish/*'
+                dotnetBuild(outputDirectory: "./dist", project: "vassago.csproj")
+                archiveArtifacts artifacts: 'dist/*'
             }
         }
         stage ('upload') {
