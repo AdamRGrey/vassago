@@ -7,6 +7,35 @@ pipeline {
         targetHost="alloces.lan"
     }
     stages {
+
+         stage("environment setup") { //my environment, here on the jenkins agent
+            steps {
+                script {
+
+                    sh """#!/bin/bash
+                        function testcmd(){
+                            if ! command -v \$1 2>&1 >/dev/null
+                            then
+                                echo "this agent doesn't have \$1"
+                                exit 1
+                            fi    
+                        }
+
+                        testcmd mktemp
+                        testcmd curl
+                        testcmd git
+                        testcmd sed
+                        testcmd ssh
+                        testcmd ssh-keyscan
+                        testcmd ssh-keygen
+                        testcmd scp
+                        testcmd dotnet
+
+                        dotnet tool install --global dotnet-ef
+                    """
+                }
+            }
+        }
         stage('clean old'){
             steps{
                 sh 'rm -rf bin obj'
