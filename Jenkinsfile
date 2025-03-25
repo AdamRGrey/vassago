@@ -3,7 +3,7 @@ pipeline {
     environment {
         linuxServiceAccount=credentials("a83b97d0-dbc6-42d9-96c9-f07a7f2dfab5")
         linuxServiceAccountID="3ca1be00-3d9f-42a1-bab2-48a4d7b99fb0"
-        database_connectionString=credentials("e0e068dd-57e4-4e2b-b6b2-9d9f0d21adeb")
+        database_connectionString=credentials("7ab58922-c647-42e5-ae15-84faa0c1ee7d")
         targetHost="alloces.lan"
     }
     stages {
