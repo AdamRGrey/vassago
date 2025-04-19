@@ -270,9 +270,8 @@ Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == $"w_{whisperWith}"
         m.Content = chatMessage.Message;
         m.ExternalId = chatMessage.Id;
         m.Channel = UpsertChannel(chatMessage.Channel);
-        m.Author = UpsertAccount(chatMessage.Username, m.Channel); //TODO: m.channel, instead, for consistency
-        m.Author.SeenInChannel = m.Channel;//TODO: should be handled in UpsertAccount
-        m.MentionsMe = Regex.IsMatch(m.Content?.ToLower(), $"\\b@{selfAccountInProtocol.Username.ToLower()}\\b");
+        m.Author = UpsertAccount(chatMessage.Username, m.Channel);
+        m.MentionsMe = Regex.IsMatch(m.Content?.ToLower(), $"@\\b{selfAccountInProtocol.Username.ToLower()}\\b");
         m.Reply = (t) => { return Task.Run(() => { client.SendReply(chatMessage.Channel, chatMessage.Id, t); }); };
         m.React = (e) => { throw new InvalidOperationException($"twitch cannot react"); };
         Rememberer.RememberMessage(m);
@@ -294,7 +293,7 @@ Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == $"w_{whisperWith}"
         m.ExternalId = whisperMessage.MessageId;
         m.Channel = UpsertDMChannel(whisperMessage.Username);
         m.Author = UpsertAccount(whisperMessage.Username, m.Channel);
-        m.MentionsMe = Regex.IsMatch(m.Content?.ToLower(), $"\\b@{selfAccountInProtocol.Username.ToLower()}\\b");
+        m.MentionsMe = Regex.IsMatch(m.Content?.ToLower(), $"@\\b{selfAccountInProtocol.Username.ToLower()}\\b");
         m.Reply = (t) => { return Task.Run(() => { client.SendWhisper(whisperMessage.Username, t); }); };
         m.React = (e) => { throw new InvalidOperationException($"twitch cannot react"); };
         Rememberer.RememberMessage(m);

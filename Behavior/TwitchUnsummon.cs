@@ -13,9 +13,13 @@ public class TwitchDismiss : Behavior
 
     public override bool ShouldAct(Message message)
     {
+        var ti = ProtocolInterfaces.ProtocolList.twitchs.FirstOrDefault();
+        Console.WriteLine($"TwitchDismiss checking. menions me? {message.MentionsMe}");
         if(message.MentionsMe &&
             (Regex.IsMatch(message.Content.ToLower(), "\\bbegone\\b") || Regex.IsMatch(message.Content.ToLower(), "\\bfuck off\\b")))
             {
+                var channelTarget = message.Content.Substring(message.Content.IndexOf(Trigger) + Trigger.Length + 1).Trim();
+                ti.AttemptLeave(channelTarget);
                 //TODO: PERMISSION! who can dismiss me? pretty simple list:
                 //1) anyone in the channel with authority*
                 //2) whoever summoned me
