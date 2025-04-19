@@ -15,16 +15,22 @@ using System.Reactive.Linq;
 
 namespace vassago.ProtocolInterfaces.DiscordInterface;
 
+    //data received
+    //translate data to internal type
+    //store
+    //ship off to behaver
+
 public class DiscordInterface
 {
-    internal const string PROTOCOL = "discord";
+    internal static string PROTOCOL { get => "discord"; }
     internal DiscordSocketClient client;
     private bool eventsSignedUp = false;
     private static readonly SemaphoreSlim discordChannelSetup = new(1, 1);
     private Channel protocolAsChannel;
 
-    public async Task Init(string token)
+    public async Task Init(string config)
     {
+        var token = config;
         await SetupDiscordChannel();
         client = new DiscordSocketClient(new DiscordSocketConfig() { GatewayIntents = GatewayIntents.All });
 
@@ -147,6 +153,7 @@ public class DiscordInterface
         }
         await Behaver.Instance.ActOn(m);
         m.ActedOn = true; // for its own ruposess it might act on it later, but either way, fuck it, we checked.
+                          // ...but we don't save?
     }
 
     private Task UserJoined(SocketGuildUser arg)
@@ -312,7 +319,8 @@ public class DiscordInterface
 
         c = Rememberer.RememberChannel(c);
 
-        var selfAccountInChannel = c.Users.FirstOrDefault(a => a.ExternalId == client.CurrentUser.Id.ToString());
+        //Console.WriteLine($"no one knows how to make good tooling. c.users.first, which needs client currentuser id tostring. c: {c}, c.Users {c.Users}, client: {client}, client.CurrentUser: {client.CurrentUser}, client.currentUser.Id: {client.CurrentUser.Id}");
+        var selfAccountInChannel = c.Users?.FirstOrDefault(a => a.ExternalId == client.CurrentUser.Id.ToString());
         if(selfAccountInChannel == null)
         {
             selfAccountInChannel = UpsertAccount(client.CurrentUser, c);
@@ -351,9 +359,9 @@ public class DiscordInterface
         {
             Console.WriteLine($"acc's user: {acc.IsUser?.Id}");
         }
-        acc ??= new Account() { 
+        acc ??= new Account() {
             IsUser = Rememberer.SearchUser(u => u.Accounts.Any(a => a.ExternalId == discordUser.Id.ToString() && a.Protocol == PROTOCOL))
-                ?? new User() 
+                ?? new User()
         };
 
         acc.Username = discordUser.Username;

@@ -24,7 +24,7 @@ public class Message
     public Channel Channel { get; set; }
 
 
-
+//TODO: these are nicities to make it OOP, but it couples them with their respective platform interfaces (and connections!)
     [NonSerialized]
     public Func<string, Task> Reply;
 
