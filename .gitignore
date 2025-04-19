@@ -1,6 +1,7 @@
 appsettings.Development.json
 assets/exchangepairs.json
 fail*/
+.projectile
 
 # ---> VisualStudio
 ## Ignore Visual Studio temporary files, build results, and
