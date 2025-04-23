@@ -162,4 +162,28 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
+   public static List<UAC> UACsOverview()
+    {
+        List<UAC> toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.UACs.Include(uac => uac.Users).Include(uac => uac.Channels).Include(uac => uac.AccountInChannels).ToList();
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
+    public static UAC SearchUAC(Expression<Func<UAC, bool>> predicate)
+    {
+        UAC toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.UACs.Include(uac => uac.Users).Include(uac => uac.Channels).Include(uac => uac.AccountInChannels)
+            .FirstOrDefault(predicate);
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
+     public static void RememberUAC(UAC toRemember)
+    {
+        dbAccessSemaphore.Wait();
+        db.Update(toRemember);
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
+    }
 }

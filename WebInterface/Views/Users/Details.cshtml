@@ -19,13 +19,7 @@
                 <div id="accountsTree"></div>
             </td>
         </tr>
-        <tr>
-            <th scope="row">Permission Tags</th>
-            <td>
-                <div id="tagsTree"></div>
-            </td>
-        </tr>
-    </tbody>
+   </tbody>
 </table>
 
 @section Scripts{
@@ -65,26 +59,7 @@
             return tree;
         }
 
-        function getTagsTree() {
-        @{
-            sb = new StringBuilder();
-            sb.Append("[{text: \"permission tags\", \"expanded\":true, nodes: [");
-            first = true;
-            for (int i = 0; i < 1; i++)
-            {
-                if (!first)
-                    sb.Append(',');
-                sb.Append($"{{text: \"<input type=\\\"checkbox\\\" > is goated (w/ sauce)</input>\"}}");
-                first = false;
-            }
-            sb.Append("]}]");
-        }
-                console.log(@Html.Raw(sb.ToString()));
-            var tree = @Html.Raw(sb.ToString());
-            return tree;
-        }
         $('#accountsTree').bstreeview({ data: getAccountsTree() });
-        $('#tagsTree').bstreeview({ data: getTagsTree() });
         document.querySelectorAll("input[type=checkbox]").forEach(node => { node.onchange = () => { patchModel(jsonifyUser(), '/api/Users/') } });
     </script>
 }

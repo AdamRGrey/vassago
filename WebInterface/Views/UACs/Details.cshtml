@@ -1,0 +1,151 @@
+@using System.ComponentModel
+@using Newtonsoft.Json
+@using System.Text; 
+@model UAC
+
+<a href="/">home</a>/
+@Html.Raw(ViewData["breadcrumbs"])
+
+<table class="table">
+  <tbody>
+    <tr>
+      <th scope="row">Display Name</th>
+      <td>@Model.DisplayName</td>
+    </tr>
+    <tr>
+      <th scope="row">Channels</th>
+      <td>
+          @Html.Raw("<div id=\"channelsTree\"></div>")
+      </td>
+    </tr>
+    <tr>
+      <th scope="row">Users</th>
+      <td>
+          @Html.Raw("<div id=\"usersTree\"></div>")
+      </td>
+    </tr>
+    <tr>
+      <th scope="row">AccountInChannels</th>
+      <td>
+          @Html.Raw("<div id=\"accountsTree\"></div>")
+      </td>
+    </tr>
+    </tbody>
+</table>
+
+<div id="add-modal" class="modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Insert GUID</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>
+            <ul>
+              <li>//TODO: search</li>
+            </ul>
+        </p>
+        <p>
+          <input id="addmodaltext" type="text" />
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button id="modalsubmit" type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts{
+  <script type="text/javascript">
+  function addChannel(){
+      let modalbutton = document.querySelector("#add-modal button#modalsubmit");
+      modalbutton.onclick = addChannelSubmit;
+      $("#add-modal").modal("show");
+    }
+  function addChannelSubmit(){
+    let guid = document.querySelector("#add-modal #addmodaltext").value;
+    linkUAC_Channel(guid);
+    $("#add-modal").modal("hide");
+    console.log(guid);
+  }
+  function addUser(){
+    let modalbutton = document.querySelector("#add-modal button#modalsubmit");
+    modalbutton.onclick = addUserSubmit;
+    $("#add-modal").modal("show");
+  }
+  function addUserSubmit(){
+    let guid = document.querySelector("#add-modal #addmodaltext").value;
+    linkUAC_User(guid);
+    $("#add-modal").modal("hide");
+    console.log(guid);
+  }
+  function addAccount(){
+    let modalbutton = document.querySelector("#add-modal button#modalsubmit");
+    modalbutton.onclick = addAccountSubmit;
+    $("#add-modal").modal("show");
+  }
+  function addAccountSubmit(){
+    let guid = document.querySelector("#add-modal #addmodaltext").value;
+    linkUAC_Account(guid);
+    $("#add-modal").modal("hide");
+    console.log(guid);
+  }
+  function channelsTree() {
+    @{
+      var sb = new StringBuilder();
+      sb.Append("[{text: \"Channels\", \"expanded\":true, nodes: [");
+
+      sb.Append($"{{text: \"<button onclick=\\\"addChannel()\\\">add channel<button>\"}}");
+      foreach (var acc in Model.Channels?.OrderBy(a => a.DisplayName))
+      {
+        sb.Append(',');
+        sb.Append($"{{text: \"<a href=\\\"/Channels/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn\\\" onclick=\\\"removeUser('{acc.Id}')\\\">remove (todo)</button>\"}}");
+      }
+      sb.Append("]}]");
+    }
+    var tree = @Html.Raw(sb.ToString());
+    return tree;
+  }
+  function usersTree() {
+    @{
+      sb = new StringBuilder();
+      sb.Append("[{text: \"Users\", \"expanded\":true, nodes: [");
+
+      sb.Append($"{{text: \"<button onclick=\\\"addUser()\\\">add user</button>\"}}");
+      foreach (var acc in Model.Users?.OrderBy(a => a.DisplayName))
+      {
+        sb.Append(',');
+        sb.Append($"{{text: \"<a href=\\\"/Users/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn\\\" onclick=\\\"removeUser('{acc.Id}')\\\">remove (todo)</button>\"}}");
+      }
+      sb.Append("]}]");
+    }
+    var tree = @Html.Raw(sb.ToString());
+    return tree;
+  }
+  function accountsTree() {
+    @{
+      sb = new StringBuilder();
+      sb.Append("[{text: \"Accounts\", \"expanded\":true, nodes: [");
+
+      sb.Append($"{{text: \"<button onclick=\\\"addAccount()\\\">add account</button>\"}}");
+      foreach (var acc in Model.AccountInChannels?.OrderBy(a => a.DisplayName))
+      {
+        sb.Append(',');
+        sb.Append($"{{text: \"<a href=\\\"/Accounts/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn\\\" onclick=\\\"removeAccounts('{acc.Id}')\\\">remove (todo)</button>\"}}");
+      }
+      sb.Append("]}]");
+    }
+    var tree = @Html.Raw(sb.ToString());
+    return tree;
+  }
+  $('#channelsTree').bstreeview({ data: channelsTree() });
+  $('#usersTree').bstreeview({ data: usersTree() });
+  $('#accountsTree').bstreeview({ data: accountsTree() });
+
+  </script>
+}

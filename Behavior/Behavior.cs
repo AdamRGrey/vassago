@@ -10,6 +10,7 @@ using System.Collections.Generic;
 
 public abstract class Behavior
 {
+    //recommendation: set up your UACs in your constructor.
     public abstract Task<bool> ActOn(Message message);
 
     public virtual bool ShouldAct(Message message)

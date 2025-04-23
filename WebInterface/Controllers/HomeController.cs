@@ -25,10 +25,61 @@ public class HomeController : Controller
         Console.WriteLine($"accounts: {allAccounts?.Count ?? 0}, channels: {allChannels?.Count ?? 0}");
         var sb = new StringBuilder();
         sb.Append('[');
-        sb.Append("{text: \"channels\", expanded:true, nodes: [");
 
+        //UACs
+        var allUACs = Rememberer.UACsOverview();
         var first = true;
+        if(allUACs.Any())
+        {
+            sb.Append("{text: \"uacs\", expanded:true, nodes: [");
+            first=true;
+            foreach(var uac in allUACs)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    sb.Append(',');
+                }
+                sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "UACs", values: new {id = uac.Id})}\\\">{uac.DisplayName}</a>\"}}");
+            }
+            sb.Append("]}");
+        }
+        else
+        {
+            sb.Append("{text: \"uacs (0)\", }");
+        }
+
+        //users
+        var users = Rememberer.UsersOverview();
+        if(users.Any())
+        {
+            sb.Append(",{text: \"users\", expanded:true, nodes: [");
+            first=true;
+            //refresh list; we'll be knocking them out again in serializeUser
+            allAccounts = Rememberer.AccountsOverview();
+            foreach(var user in users)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    sb.Append(',');
+                }
+                serializeUser(ref sb, ref allAccounts, user);
+            }
+            sb.Append("]}");
+        }
+
+        //type error, e is not defined
+        //channels
+        sb.Append(",{text: \"channels\", expanded:true, nodes: [");
         var topLevelChannels = Rememberer.ChannelsOverview().Where(x => x.ParentChannel == null);
+        first = true;
         foreach (var topLevelChannel in topLevelChannels)
         {
             if (first)
@@ -84,28 +135,8 @@ public class HomeController : Controller
             }
             sb.Append("]}");
         }
-        var users = Rememberer.UsersOverview();// _db.Users.ToList();
-        if(users.Any())
-        {
-            sb.Append(",{text: \"users\", expanded:true, nodes: [");
-            first=true;
-            //refresh list; we'll be knocking them out again in serializeUser
-            allAccounts = Rememberer.AccountsOverview();
-            foreach(var user in users)
-            {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    sb.Append(',');
-                }
-                serializeUser(ref sb, ref allAccounts, user);
-            }
-            sb.Append("]}");
-        }
-        sb.Append(']');
+
+        sb.Append("]");
         ViewData.Add("treeString", sb.ToString());
         return View("Index");
     }
@@ -121,7 +152,6 @@ public class HomeController : Controller
         if (currentChannel.SubChannels != null || theseAccounts != null)
         {
             sb.Append(", \"nodes\": [");
-        }
         if (currentChannel.SubChannels != null)
         {
             foreach (var subChannel in currentChannel.SubChannels)
@@ -159,7 +189,9 @@ public class HomeController : Controller
             }
             sb.Append("]}");
         }
-        sb.Append("]}");
+            sb.Append(']');
+        }
+        sb.Append('}');
     }
     private void serializeAccount(ref StringBuilder sb, Account currentAccount)
     {
@@ -171,17 +203,21 @@ public class HomeController : Controller
         sb.Append(currentUser.DisplayName);
         sb.Append("</a>\", ");
         var ownedAccounts = allAccounts.Where(a => a.IsUser == currentUser);
-        sb.Append("nodes: [");
-        sb.Append($"{{\"text\": \"owned accounts:\", \"expanded\":true, \"nodes\": [");
-        if (ownedAccounts != null)
+        if (ownedAccounts?.Count() > 0)
         {
+            sb.Append("nodes: [");
+            sb.Append($"{{\"text\": \"owned accounts:\", \"expanded\":true, \"nodes\": [");
+            var first = true;
             foreach (var acc in ownedAccounts)
             {
+                if(!first)
+                    sb.Append(',');
                 serializeAccount(ref sb, acc);
-                sb.Append(',');
+                first = false;
             }
+            sb.Append("]}]");
         }
-        sb.Append("]}]}");
+        sb.Append("}");
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

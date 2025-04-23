@@ -35,6 +35,8 @@ public class Channel
     public Enumerations.LewdnessFilterLevel? LewdnessFilterLevel { get; set; }
     public Enumerations.MeannessFilterLevel? MeannessFilterLevel { get; set; }
 
+    public List<UAC> UACs { get; set; }
+
     [NonSerialized]
     public Func<string, string, Task> SendFile;
 
