@@ -142,8 +142,9 @@ public class TwitchInterface
 
     private Account UpsertAccount(string username, Channel inChannel)
     {
-        var acc = Rememberer.SearchAccount(ui => ui.ExternalId == username && ui.SeenInChannel.ExternalId == inChannel.ToString());
-        Console.WriteLine($"upserting account, retrieved {acc?.Id}.");
+        Console.WriteLine($"upserting twitch account. username: {username}. inChannel: {inChannel?.Id}");
+        var acc = Rememberer.SearchAccount(ui => ui.ExternalId == username && ui.SeenInChannel.ExternalId == inChannel.ExternalId.ToString());
+        Console.WriteLine($"upserting twitch account, retrieved {acc?.Id}.");
         if (acc != null)
         {
             Console.WriteLine($"acc's usser: {acc.IsUser?.Id}");
