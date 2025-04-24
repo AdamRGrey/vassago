@@ -21,7 +21,6 @@ function patchModel(model, deprecated_apiUrl)
     var type=components[1];
     // var id=components[3];
 
-    console.log("dexter impression: I am now ready to post the following content:");
     console.log(JSON.stringify(model));
     fetch(apiUrl + type + '/', {
         method: 'PATCH',
@@ -53,6 +52,7 @@ function deleteModel(model, deprecated_apiUrl)
   //     console.log("wtf are you doing? " + components[2] + " is something other than Details");
   // }
   var type=components[1];
+  let result = null;
   // var id=components[3];
   fetch(apiUrl + type + '/', {
     method: 'DELETE',
@@ -70,13 +70,15 @@ function deleteModel(model, deprecated_apiUrl)
   .then(returnedSuccessdata => {
     // perhaps a success callback
     console.log('returnedSuccessdata:', returnedSuccessdata);
+    if(callback !== null) { callback(); }
   })
   .catch(error => {
     console.error('Error:', error);
   });
-}
-function linkUAC_Channel(channel_guid)
+  }
+function linkUAC_Channel(channel_guid, callback)
 {
+
   var components = window.location.pathname.split('/');
   var id=components[3];
   let model={"uac_guid": id,
@@ -97,12 +99,13 @@ function linkUAC_Channel(channel_guid)
   .then(returnedSuccessdata => {
     // perhaps a success callback
     console.log('returnedSuccessdata:', returnedSuccessdata);
+    if(callback !== null) { callback(); }
   })
   .catch(error => {
     console.error('Error:', error);
   });
-}
-function linkUAC_User(user_guid)
+  }
+function linkUAC_User(user_guid, callback)
 {
   var components = window.location.pathname.split('/');
   var id=components[3];
@@ -124,13 +127,15 @@ function linkUAC_User(user_guid)
   .then(returnedSuccessdata => {
     // perhaps a success callback
     console.log('returnedSuccessdata:', returnedSuccessdata);
+    if(callback !== null) { callback(); }
   })
   .catch(error => {
     console.error('Error:', error);
   });
-}
-function linkUAC_Account(account_guid)
+  }
+function linkUAC_Account(account_guid, callback)
 {
+  var reuslt = null;
   var components = window.location.pathname.split('/');
   var id=components[3];
   let model={"uac_guid": id,
@@ -151,6 +156,91 @@ function linkUAC_Account(account_guid)
   .then(returnedSuccessdata => {
     // perhaps a success callback
     console.log('returnedSuccessdata:', returnedSuccessdata);
+    if(callback !== null) { callback(); }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+  }
+function unlinkUAC_User(user_guid, callback)
+{
+  var components = window.location.pathname.split('/');
+  var id=components[3];
+  let model={"uac_guid": id,
+             "user_guid": user_guid};
+  fetch(apiUrl + "UAC/UnlinkUser/", {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(model),
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not "ok". which is not ok.');
+    }
+    return response.json();
+  })
+  .then(returnedSuccessdata => {
+    // perhaps a success callback
+    console.log('returnedSuccessdata:', returnedSuccessdata);
+    if(callback !== null) { callback(); }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+  }
+function unlinkUAC_Account(account_guid, callback)
+{
+  var components = window.location.pathname.split('/');
+  var id=components[3];
+  let model={"uac_guid": id,
+             "account_guid": account_guid};
+  fetch(apiUrl + "UAC/UnlinkAccount/", {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(model),
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not "ok". which is not ok.');
+    }
+    return response.json();
+  })
+  .then(returnedSuccessdata => {
+    // perhaps a success callback
+    console.log('returnedSuccessdata:', returnedSuccessdata);
+    if(callback !== null) { callback(); }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+}
+function unlinkUAC_Channel(user_guid, callback)
+{
+  var components = window.location.pathname.split('/');
+  var id=components[3];
+  let model={"uac_guid": id,
+             "channel_guid": user_guid};
+  fetch(apiUrl + "UAC/UnlinkChannel/", {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(model),
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not "ok". which is not ok.');
+    }
+    return response.json();
+  })
+  .then(returnedSuccessdata => {
+    // perhaps a success callback
+    console.log('returnedSuccessdata:', returnedSuccessdata);
+    if(callback !== null) { callback(); }
   })
   .catch(error => {
     console.error('Error:', error);

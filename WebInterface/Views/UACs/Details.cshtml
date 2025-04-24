@@ -38,7 +38,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Insert GUID</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="btn btn-close" data-dismiss="add-modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -54,11 +54,38 @@
       </div>
       <div class="modal-footer">
         <button id="modalsubmit" type="button" class="btn btn-primary">Save changes</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="add-modal">Close</button>
       </div>
     </div>
   </div>
 </div>
+
+<div id="remove-modal" class="modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm</h5>
+        <button type="button" class="btn-close" data-dismiss="remove-modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>
+            are you sure you wnat to unlink
+            <input id="removeModalText" enabled="false" type="text" />
+        </p>
+        <p>
+            to be clear; this is going to "unlink", not like.. delete.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button id="modalsubmit" type="button" class="btn btn-danger">unlink</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="remove-modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 @section Scripts{
   <script type="text/javascript">
@@ -69,7 +96,7 @@
     }
   function addChannelSubmit(){
     let guid = document.querySelector("#add-modal #addmodaltext").value;
-    linkUAC_Channel(guid);
+    linkUAC_Channel(guid, () => { window.location.reload(); });
     $("#add-modal").modal("hide");
     console.log(guid);
   }
@@ -80,7 +107,7 @@
   }
   function addUserSubmit(){
     let guid = document.querySelector("#add-modal #addmodaltext").value;
-    linkUAC_User(guid);
+    linkUAC_User(guid, () => {window.location.reload(); });
     $("#add-modal").modal("hide");
     console.log(guid);
   }
@@ -91,20 +118,53 @@
   }
   function addAccountSubmit(){
     let guid = document.querySelector("#add-modal #addmodaltext").value;
-    linkUAC_Account(guid);
+    linkUAC_Account(guid, () => { window.location.reload(); });
     $("#add-modal").modal("hide");
     console.log(guid);
+  }
+  function removeUser(guid){
+    document.querySelector("#remove-modal #removeModalText").value = guid;
+    let modalbutton = document.querySelector("#remove-modal button#modalsubmit");
+    modalbutton.onclick = removeUserSubmit;
+    $("#remove-modal").modal("show");
+  }
+  function removeUserSubmit(){
+    let guid = document.querySelector("#remove-modal #removeModalText").value;
+    unlinkUAC_User(guid, () => { window.location.reload(); });
+    $("#remove-modal").modal("hide");
+  }
+  function removeChannel(guid){
+    document.querySelector("#remove-modal #removeModalText").value = guid;
+    let modalbutton = document.querySelector("#remove-modal button#modalsubmit");
+    modalbutton.onclick = removeChannelSubmit;
+    $("#remove-modal").modal("show");
+  }
+  function removeChannelSubmit(){
+    let guid = document.querySelector("#remove-modal #removeModalText").value;
+    unlinkUAC_Channel(guid, () => { window.location.reload(); });
+    $("#remove-modal").modal("hide");
+  }
+  function removeAccount(guid){
+    document.querySelector("#remove-modal #removeModalText").value = guid;
+    let modalbutton = document.querySelector("#remove-modal button#modalsubmit");
+    modalbutton.onclick = removeAccountSubmit;
+    $("#remove-modal").modal("show");
+  }
+  function removeAccountSubmit(){
+    let guid = document.querySelector("#remove-modal #removeModalText").value;
+    unlinkUAC_Account(guid , () => { window.location.reload(); });
+    $("#remove-modal").modal("hide");
   }
   function channelsTree() {
     @{
       var sb = new StringBuilder();
       sb.Append("[{text: \"Channels\", \"expanded\":true, nodes: [");
 
-      sb.Append($"{{text: \"<button onclick=\\\"addChannel()\\\">add channel<button>\"}}");
+      sb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"addChannel()\\\">add channel</button>\"}}");
       foreach (var acc in Model.Channels?.OrderBy(a => a.DisplayName))
       {
         sb.Append(',');
-        sb.Append($"{{text: \"<a href=\\\"/Channels/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn\\\" onclick=\\\"removeUser('{acc.Id}')\\\">remove (todo)</button>\"}}");
+        sb.Append($"{{text: \"<a href=\\\"/Channels/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn btn-danger\\\" onclick=\\\"removeChannel('{acc.Id}')\\\">remove</button>\"}}");
       }
       sb.Append("]}]");
     }
@@ -116,11 +176,11 @@
       sb = new StringBuilder();
       sb.Append("[{text: \"Users\", \"expanded\":true, nodes: [");
 
-      sb.Append($"{{text: \"<button onclick=\\\"addUser()\\\">add user</button>\"}}");
+      sb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"addUser()\\\">add user</button>\"}}");
       foreach (var acc in Model.Users?.OrderBy(a => a.DisplayName))
       {
         sb.Append(',');
-        sb.Append($"{{text: \"<a href=\\\"/Users/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn\\\" onclick=\\\"removeUser('{acc.Id}')\\\">remove (todo)</button>\"}}");
+        sb.Append($"{{text: \"<a href=\\\"/Users/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn btn-danger\\\" onclick=\\\"removeUser('{acc.Id}')\\\">remove</button>\"}}");
       }
       sb.Append("]}]");
     }
@@ -132,11 +192,11 @@
       sb = new StringBuilder();
       sb.Append("[{text: \"Accounts\", \"expanded\":true, nodes: [");
 
-      sb.Append($"{{text: \"<button onclick=\\\"addAccount()\\\">add account</button>\"}}");
+      sb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"addAccount()\\\">add account</button>\"}}");
       foreach (var acc in Model.AccountInChannels?.OrderBy(a => a.DisplayName))
       {
         sb.Append(',');
-        sb.Append($"{{text: \"<a href=\\\"/Accounts/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn\\\" onclick=\\\"removeAccounts('{acc.Id}')\\\">remove (todo)</button>\"}}");
+        sb.Append($"{{text: \"<a href=\\\"/Accounts/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn btn-danger\\\" onclick=\\\"removeAccount('{acc.Id}')\\\">remove</button>\"}}");
       }
       sb.Append("]}]");
     }
@@ -146,6 +206,9 @@
   $('#channelsTree').bstreeview({ data: channelsTree() });
   $('#usersTree').bstreeview({ data: usersTree() });
   $('#accountsTree').bstreeview({ data: accountsTree() });
+
+  var components = window.location.pathname.split('/');
+  var uacId = components[3];
 
   </script>
 }
