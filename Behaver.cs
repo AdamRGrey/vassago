@@ -65,8 +65,7 @@ public class Behaver
 
     internal bool IsSelf(Guid AccountId)
     {
-        var db = new ChattingContext();
-        var acc = db.Accounts.Find(AccountId);
+        var acc = Rememberer.SearchAccount(a => a.Id == AccountId);
 
         return SelfAccounts.Any(acc => acc.Id == AccountId);
     }

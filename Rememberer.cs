@@ -13,7 +13,7 @@ public static class Rememberer
     {
         Account toReturn;
         dbAccessSemaphore.Wait();
-        toReturn = db.Accounts.Include(a => a.IsUser).FirstOrDefault(predicate);
+        toReturn = db.Accounts?.Include(a => a.IsUser)?.FirstOrDefault(predicate);
         dbAccessSemaphore.Release();
         return toReturn;
     }
@@ -110,7 +110,7 @@ public static class Rememberer
             dbAccessSemaphore.Wait();
             db.Accounts.Remove(toForget);
             db.SaveChanges();
-            dbAccessSemaphore.Release();
+        dbAccessSemaphore.Release();
         }
     }
     public static void ForgetChannel(Channel toForget)

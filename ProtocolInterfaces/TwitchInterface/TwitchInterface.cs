@@ -143,7 +143,7 @@ public class TwitchInterface
     private Account UpsertAccount(string username, Channel inChannel)
     {
         Console.WriteLine($"upserting twitch account. username: {username}. inChannel: {inChannel?.Id}");
-        var acc = Rememberer.SearchAccount(ui => ui.ExternalId == username && ui.SeenInChannel.ExternalId == inChannel.ExternalId.ToString());
+        var acc = Rememberer.SearchAccount(ui => ui.ExternalId == username && ui.SeenInChannel.ExternalId == inChannel.ExternalId);
         Console.WriteLine($"upserting twitch account, retrieved {acc?.Id}.");
         if (acc != null)
         {
@@ -205,7 +205,7 @@ public class TwitchInterface
         c.SendFile = (f, t) => { throw new InvalidOperationException($"twitch cannot send files"); };
         c = Rememberer.RememberChannel(c);
 
-        var selfAccountInChannel = c.Users?.FirstOrDefault(a => a.ExternalId == selfAccountInProtocol.ExternalId.ToString());
+        var selfAccountInChannel = c.Users?.FirstOrDefault(a => a.ExternalId == selfAccountInProtocol.ExternalId);
         if(selfAccountInChannel == null)
         {
             selfAccountInChannel = UpsertAccount(selfAccountInProtocol.Username, c);
@@ -248,7 +248,7 @@ Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == $"w_{whisperWith}"
         c.SendFile = (f, t) => { throw new InvalidOperationException($"twitch cannot send files"); };
         c = Rememberer.RememberChannel(c);
 
-        var selfAccountInChannel = c.Users.FirstOrDefault(a => a.ExternalId == selfAccountInProtocol.ExternalId.ToString());
+        var selfAccountInChannel = c.Users.FirstOrDefault(a => a.ExternalId == selfAccountInProtocol.ExternalId);
         if(selfAccountInChannel == null)
         {
             selfAccountInChannel = UpsertAccount(selfAccountInChannel.Username, c);
