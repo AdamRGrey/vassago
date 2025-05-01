@@ -14,7 +14,7 @@ public class TwitchDismiss : Behavior
     public override bool ShouldAct(Message message)
     {
         var ti = ProtocolInterfaces.ProtocolList.twitchs.FirstOrDefault();
-        Console.WriteLine($"TwitchDismiss checking. menions me? {message.MentionsMe}");
+        // Console.WriteLine($"TwitchDismiss checking. menions me? {message.MentionsMe}");
         if(message.MentionsMe &&
             (Regex.IsMatch(message.Content.ToLower(), "\\bbegone\\b") || Regex.IsMatch(message.Content.ToLower(), "\\bfuck off\\b")))
             {

@@ -179,7 +179,16 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-     public static void RememberUAC(UAC toRemember)
+    public static List<UAC> SearchUACs(Expression<Func<UAC, bool>> predicate)
+    {
+        List<UAC> toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.UACs.Include(uac => uac.Users).Include(uac => uac.Channels).Include(uac => uac.AccountInChannels)
+            .Where(predicate).ToList();
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
+    public static void RememberUAC(UAC toRemember)
     {
         dbAccessSemaphore.Wait();
         db.Update(toRemember);

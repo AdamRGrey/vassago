@@ -20,7 +20,7 @@ public class Behaver
         var subtypes = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(domainAssembly => domainAssembly.GetTypes())
             .Where(type => type.IsSubclassOf(typeof(vassago.Behavior.Behavior)) && !type.IsAbstract &&
-                type.GetCustomAttributes(typeof(StaticPlzAttribute),false)?.Any() == true)
+                type.GetCustomAttributes(typeof(StaticPlzAttribute), false)?.Any() == true)
             .ToList();
 
         foreach (var subtype in subtypes)
@@ -72,7 +72,7 @@ public class Behaver
 
     public void MarkSelf(Account selfAccount)
     {
-        if(SelfUser == null)
+        if (SelfUser == null)
         {
             SelfUser = selfAccount.IsUser;
         }
@@ -86,15 +86,25 @@ public class Behaver
 
     public bool CollapseUsers(User primary, User secondary)
     {
-        if(primary.Accounts == null)
+        if (primary.Accounts == null)
             primary.Accounts = new List<Account>();
-        if(secondary.Accounts != null)
+        if (secondary.Accounts != null)
             primary.Accounts.AddRange(secondary.Accounts);
-        foreach(var a in secondary.Accounts)
+        foreach (var a in secondary.Accounts)
         {
             a.IsUser = primary;
         }
         secondary.Accounts.Clear();
+        var uacs = Rememberer.SearchUACs(u => u.Users.FirstOrDefault(u => u.Id == secondary.Id) != null);
+        if (uacs.Count() > 0)
+        {
+            foreach (var uac in uacs)
+            {
+                uac.Users.RemoveAll(u => u.Id == secondary.Id);
+                uac.Users.Add(primary);
+                Rememberer.RememberUAC(uac);
+            }
+        }
         Rememberer.ForgetUser(secondary);
         Rememberer.RememberUser(primary);
         return true;

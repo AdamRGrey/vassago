@@ -15,7 +15,7 @@ namespace vassago.TwitchInterface;
 
 internal class unifiedTwitchMessage
 {
-    public unifiedTwitchMessage(ChatMessage chatMessage){}
+    public unifiedTwitchMessage(ChatMessage chatMessage) { }
 }
 
 public class TwitchInterface
@@ -110,7 +110,7 @@ public class TwitchInterface
         //data eived
         Console.WriteLine($"#{e.ChatMessage.Channel}[{DateTime.Now}][{e.ChatMessage.DisplayName} [id={e.ChatMessage.Username}]][msg id: {e.ChatMessage.Id}] {e.ChatMessage.Message}");
 
-       //translate to internal, upsert
+        //translate to internal, upsert
         var m = UpsertMessage(e.ChatMessage);
         m.Reply = (t) => { return Task.Run(() => { client.SendReply(e.ChatMessage.Channel, e.ChatMessage.Id, t); }); };
         m.Channel.ChannelType = vassago.Models.Enumerations.ChannelType.Normal;
@@ -142,14 +142,15 @@ public class TwitchInterface
 
     private Account UpsertAccount(string username, Channel inChannel)
     {
-        Console.WriteLine($"upserting twitch account. username: {username}. inChannel: {inChannel?.Id}");
+        //Console.WriteLine($"upserting twitch account. username: {username}. inChannel: {inChannel?.Id}");
         var acc = Rememberer.SearchAccount(ui => ui.ExternalId == username && ui.SeenInChannel.ExternalId == inChannel.ExternalId);
-        Console.WriteLine($"upserting twitch account, retrieved {acc?.Id}.");
+        // Console.WriteLine($"upserting twitch account, retrieved {acc?.Id}.");
         if (acc != null)
         {
             Console.WriteLine($"acc's usser: {acc.IsUser?.Id}");
         }
-        acc ??= new Account() {
+        acc ??= new Account()
+        {
             IsUser = Rememberer.SearchUser(
                 u => u.Accounts.Any(a => a.ExternalId == username && a.Protocol == PROTOCOL))
                 ?? new vassago.Models.User()
@@ -161,16 +162,16 @@ public class TwitchInterface
         acc.Protocol = PROTOCOL;
         acc.SeenInChannel = inChannel;
 
-        Console.WriteLine($"we asked rememberer to search for acc's user. {acc.IsUser?.Id}");
-        if (acc.IsUser != null)
-        {
-            Console.WriteLine($"user has record of {acc.IsUser.Accounts?.Count ?? 0} accounts");
-        }
+        // Console.WriteLine($"we asked rememberer to search for acc's user. {acc.IsUser?.Id}");
+        // if (acc.IsUser != null)
+        // {
+        //     Console.WriteLine($"user has record of {acc.IsUser.Accounts?.Count ?? 0} accounts");
+        // }
         acc.IsUser ??= new vassago.Models.User() { Accounts = [acc] };
-        if (inChannel.Users?.Count > 0)
-        {
-            Console.WriteLine($"channel has {inChannel.Users.Count} accounts");
-        }
+        // if (inChannel.Users?.Count > 0)
+        // {
+        //     Console.WriteLine($"channel has {inChannel.Users.Count} accounts");
+        // }
         Rememberer.RememberAccount(acc);
         inChannel.Users ??= [];
         if (!inChannel.Users.Contains(acc))
@@ -187,7 +188,7 @@ public class TwitchInterface
                                              && ci.Protocol == PROTOCOL);
         if (c == null)
         {
-            Console.WriteLine($"couldn't find channel under protocol {PROTOCOL} with externalId {channelName}");
+            // Console.WriteLine($"couldn't find channel under protocol {PROTOCOL} with externalId {channelName}");
             c = new Channel()
             {
                 Users = []
@@ -206,7 +207,7 @@ public class TwitchInterface
         c = Rememberer.RememberChannel(c);
 
         var selfAccountInChannel = c.Users?.FirstOrDefault(a => a.ExternalId == selfAccountInProtocol.ExternalId);
-        if(selfAccountInChannel == null)
+        if (selfAccountInChannel == null)
         {
             selfAccountInChannel = UpsertAccount(selfAccountInProtocol.Username, c);
         }
@@ -215,11 +216,11 @@ public class TwitchInterface
     }
     private Channel UpsertDMChannel(string whisperWith)
     {
-Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == $"w_{whisperWith}"
-                                             && ci.Protocol == PROTOCOL);
+        Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == $"w_{whisperWith}"
+                                                     && ci.Protocol == PROTOCOL);
         if (c == null)
         {
-            Console.WriteLine($"couldn't find channel under protocol {PROTOCOL}, whisper with {whisperWith}");
+            // Console.WriteLine($"couldn't find channel under protocol {PROTOCOL}, whisper with {whisperWith}");
             c = new Channel()
             {
                 Users = []
@@ -233,29 +234,32 @@ Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == $"w_{whisperWith}"
         c.Protocol = PROTOCOL;
         c.ParentChannel = protocolAsChannel;
         c.SubChannels = c.SubChannels ?? new List<Channel>();
-        c.SendMessage = (t) => { return Task.Run(() => {
+        c.SendMessage = (t) =>
+        {
+            return Task.Run(() =>
+            {
                 try
                 {
 
                     client.SendWhisper(whisperWith, t);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Console.Error.WriteLine(e);
                 }
             });
-            };
+        };
         c.SendFile = (f, t) => { throw new InvalidOperationException($"twitch cannot send files"); };
         c = Rememberer.RememberChannel(c);
 
         var selfAccountInChannel = c.Users.FirstOrDefault(a => a.ExternalId == selfAccountInProtocol.ExternalId);
-        if(selfAccountInChannel == null)
+        if (selfAccountInChannel == null)
         {
             selfAccountInChannel = UpsertAccount(selfAccountInChannel.Username, c);
         }
 
         return c;
-   }
+    }
 
     //n.b., I see you future adam. "we should unify these, they're redundant".
     //ah, but that's the trick, they aren't! twitchlib has a common base class, but
