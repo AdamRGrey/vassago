@@ -16,24 +16,36 @@ namespace vassago.Conversion
 {
     public static class Converter
     {
-        public static string DebugInfo(){
-            var convertibles = knownConversions.Select(kc => kc.Item1).Union(knownConversions.Select(kc => kc.Item2)).Union(
-                knownAliases.Keys.SelectMany(k => k)).Distinct();
-            return $"{convertibles.Count()} convertibles; {string.Join(", ", convertibles)}";
-        }
         private delegate decimal Convert1Way(decimal input);
         private static string currencyPath;
         private static ExchangePairs currencyConf = null;
         private static DateTime lastUpdatedCurrency = DateTime.UnixEpoch;
-        private static List<Tuple<string, string, Convert1Way, Convert1Way>> knownConversions = new List<Tuple<string, string, Convert1Way, Convert1Way>>()
-        {
-            new Tuple<string, string, Convert1Way, Convert1Way>("℉", "°C", (f => {return(f- 32.0m) / 1.8m;}), (c => {return  1.8m*c + 32.0m;})),
-        };
+        private static List<Tuple<string, string, Convert1Way, Convert1Way>> knownConversions = new List<Tuple<string, string, Convert1Way, Convert1Way>>();
         private static Dictionary<List<string>, string> knownAliases = new Dictionary<List<string>, string>(new List<KeyValuePair<List<string>, string>>());
+        public static string DebugInfo()
+        {
+            var convertibles = knownConversions.Select(kc => kc.Item1).Union(knownConversions.Select(kc => kc.Item2)).Union(
+                knownAliases.Keys.SelectMany(k => k)).Distinct();
+            return $"{convertibles.Count()} convertibles; {string.Join(", ", convertibles)}";
+        }
 
         public static void Load(string currencyPath)
         {
             Converter.currencyPath = currencyPath;
+            loadStatic();
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    await Task.Delay(TimeSpan.FromHours(8));
+                    loadCurrency();
+                }
+            });
+        }
+        private static void loadStatic()
+        {
+            knownConversions = new List<Tuple<string, string, Convert1Way, Convert1Way>>();
+            knownAliases = new Dictionary<List<string>, string>(new List<KeyValuePair<List<string>, string>>());
             var convConf = JsonConvert.DeserializeObject<ConversionConfig>(File.ReadAllText("assets/conversion.json"));
             foreach (var unit in convConf.Units)
             {
@@ -43,18 +55,12 @@ namespace vassago.Conversion
             {
                 AddLinearPair(lp.item1, lp.item2, lp.factor);
             }
-            Task.Run(async () => {
-                while(true)
-                {
-                    loadCurrency();
-                    await Task.Delay(TimeSpan.FromHours(8));
-                }
-            });
+            loadCurrency();
         }
         private static void loadCurrency()
         {
             Console.WriteLine("loading currency exchange data.");
-            if(currencyConf != null)
+            if (currencyConf != null)
             {
                 knownConversions.RemoveAll(kc => kc.Item1 == currencyConf.Base);
             }
@@ -62,38 +68,41 @@ namespace vassago.Conversion
             {
                 currencyConf = JsonConvert.DeserializeObject<ExchangePairs>(File.ReadAllText(currencyPath));
 
-                if(!knownAliases.ContainsValue(currencyConf.Base))
+                if (!knownAliases.ContainsValue(currencyConf.Base))
                 {
                     knownAliases.Add(new List<string>() { currencyConf.Base.ToLower() }, currencyConf.Base);
                 }
                 foreach (var rate in currencyConf.rates)
                 {
-                    if(!knownAliases.ContainsValue(rate.Key))
+                    if (!knownAliases.ContainsValue(rate.Key))
                     {
                         knownAliases.Add(new List<string>() { rate.Key.ToLower() }, rate.Key);
                     }
                     AddLinearPair(currencyConf.Base, rate.Key, rate.Value);
-                    Console.WriteLine($"{rate.Key.ToLower()} alias of {rate.Key}");
                 }
             }
         }
 
         public static string Convert(decimal numericTerm, string sourceunit, string destinationUnit)
         {
-            var normalizedSourceUnit = NormalizeUnit(sourceunit);
-            if (string.IsNullOrWhiteSpace(normalizedSourceUnit))
+            var normalizationAttempt = NormalizeUnit(sourceunit);
+            if (normalizationAttempt.Item2 != null)
             {
-                return $"parse failure: what's {sourceunit}?";
+                return $"problem with {sourceunit}: {normalizationAttempt.Item2}";
             }
-            var normalizedDestUnit = NormalizeUnit(destinationUnit);
-            if (string.IsNullOrWhiteSpace(normalizedDestUnit))
+            var normalizedSourceUnit = normalizationAttempt.Item1;
+
+            normalizationAttempt = NormalizeUnit(destinationUnit);
+            if (normalizationAttempt.Item2 != null)
             {
-                return $"parse failure: what's {destinationUnit}?";
+                return $"problem with {destinationUnit}: {normalizationAttempt.Item2}";
             }
+            var normalizedDestUnit = normalizationAttempt.Item1;
             if (normalizedSourceUnit == normalizedDestUnit)
             {
                 return $"source and dest are the same, so... {numericTerm} {normalizedDestUnit}?";
             }
+
             var foundPath = exhaustiveBreadthFirst(normalizedDestUnit, new List<string>() { normalizedSourceUnit })?.ToList();
 
             if (foundPath != null)
@@ -118,7 +127,7 @@ namespace vassago.Conversion
                 }
                 else
                 {
-                    if(String.Format("{0:G3}", accumulator).Contains("E-"))
+                    if (String.Format("{0:G3}", accumulator).Contains("E-"))
                     {
                         return $"{accumulator} {normalizedDestUnit}";
                     }
@@ -130,21 +139,34 @@ namespace vassago.Conversion
             }
             return "dimensional analysis failure - I know those units but can't find a path between them.";
         }
-        private static string NormalizeUnit(string unit)
+        private static Tuple<string, string> NormalizeUnit(string unit)
         {
-            if(string.IsNullOrWhiteSpace(unit))
-                return null;
+            if (string.IsNullOrWhiteSpace(unit))
+                return new(null, "no unit provided");
             var normalizedUnit = unit.ToLower();
             if (knownConversions.FirstOrDefault(c => c.Item1 == normalizedUnit || c.Item2 == normalizedUnit) != null)
             {
-                return normalizedUnit;
+                return new(normalizedUnit, null);
             }
+            //if "unit" isn't a canonical name...
             if (!knownAliases.ContainsValue(normalizedUnit))
             {
-                var key = knownAliases.Keys.FirstOrDefault(listkey => listkey.Contains(normalizedUnit));
-                if (key != null)
+                //then we look through aliases...
+                var keys = knownAliases.Keys.Where(listkey => listkey.Contains(normalizedUnit));
+                if (keys?.Count() > 1)
                 {
-                    return knownAliases[key];
+                    var sb = new StringBuilder();
+                    sb.Append($"{normalizedUnit} could refer to any of");
+                    foreach (var key in keys)
+                    {
+                        sb.Append($" {knownAliases[key]}");
+                    }
+                    return new(null, sb.ToString());
+                }
+                else if (keys.Count() == 1)
+                {
+                    //for the canonical name.
+                    return new(knownAliases[keys.First()], null);
                 }
             }
             if (normalizedUnit.EndsWith("es"))
@@ -155,7 +177,7 @@ namespace vassago.Conversion
             {
                 return NormalizeUnit(normalizedUnit.Substring(0, normalizedUnit.Length - 1));
             }
-            return null;
+            return new(null, "couldn't find unit");
         }
         private static IEnumerable<string> exhaustiveBreadthFirst(string dest, IEnumerable<string> currentPath)
         {
@@ -170,9 +192,9 @@ namespace vassago.Conversion
             {
                 if (conv.Item1 == last && currentPath.Contains(conv.Item2) == false && conv.Item3 != null)
                 {
-                        var test = exhaustiveBreadthFirst(dest, currentPath.Append(conv.Item2));
-                        if (test != null)
-                            return test;
+                    var test = exhaustiveBreadthFirst(dest, currentPath.Append(conv.Item2));
+                    if (test != null)
+                        return test;
                 }
                 if (conv.Item2 == last && currentPath.Contains(conv.Item1) == false && conv.Item4 != null)
                 {

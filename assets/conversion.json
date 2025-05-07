@@ -245,6 +245,21 @@
             "aliases":[
                 "uj"
             ]
+        },
+        {
+            "canonical":"USD",
+            "aliases":[
+                "american dollars",
+                "dollar"
+            ]
+        },
+        {
+            "canonical": "CAD",
+            "aliases": [
+                "canadian dollars",
+                "dollar",
+                "maple syrup money"
+            ]
         }
     ],
     "linearPairs":[
