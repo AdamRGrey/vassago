@@ -46,7 +46,7 @@ namespace vassago.Conversion
         {
             knownConversions = new List<Tuple<string, string, Convert1Way, Convert1Way>>();
             knownAliases = new Dictionary<List<string>, string>(new List<KeyValuePair<List<string>, string>>());
-            var convConf = JsonConvert.DeserializeObject<ConversionConfig>(File.ReadAllText("assets/conversion.json"));
+            var convConf = JsonConvert.DeserializeObject<ConversionConfig>(File.ReadAllText("assets/conversion.json").ToLower());
             foreach (var unit in convConf.Units)
             {
                 knownAliases.Add(unit.Aliases.ToList(), unit.Canonical);
@@ -66,11 +66,11 @@ namespace vassago.Conversion
             }
             if (File.Exists(currencyPath))
             {
-                currencyConf = JsonConvert.DeserializeObject<ExchangePairs>(File.ReadAllText(currencyPath));
+                currencyConf = JsonConvert.DeserializeObject<ExchangePairs>(File.ReadAllText(currencyPath).ToLower());
 
                 if (!knownAliases.ContainsValue(currencyConf.Base))
                 {
-                    knownAliases.Add(new List<string>() { currencyConf.Base.ToLower() }, currencyConf.Base);
+                    knownAliases.Add(new List<string>() { }, currencyConf.Base);
                 }
                 foreach (var rate in currencyConf.rates)
                 {
@@ -85,30 +85,89 @@ namespace vassago.Conversion
 
         public static string Convert(decimal numericTerm, string sourceunit, string destinationUnit)
         {
-            var normalizationAttempt = NormalizeUnit(sourceunit);
-            if (normalizationAttempt.Item2 != null)
+            //normalize units
+            var normalizationAttemptSource = NormalizeUnit(sourceunit.ToLower());
+            if (normalizationAttemptSource?.Count() == 0)
             {
-                return $"problem with {sourceunit}: {normalizationAttempt.Item2}";
+                return $"can't find {sourceunit}";
             }
-            var normalizedSourceUnit = normalizationAttempt.Item1;
+            var normalizedSourceUnit = normalizationAttemptSource.First();
 
-            normalizationAttempt = NormalizeUnit(destinationUnit);
-            if (normalizationAttempt.Item2 != null)
+            var normalizationAttemptDest = NormalizeUnit(destinationUnit.ToLower());
+            if (normalizationAttemptDest?.Count() == 0)
             {
-                return $"problem with {destinationUnit}: {normalizationAttempt.Item2}";
+                return $"can't find {destinationUnit}";
             }
-            var normalizedDestUnit = normalizationAttempt.Item1;
+            var normalizedDestUnit = normalizationAttemptDest.First();
             if (normalizedSourceUnit == normalizedDestUnit)
             {
                 return $"source and dest are the same, so... {numericTerm} {normalizedDestUnit}?";
             }
-
             var foundPath = exhaustiveBreadthFirst(normalizedDestUnit, new List<string>() { normalizedSourceUnit })?.ToList();
 
+            //resolve ambiguity
+            var disambiguationPaths = new List<List<string>>();
+            if (normalizationAttemptSource.Count() > 1 && normalizationAttemptDest.Count() > 1)
+            {
+                foreach (var possibleSourceUnit in normalizationAttemptSource)
+                {
+                    foreach (var possibleDestUnit in normalizationAttemptDest)
+                    {
+                        foundPath = exhaustiveBreadthFirst(possibleDestUnit, new List<string>() { possibleSourceUnit })?.ToList();
+                        if (foundPath != null)
+                        {
+                            disambiguationPaths.Add(foundPath.ToList());
+                            normalizedSourceUnit = possibleSourceUnit;
+                            normalizedDestUnit = possibleDestUnit;
+                        }
+                    }
+                }
+            }
+            else if (normalizationAttemptSource.Count() > 1)
+            {
+                foreach (var possibleSourceUnit in normalizationAttemptSource)
+                {
+                    foundPath = exhaustiveBreadthFirst(normalizedDestUnit, new List<string>() { possibleSourceUnit })?.ToList();
+                    if (foundPath != null)
+                    {
+                        disambiguationPaths.Add(foundPath.ToList());
+                        normalizedSourceUnit = possibleSourceUnit;
+                    }
+                }
+            }
+            else if (normalizationAttemptDest.Count() > 1)
+            {
+                foreach (var possibleDestUnit in normalizationAttemptDest)
+                {
+                    foundPath = exhaustiveBreadthFirst(possibleDestUnit, new List<string>() { normalizedSourceUnit })?.ToList();
+                    if (foundPath != null)
+                    {
+                        disambiguationPaths.Add(foundPath.ToList());
+                        normalizedDestUnit = possibleDestUnit;
+                    }
+                }
+            }
+            if (disambiguationPaths.Count() > 1)
+            {
+                var sb = new StringBuilder();
+                sb.Append("unresolvable ambiguity.");
+                foreach(var possibility in disambiguationPaths)
+                {
+                    sb.Append($" {possibility.First()} -> {possibility.Last()}?");
+                }
+                return sb.ToString();
+            }
+
+            if (disambiguationPaths.Count() == 1)
+            {
+                //TODO: I'm not entirely sure this is necessary.
+                foundPath = disambiguationPaths.First();
+            }
+            //actually do the math.
             if (foundPath != null)
             {
                 var accumulator = numericTerm;
-                for (int j = 0; j < foundPath.Count - 1; j++)
+                for (int j = 0; j < foundPath.Count() - 1; j++)
                 {
                     var forwardConversion = knownConversions.FirstOrDefault(kc => kc.Item1 == foundPath[j] && kc.Item2 == foundPath[j + 1]);
                     if (forwardConversion != null)
@@ -139,34 +198,34 @@ namespace vassago.Conversion
             }
             return "dimensional analysis failure - I know those units but can't find a path between them.";
         }
-        private static Tuple<string, string> NormalizeUnit(string unit)
+        private static List<string> NormalizeUnit(string unit)
         {
             if (string.IsNullOrWhiteSpace(unit))
-                return new(null, "no unit provided");
-            var normalizedUnit = unit.ToLower();
+                return new();
+            var normalizedUnit = unit;
+            //first, if it does exist in conversions, that's the canonical name.
             if (knownConversions.FirstOrDefault(c => c.Item1 == normalizedUnit || c.Item2 == normalizedUnit) != null)
             {
-                return new(normalizedUnit, null);
+                return new List<string>() { normalizedUnit };
             }
-            //if "unit" isn't a canonical name...
+            //if "unit" isn't a canonical name... actually it never should be; a conversion should use it.
             if (!knownAliases.ContainsValue(normalizedUnit))
             {
                 //then we look through aliases...
                 var keys = knownAliases.Keys.Where(listkey => listkey.Contains(normalizedUnit));
                 if (keys?.Count() > 1)
                 {
-                    var sb = new StringBuilder();
-                    sb.Append($"{normalizedUnit} could refer to any of");
+                    var toReturn = new List<string>();
                     foreach (var key in keys)
                     {
-                        sb.Append($" {knownAliases[key]}");
+                        toReturn.Add(knownAliases[key]);
                     }
-                    return new(null, sb.ToString());
+                    return toReturn;
                 }
                 else if (keys.Count() == 1)
                 {
                     //for the canonical name.
-                    return new(knownAliases[keys.First()], null);
+                    return new List<string>() { knownAliases[keys.First()] };
                 }
             }
             if (normalizedUnit.EndsWith("es"))
@@ -177,7 +236,7 @@ namespace vassago.Conversion
             {
                 return NormalizeUnit(normalizedUnit.Substring(0, normalizedUnit.Length - 1));
             }
-            return new(null, "couldn't find unit");
+            return new();
         }
         private static IEnumerable<string> exhaustiveBreadthFirst(string dest, IEnumerable<string> currentPath)
         {

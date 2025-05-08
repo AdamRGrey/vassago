@@ -233,7 +233,7 @@ public class DiscordInterface
         m.MentionsMe = (dMessage.Author.Id != client.CurrentUser.Id
             && (dMessage.MentionedUserIds?.FirstOrDefault(muid => muid == client.CurrentUser.Id) > 0));
 
-        m.Reply = (t) => { return dMessage.ReplyAsync(t); };
+        m.Reply = (t) => { return dMessage.ReplyAsync(TruncateText(t, m.Channel.MaxTextChars)); };
         m.React = (e) => { return AttemptReact(dMessage, e); };
         Rememberer.RememberMessage(m);
         return m;
@@ -314,7 +314,7 @@ public class DiscordInterface
             parentChannel.SubChannels.Add(c);
         }
 
-        c.SendMessage = (t) => { return channel.SendMessageAsync(t); };
+        c.SendMessage = (t) => { return channel.SendMessageAsync(TruncateText(t, c.MaxTextChars));};
         c.SendFile = (f, t) => { return channel.SendFileAsync(f, t); };
 
         c = Rememberer.RememberChannel(c);
@@ -407,6 +407,19 @@ public class DiscordInterface
         }
 
         return msg.AddReactionAsync(emote);
+    }
+
+    private static string TruncateText(string msg, uint? chars)
+    {
+        chars ??= 500;
+        if(msg?.Length > chars)
+        {
+            return msg.Substring(0, (int)chars-2) + "✂";
+        }
+        else
+        {
+            return msg;
+        }
     }
 
 }
