@@ -105,9 +105,10 @@ pipeline {
                 withCredentials([sshUserPrivateKey(credentialsId: env.linuxServiceAccountID, keyFileVariable: 'PK')])
                 {
                     sh """#!/bin/bash
-                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'cp dist oldgood-\$(mktemp -u XXXX)'
+                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'cp -r dist oldgood-\$(mktemp -u XXXX)'
                         ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'mv dist/appsettings.json appsettings.json'
                         ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'rm -rf dist/ && shopt -s dotglob & mv temp_deploy/* dist/'
+                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'rm -rf temp_deploy'
                         ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'mv appsettings.json dist/appsettings.json'
                     """
                 }
