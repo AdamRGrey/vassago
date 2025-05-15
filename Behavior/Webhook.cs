@@ -100,6 +100,7 @@ public class Webhook : Behavior
             Console.Error.WriteLine($"{message.Id} was supposed to act, but authedCache doesn't have it! it has {authedCache?.Count()} other stuff, though.");
             return false;
         }
+        var msg = translate(actionOrder, message);
         var req = new HttpRequestMessage(new HttpMethod(actionOrder.Conf.Method.ToString()), actionOrder.Conf.Uri);
         var theContentHeader = actionOrder.Conf.Headers?.FirstOrDefault(h => h[0]?.ToLower() == "content-type");
         if (theContentHeader != null)
@@ -108,17 +109,17 @@ public class Webhook : Behavior
             {
                 //json content is constructed some other weird way.
                 case "multipart/form-data":
-                    req.Content = new System.Net.Http.MultipartFormDataContent(translate(actionOrder));
+                    req.Content = new System.Net.Http.MultipartFormDataContent(msg);
                     break;
                 default:
-                    req.Content = new System.Net.Http.StringContent(translate(actionOrder));
+                    req.Content = new System.Net.Http.StringContent(msg);
                     break;
             }
             req.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(theContentHeader[1]?.ToLower());
         }
         if (req.Content == null)
         {
-            req.Content = new System.Net.Http.StringContent(translate(actionOrder));
+            req.Content = new System.Net.Http.StringContent(msg);
         }
         Console.WriteLine($"survived translating string content. request content: {req.Content}");
         if (actionOrder.Conf.Headers?.ToList().Count > 0)
@@ -157,10 +158,15 @@ public class Webhook : Behavior
         }
         return true;
     }
-    private string translate(WebhookActionOrder actionOrder)
+    private string translate(WebhookActionOrder actionOrder, Message message)
     {
-        //TODO: message author, etc.
-        return actionOrder.Conf.Content?.Replace("{text}", actionOrder.webhookContent);
+        if(string.IsNullOrWhiteSpace(actionOrder.Conf.Content))
+            return "";
+        var msgContent = actionOrder.Conf.Content.Replace("{text}", actionOrder.webhookContent);
+        msgContent = msgContent.Replace("{msgid}", message.Id.ToString());
+        msgContent = msgContent.Replace("{account}", message.Author.DisplayName.ToString());
+        msgContent = msgContent.Replace("{user}", message.Author.IsUser.DisplayName.ToString());
+        return msgContent;
     }
 }
 
