@@ -60,7 +60,7 @@ pipeline {
                 {
                     sh """#!/bin/bash
                         ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'rm -rf temp_deploy & mkdir -p temp_deploy'
-                        rsync -i \"${PK}\" -a dist/ ${linuxServiceAccount_USR}@${env.targetHost}:temp_deploy
+                        rsync -e \"ssh -i \"${PK}\"\" -a dist/ ${linuxServiceAccount_USR}@${env.targetHost}:temp_deploy
                     """
                 }
             }
