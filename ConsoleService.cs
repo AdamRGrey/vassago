@@ -16,6 +16,7 @@ namespace vassago
             DiscordTokens = aspConfig.GetSection("DiscordTokens").Get<IEnumerable<string>>();
             TwitchConfigs = aspConfig.GetSection("TwitchConfigs").Get<IEnumerable<TwitchConfig>>();
             Conversion.Converter.Load(aspConfig["ExchangePairsLocation"]);
+            vassago.Behavior.Webhook.SetupWebhooks(aspConfig.GetSection("Webhooks"));
         }
 
         IEnumerable<string> DiscordTokens { get; }

@@ -24,7 +24,6 @@ public class TwitchSummon : Behavior
                 OwnerId = uacID,
                 DisplayName = Name
             };
-            Rememberer.RememberUAC(myUAC);
         }
     }
     public override bool ShouldAct(Message message)

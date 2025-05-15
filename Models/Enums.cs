@@ -38,6 +38,20 @@ public static class Enumerations
         [Description("organizational psuedo-channel")]
         OU
     }
+    ///<summary>
+    ///bro. don't even get me started. tl;dr: hashtag microsoft.
+    ///</summary>
+    public enum HttpVerb
+    {
+        Get,
+        Post,
+        Put,
+        Delete,
+        Head,
+        Patch,
+        Options
+    }
+
 
     public static string GetDescription<T>(this T enumerationValue)
     where T : struct
