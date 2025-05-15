@@ -24,6 +24,7 @@ pipeline {
                         testcmd mktemp
                         testcmd curl
                         testcmd git
+                        testcmd rsync
                         testcmd sed
                         testcmd ssh
                         testcmd ssh-keyscan
@@ -43,7 +44,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                dotnetBuild(outputDirectory: "./dist", project: "vassago.csproj")
+                dotnetBuild(outputDirectory: "dist", project: "vassago.csproj")
                 archiveArtifacts artifacts: 'dist/*'
             }
         }
@@ -59,7 +60,7 @@ pipeline {
                 {
                     sh """#!/bin/bash
                         ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'rm -rf temp_deploy & mkdir -p temp_deploy'
-                        scp -i \"${PK}\" -r dist/ ${linuxServiceAccount_USR}@${env.targetHost}:temp_deploy
+                        rsync -i \"${PK}\" -a dist/ ${linuxServiceAccount_USR}@${env.targetHost}:temp_deploy
                     """
                 }
             }
@@ -107,7 +108,7 @@ pipeline {
                     sh """#!/bin/bash
                         ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'cp -r dist oldgood-\$(mktemp -u XXXX)'
                         ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'mv dist/appsettings.json appsettings.json'
-                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'rm -rf dist/ && shopt -s dotglob & mv temp_deploy/* dist/'
+                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'rm -rf dist/ && shopt -s dotglob & mv temp_deploy dist'
                         ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'rm -rf temp_deploy'
                         ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'mv appsettings.json dist/appsettings.json'
                     """
