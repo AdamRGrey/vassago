@@ -59,8 +59,8 @@ pipeline {
                 withCredentials([sshUserPrivateKey(credentialsId: env.linuxServiceAccountID, keyFileVariable: 'PK')])
                 {
                     sh """#!/bin/bash
-                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'rm -rf temp_deploy & mkdir -p temp_deploy'
-                        rsync -e \"ssh -i \"${PK}\"\" -a dist/ ${linuxServiceAccount_USR}@${env.targetHost}:temp_deploy
+                        ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'rm -rf temp_deploy'
+                        rsync -e \"ssh -i \"${PK}\"\" -a dist/ ${linuxServiceAccount_USR}@${env.targetHost}:temp_deploy/
                     """
                 }
             }
