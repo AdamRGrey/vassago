@@ -1,5 +1,7 @@
 namespace vassago;
-#pragma warning disable 4014 //the "not awaited" error
+#pragma warning disable 4014
+using gray_messages.chat;
+using franz;//the "not awaited" error
 using vassago.Behavior;
 using vassago.Models;
 using System;
@@ -41,12 +43,14 @@ public class Behaver
 
     public async Task<bool> ActOn(Message message)
     {
+        var behaviorsActedOn = new List<string>();
         foreach (var behavior in Behaviors)
         {
             if (behavior.ShouldAct(message))
             {
                 behavior.ActOn(message);
                 message.ActedOn = true;
+                behaviorsActedOn.Add(behavior.ToString());
                 Console.WriteLine("acted on, moving forward");
             }
         }
@@ -59,8 +63,39 @@ public class Behaver
                             };
             await message.Channel.SendMessage(responses[Shared.r.Next(responses.Count)]);
             message.ActedOn = true;
+            behaviorsActedOn.Add("generic question fallback");
         }
+        Rememberer.RememberMessage(message);
+        ForwardToKafka(message, behaviorsActedOn);
         return message.ActedOn;
+    }
+
+    internal void ForwardToKafka(Message message, List<string> actedOnBy)
+    {
+        var kafkaesque = new chat_message()
+        {
+            Api_Uri = Shared.API_URL,
+            MessageId = message.Id,
+
+            MessageContent = message.Content,
+            MentionsMe = message.MentionsMe,
+            Timestamp = message.Timestamp,
+            AttachmentCount = (uint)(message.Attachments?.Count() ?? 0),
+
+            AccountId = message.Author.Id,
+            AccountName = message.Author.DisplayName,
+
+            UserId = message.Author.IsUser.Id,
+            UserName = message.Author.IsUser.DisplayName,
+
+            ChannelId = message.Channel.Id,
+            ChannelName = message.Channel.DisplayName,
+            ChannelProtoocl = message.Channel.Protocol,
+
+            UAC_Matches = null,
+            BehavedOnBy = actedOnBy
+        };
+        Telefranz.Instance.ProduceMessage(kafkaesque);
     }
 
     internal bool IsSelf(Guid AccountId)

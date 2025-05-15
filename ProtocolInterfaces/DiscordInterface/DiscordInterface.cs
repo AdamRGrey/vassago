@@ -209,6 +209,7 @@ public class DiscordInterface
         var m = Rememberer.SearchMessage(mi => mi.ExternalId == dMessage.Id.ToString() && mi.Protocol == PROTOCOL)
             ?? new()
             {
+                Id = Guid.NewGuid(),
                 Protocol = PROTOCOL
             };
 

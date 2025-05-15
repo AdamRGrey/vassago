@@ -1,5 +1,6 @@
 namespace vassago
 {
+    using franz;
     using Microsoft.EntityFrameworkCore;
     using vassago;
     using vassago.Models;
@@ -16,6 +17,8 @@ namespace vassago
             DiscordTokens = aspConfig.GetSection("DiscordTokens").Get<IEnumerable<string>>();
             TwitchConfigs = aspConfig.GetSection("TwitchConfigs").Get<IEnumerable<TwitchConfig>>();
             Conversion.Converter.Load(aspConfig["ExchangePairsLocation"]);
+
+            Telefranz.Configure(aspConfig["KafkaName"], aspConfig["KafkaBootstrap"]);
             vassago.Behavior.Webhook.SetupWebhooks(aspConfig.GetSection("Webhooks"));
         }
 
