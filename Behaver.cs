@@ -45,7 +45,7 @@ public class Behaver
     {
         var matchingUACs = Rememberer.MatchUACs(message);
         var behaviorsActedOn = new List<string>();
-        foreach (var behavior in Behaviors)
+        foreach (var behavior in Behaviors.ToList())
         {
             //if (!behavior.ShouldAct(message, matchingUACs)) //TODO: this way
             if(!behavior.ShouldAct(message))
