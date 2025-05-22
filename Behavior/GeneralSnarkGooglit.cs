@@ -20,15 +20,11 @@ public class GeneralSnarkGooglit : Behavior
 
     public override bool ShouldAct(Message message)
     {
-        return false;
-    }
-    // public override bool ShouldAct(Message message)
-    // {
-    //     if(Behaver.Instance.IsSelf(message.Author.Id))
-    //         return false;
+        if (Behaver.Instance.IsSelf(message.Author.Id))
+            return false;
 
-    //     return Regex.IsMatch(message.Content, $"(just )?google( (it|that|things|before))?\\b", RegexOptions.IgnoreCase);
-    // }
+        return Regex.IsMatch(message.Content, $"(just )?google( (it|that|things|before))\\b", RegexOptions.IgnoreCase);
+    }
 
     public override async Task<bool> ActOn(Message message)
     {
@@ -39,7 +35,7 @@ public class GeneralSnarkGooglit : Behavior
                 break;
             case 1:
                 var results = "";
-                switch(Shared.r.Next(4))
+                switch (Shared.r.Next(4))
                 {
                     default:
                         results = "\"curious about the best <THING> in <CURRENT YEAR>? click here to find out\", then i clicked there to find out. They didn't know either.";
