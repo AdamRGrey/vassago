@@ -209,6 +209,7 @@ public class DiscordInterface
         var m = Rememberer.SearchMessage(mi => mi.ExternalId == dMessage.Id.ToString() && mi.Protocol == PROTOCOL)
             ?? new()
             {
+                //I don't understand why messages need to have their Ids specified but no other entity does. shrug dot emoji
                 Id = Guid.NewGuid(),
                 Protocol = PROTOCOL
             };

@@ -14,10 +14,10 @@ namespace vassago
         {
             Shared.DBConnectionString = aspConfig["DBConnectionString"];
             Shared.SetupSlashCommands = aspConfig["SetupSlashCommands"]?.ToLower() == "true";
+            Shared.API_URL = new Uri(aspConfig["API_URL"]);
             DiscordTokens = aspConfig.GetSection("DiscordTokens").Get<IEnumerable<string>>();
             TwitchConfigs = aspConfig.GetSection("TwitchConfigs").Get<IEnumerable<TwitchConfig>>();
             Conversion.Converter.Load(aspConfig["ExchangePairsLocation"]);
-
             Telefranz.Configure(aspConfig["KafkaName"], aspConfig["KafkaBootstrap"]);
             vassago.Behavior.Webhook.SetupWebhooks(aspConfig.GetSection("Webhooks"));
         }

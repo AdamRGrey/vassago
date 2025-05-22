@@ -291,6 +291,7 @@ public class TwitchInterface
         var m = Rememberer.SearchMessage(mi => mi.ExternalId == whisperMessage.MessageId && mi.Protocol == PROTOCOL)
             ?? new()
             {
+                Id = Guid.NewGuid(),
                 Protocol = PROTOCOL,
                 Timestamp = (DateTimeOffset)DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)
             };

@@ -43,16 +43,19 @@ public class Behaver
 
     public async Task<bool> ActOn(Message message)
     {
+        var matchingUACs = Rememberer.MatchUACs(message);
         var behaviorsActedOn = new List<string>();
         foreach (var behavior in Behaviors)
         {
-            if (behavior.ShouldAct(message))
+            //if (!behavior.ShouldAct(message, matchingUACs)) //TODO: this way
+            if(!behavior.ShouldAct(message))
             {
-                behavior.ActOn(message);
-                message.ActedOn = true;
-                behaviorsActedOn.Add(behavior.ToString());
-                Console.WriteLine("acted on, moving forward");
+                continue;
             }
+            behavior.ActOn(message);
+            message.ActedOn = true;
+            behaviorsActedOn.Add(behavior.ToString());
+            Console.WriteLine("acted on, moving forward");
         }
         if (message.ActedOn == false && message.MentionsMe && message.Content.Contains('?') && !Behaver.Instance.SelfAccounts.Any(acc => acc.Id == message.Author.Id))
         {
@@ -66,11 +69,11 @@ public class Behaver
             behaviorsActedOn.Add("generic question fallback");
         }
         Rememberer.RememberMessage(message);
-        ForwardToKafka(message, behaviorsActedOn);
+        ForwardToKafka(message, behaviorsActedOn, matchingUACs);
         return message.ActedOn;
     }
 
-    internal void ForwardToKafka(Message message, List<string> actedOnBy)
+    internal void ForwardToKafka(Message message, List<string> actedOnBy, List<UAC> matchingUACs)
     {
         var kafkaesque = new chat_message()
         {
@@ -92,7 +95,7 @@ public class Behaver
             ChannelName = message.Channel.DisplayName,
             ChannelProtoocl = message.Channel.Protocol,
 
-            UAC_Matches = null,
+            UAC_Matches = matchingUACs.Select(uac => uac.Id).ToList(),
             BehavedOnBy = actedOnBy
         };
         Telefranz.Instance.ProduceMessage(kafkaesque);

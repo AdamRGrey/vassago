@@ -179,6 +179,17 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
+    public static List<UAC> MatchUACs(Message message)
+    {
+        var msgId = message.Id;
+        var accId = message.Author.Id;
+        var usrId = message.Author.IsUser.Id;
+        var chId = message.Channel.Id;
+
+        return SearchUACs(uac => uac.AccountInChannels.FirstOrDefault(aic => aic.Id == accId) != null
+                          || uac.Users.FirstOrDefault(usr => usr.Id == usrId) != null
+                          || uac.Channels.FirstOrDefault(ch => ch.Id == chId) != null);
+    }
     public static List<UAC> SearchUACs(Expression<Func<UAC, bool>> predicate)
     {
         List<UAC> toReturn;
