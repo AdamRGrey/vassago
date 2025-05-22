@@ -9,18 +9,22 @@
 <table class="table">
     <tbody>
         <tr>
+            <th>Id</th>
+            <td>@Model.Id</td>
+        </tr>
+        <tr>
             <th scope="row">belongs to user</th>
             <td>@Model.IsUser.DisplayName</td>
-            <td><button alt="to do" disabled>separate</button></2td>
+            <td><button onclick="unlinkAccountUser(() => { window.location.reload(); })">separate</button></2td>
         </tr>
         <tr>
             <th scope="row">Seen in channel</th>
             <td class="account @Model.SeenInChannel.Protocol"><div class="protocol-icon">&nbsp;</div>@Model.SeenInChannel.LineageSummary<a href="/Channels/Details/@Model.SeenInChannel.Id">@Model.SeenInChannel.DisplayName</a></td>
         </tr>
         <tr>
-            <th scope="row">Permission Tags</th>
+            <th scope="row">UACs tied to account</th>
             <td>
-                <div id="tagsTree"></div>
+                <div id="uacsTree"></div>
             </td>
         </tr>
     </tbody>
@@ -44,10 +48,10 @@
             return userNow;
         }
 
-        function getTagsTree() {
+        function getUacsTree() {
         @{
             var sb = new StringBuilder();
-            sb.Append("[{text: \"permission tags\", \"expanded\":true, nodes: [");
+            sb.Append("[{text: \"UACs\", \"expanded\":true, nodes: [");
             var first = true;
             for (int i = 0; i < 1; i++)
             {
@@ -62,7 +66,7 @@
             var tree = @Html.Raw(sb.ToString());
             return tree;
         }
-        $('#tagsTree').bstreeview({ data: getTagsTree() });
-        document.querySelectorAll("input[type=checkbox]").forEach(node => { node.onchange = () => { patchModel(jsonifyUser(), '/api/Users/') } });
+        $('#uacsTree').bstreeview({ data: getUacsTree() });
+        //document.querySelectorAll("input[type=checkbox]").forEach(node => { node.onchange = () => { patchModel(jsonifyUser(), '/api/Users/') } });
     </script>
 }

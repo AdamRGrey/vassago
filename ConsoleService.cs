@@ -8,7 +8,7 @@ namespace vassago
     using vassago.ProtocolInterfaces.DiscordInterface;
     using System.Runtime.CompilerServices;
 
-    internal class ConsoleService : IHostedService
+    internal class ConsoleService : BackgroundService
     {
         public ConsoleService(IConfiguration aspConfig)
         {
@@ -25,7 +25,7 @@ namespace vassago
         IEnumerable<string> DiscordTokens { get; }
         IEnumerable<TwitchConfig> TwitchConfigs { get; }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             var initTasks = new List<Task>();
             var dbc = new ChattingContext();
@@ -50,9 +50,5 @@ namespace vassago
             Task.WaitAll(initTasks.ToArray(), cancellationToken);
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            return null;
-        }
     }
 }

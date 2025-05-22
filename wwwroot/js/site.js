@@ -75,7 +75,7 @@ function deleteModel(model, deprecated_apiUrl)
   .catch(error => {
     console.error('Error:', error);
   });
-  }
+}
 function linkUAC_Channel(channel_guid, callback)
 {
 
@@ -225,6 +225,34 @@ function unlinkUAC_Channel(user_guid, callback)
   let model={"uac_guid": id,
              "channel_guid": user_guid};
   fetch(apiUrl + "UAC/UnlinkChannel/", {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(model),
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not "ok". which is not ok.');
+    }
+    return response.json();
+  })
+  .then(returnedSuccessdata => {
+    // perhaps a success callback
+    console.log('returnedSuccessdata:', returnedSuccessdata);
+    if(callback !== null) { callback(); }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+}
+//give me account, we'll tear it off from user.
+function unlinkAccountUser(callback)
+{
+  var components = window.location.pathname.split('/');
+  var id=components[3];
+  let model={"acc_guid": id};
+  fetch(apiUrl + "Accounts/UnlinkUser/", {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
