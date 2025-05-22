@@ -43,6 +43,7 @@ public class Behaver
 
     public async Task<bool> ActOn(Message message)
     {
+        //TODO: this is yet another hit to the database, and a big one. cache them in memory! there needs to be a feasibly-viewable amount, anyway.
         var matchingUACs = Rememberer.MatchUACs(message);
         var behaviorsActedOn = new List<string>();
         foreach (var behavior in Behaviors.ToList())

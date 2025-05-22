@@ -13,6 +13,10 @@
       <td>@Model.DisplayName</td>
     </tr>
     <tr>
+      <th scope="row">Description</th>
+      <td>@Html.Raw(Model.Description)
+    </tr>
+    <tr>
       <th scope="row">Channels</th>
       <td>
           @Html.Raw("<div id=\"channelsTree\"></div>")

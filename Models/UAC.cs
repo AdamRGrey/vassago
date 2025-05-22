@@ -20,4 +20,10 @@ public class UAC
     public List<Account> AccountInChannels { get; set; }
     public List<Channel> Channels { get; set; }
     public List<User> Users { get; set; }
+    ///<summary>"but past adam", you may ask. "if UACs are configured before runtime, why not write html into your source control, as part of the project,
+    ///with the benefit of an html editor?"
+    ///absolutely fair question. **But**: the plan is for external services, e.g., over kafka, to manage their own. So from Vassago's perspective,
+    ///it's variably before and after compile time. shrug.emote.
+    ///</summary>
+    public string Description { get; set; }
 }
