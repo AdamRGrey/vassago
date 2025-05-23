@@ -25,7 +25,7 @@ public class Channel
     public List<Message> Messages { get; set; }
     [DeleteBehavior(DeleteBehavior.Cascade)]
     public List<Account> Users { get; set; }
-    public ChannelType ChannelType {get; set; }
+    public ChannelType ChannelType { get; set; }
 
     //Permissions
     public ulong? MaxAttachmentBytes { get; set; }
@@ -34,8 +34,9 @@ public class Channel
     public bool? ReactionsPossible { get; set; }
     public Enumerations.LewdnessFilterLevel? LewdnessFilterLevel { get; set; }
     public Enumerations.MeannessFilterLevel? MeannessFilterLevel { get; set; }
-
     public List<UAC> UACs { get; set; }
+    //both incoming and outgoing
+    //public Dictionary<string, string> Aliases { get; set; }
 
     [NonSerialized]
     public Func<string, string, Task> SendFile;
@@ -51,14 +52,14 @@ public class Channel
             var path = new Stack<Channel>(); //omg i actually get to use a data structure from university
             var walker = this;
             path.Push(this);
-            while(walker.ParentChannel != null)
+            while (walker.ParentChannel != null)
             {
                 walker = walker.ParentChannel;
                 path.Push(walker);
             }
             DefinitePermissionSettings toReturn = new DefinitePermissionSettings();
-            
-            while(path.Count > 0)
+
+            while (path.Count > 0)
             {
                 walker = path.Pop();
                 toReturn.LewdnessFilterLevel = walker.LewdnessFilterLevel ?? toReturn.LewdnessFilterLevel;
@@ -76,7 +77,7 @@ public class Channel
     {
         get
         {
-            if(this.ParentChannel != null)
+            if (this.ParentChannel != null)
             {
                 return this.ParentChannel.LineageSummary + '/' + this.DisplayName;
             }
@@ -94,7 +95,7 @@ public class Channel
     {
         var toReturn = this.MemberwiseClone() as Channel;
         toReturn.ParentChannel = null;
-        if(toReturn.Users?.Count > 0)
+        if (toReturn.Users?.Count > 0)
         {
             foreach (var account in toReturn.Users)
             {

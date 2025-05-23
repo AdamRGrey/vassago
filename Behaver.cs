@@ -1,7 +1,7 @@
 namespace vassago;
-#pragma warning disable 4014
+#pragma warning disable 4014  //the "not awaited" error
 using gray_messages.chat;
-using franz;//the "not awaited" error
+using franz;
 using vassago.Behavior;
 using vassago.Models;
 using System;

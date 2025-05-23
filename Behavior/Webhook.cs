@@ -36,14 +36,17 @@ public class Webhook : Behavior
             {
                 Console.WriteLine($"{kvp[0]}: {kvp[1]}");
             }
+            var changed = false;
             var myUAC = Rememberer.SearchUAC(uac => uac.OwnerId == conf.uacID);
             if (myUAC == null)
             {
                 myUAC = new()
                 {
                     OwnerId = conf.uacID,
-                    DisplayName = confName
+                    DisplayName = confName,
+                    Description = conf.Description
                 };
+                changed = true;
                 Rememberer.RememberUAC(myUAC);
             }
             else
@@ -51,9 +54,16 @@ public class Webhook : Behavior
                 if (myUAC.DisplayName != confName)
                 {
                     myUAC.DisplayName = confName;
-                    Rememberer.RememberUAC(myUAC);
+                    changed = true;
+                }
+                if (myUAC.Description != conf.Description)
+                {
+                    myUAC.Description = conf.Description;
+                    changed = true;
                 }
             }
+            if (changed)
+                Rememberer.RememberUAC(myUAC);
         }
     }
 
@@ -160,7 +170,7 @@ public class Webhook : Behavior
     }
     private string translate(WebhookActionOrder actionOrder, Message message)
     {
-        if(string.IsNullOrWhiteSpace(actionOrder.Conf.Content))
+        if (string.IsNullOrWhiteSpace(actionOrder.Conf.Content))
             return "";
         var msgContent = actionOrder.Conf.Content.Replace("{text}", actionOrder.webhookContent);
         msgContent = msgContent.Replace("{msgid}", message.Id.ToString());
@@ -179,6 +189,7 @@ public class WebhookConf
     public Enumerations.HttpVerb Method { get; set; }
     public List<List<string>> Headers { get; set; }
     public string Content { get; set; }
+    public string Description { get; set; }
 }
 public class WebhookActionOrder
 {
