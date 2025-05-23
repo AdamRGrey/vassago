@@ -110,13 +110,48 @@ public static class Rememberer
             dbAccessSemaphore.Wait();
             db.Accounts.Remove(toForget);
             db.SaveChanges();
-        dbAccessSemaphore.Release();
+            dbAccessSemaphore.Release();
         }
+    }
+    public static void ForgetAttachment(Attachment toForget)
+    {
+        dbAccessSemaphore.Wait();
+        db.Attachments.Remove(toForget);
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
     }
     public static void ForgetChannel(Channel toForget)
     {
+        if (toForget.SubChannels?.Count > 0)
+        {
+            foreach (var childChannel in toForget.SubChannels)
+            {
+                ForgetChannel(childChannel);
+            }
+        }
+        if(toForget.Users?.Count > 0)
+        {
+            foreach(var account in toForget.Users)
+            {
+                ForgetAccount(account);
+            }
+        }
         dbAccessSemaphore.Wait();
         db.Channels.Remove(toForget);
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
+    }
+    public static void ForgetMessage(Message toForget)
+    {
+        dbAccessSemaphore.Wait();
+        db.Messages.Remove(toForget);
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
+    }
+    public static void ForgetUAC(UAC toForget)
+    {
+        dbAccessSemaphore.Wait();
+        db.UACs.Remove(toForget);
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
@@ -143,6 +178,22 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
+    public static Account AccountDetail(Guid Id)
+    {
+        Account toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.Accounts.Find(Id);
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
+    public static Attachment AttachmentDetail(Guid Id)
+    {
+        Attachment toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.Attachments.Find(Id);
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
     public static Channel ChannelDetail(Guid Id)
     {
         Channel toReturn;
@@ -154,6 +205,30 @@ public static class Rememberer
         // .Include(u => u.Users)
         // .Include(u => u.ParentChannel);
     }
+    public static Message MessageDetail(Guid Id)
+    {
+        Message toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.Messages.Find(Id);
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
+    public static UAC UACDetail(Guid Id)
+    {
+        UAC toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.UACs.Find(Id);
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
+    public static User UserDetail(Guid Id)
+    {
+        User toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.Users.Find(Id);
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
     public static List<User> UsersOverview()
     {
         List<User> toReturn;
@@ -162,7 +237,7 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-   public static List<UAC> UACsOverview()
+    public static List<UAC> UACsOverview()
     {
         List<UAC> toReturn;
         dbAccessSemaphore.Wait();
