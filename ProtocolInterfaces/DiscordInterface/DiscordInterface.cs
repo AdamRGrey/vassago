@@ -384,6 +384,7 @@ public class DiscordInterface : ProtocolInterface
 
     private static async Task<int> AttemptReact(IUserMessage msg, string e)
     {
+        Console.WriteLine("discord attempting to react");
         var c = Rememberer.SearchChannel(c => c.ExternalId == msg.Channel.Id.ToString());// db.Channels.FirstOrDefault(c => c.ExternalId == msg.Channel.Id.ToString());
         //var preferredEmote = c.EmoteOverrides?[e] ?? e; //TODO: emote overrides
         var preferredEmote = e;

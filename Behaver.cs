@@ -175,13 +175,26 @@ public class Behaver
     }
     public async Task<int> React(Guid messageId, string reaction)
     {
+        Console.WriteLine($"sanity check: behaver is reacting, {messageId}, {reaction}");
         var message = Rememberer.MessageDetail(messageId);
         if (message == null)
+        {
+            Console.Error.WriteLine($"message {messageId} not found");
             return 404;
+        }
+        Console.WriteLine($"sanity check: message found.");
+        if (message.Channel == null)
+        {
+            Console.Error.WriteLine($"react is going to fail because message {messageId} has no Channel");
+        }
+        Console.WriteLine($"sanity check: message has a channel.");
         var iprotocol = fetchInterface(message.Channel);
         if (iprotocol == null)
+        {
+            Console.WriteLine($"couldn't find protocol for {message.Channel?.Id}");
             return 404;
-
+        }
+Console.WriteLine("I remember this message, i have found a protocol, i am ready to react toit");
         return await iprotocol.React(message, reaction);
     }
     public async Task<int> Reply(Guid messageId, string text)
@@ -195,8 +208,8 @@ public class Behaver
         var iprotocol = fetchInterface(message.Channel);
         if (iprotocol == null)
         {
-            Console.WriteLine($"couldn't find channel for {message.Channel.Id} not found");
-                return 404;
+            Console.WriteLine($"couldn't find protocol for {message.Channel.Id}");
+            return 404;
         }
         return await iprotocol.Reply(message, text);
     }

@@ -90,7 +90,6 @@ public static class Rememberer
         {
             toRemember.Channel.Messages.Add(toRemember);
             db.Update(toRemember.Channel);
-        //    db.SaveChanges();
         }
         db.Update(toRemember);
         db.SaveChanges();
@@ -217,6 +216,7 @@ public static class Rememberer
         Message toReturn;
         dbAccessSemaphore.Wait();
         toReturn = db.Messages.Find(Id);
+        db.Entry(toReturn).Reference(m => m.Channel).Load();
         dbAccessSemaphore.Release();
         return toReturn;
     }
