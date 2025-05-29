@@ -208,8 +208,6 @@ public class DiscordInterface : ProtocolInterface
         var m = Rememberer.SearchMessage(mi => mi.ExternalId == dMessage.Id.ToString() && mi.Protocol == Protocol)
             ?? new()
             {
-                //I don't understand why messages need to have their Ids specified but no other entity does. shrug dot emoji
-                Id = Guid.NewGuid(),
                 Protocol = Protocol
             };
 
@@ -226,7 +224,6 @@ public class DiscordInterface : ProtocolInterface
         m.Timestamp = dMessage.EditedTimestamp ?? dMessage.CreatedAt;
         m.Channel = UpsertChannel(dMessage.Channel);
         m.Author = UpsertAccount(dMessage.Author, m.Channel);
-        Console.WriteLine($"received message; author: {m.Author.DisplayName}, {m.Author.Id}");
         if (dMessage.Channel is IGuildChannel)
         {
             m.Author.DisplayName = (dMessage.Author as IGuildUser).DisplayName;//discord forgot how display names work.
@@ -235,6 +232,7 @@ public class DiscordInterface : ProtocolInterface
             && (dMessage.MentionedUserIds?.FirstOrDefault(muid => muid == client.CurrentUser.Id) > 0));
 
         Rememberer.RememberMessage(m);
+        Console.WriteLine($"received message; author: {m.Author.DisplayName}, {m.Author.Id}. messageid:{m.Id}");
         return m;
     }
     internal Channel UpsertChannel(IMessageChannel channel)

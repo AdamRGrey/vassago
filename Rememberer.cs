@@ -84,8 +84,15 @@ public static class Rememberer
     public static void RememberMessage(Message toRemember)
     {
         dbAccessSemaphore.Wait();
-        toRemember.Channel ??= new() { Messages = [toRemember] };
-        db.Update(toRemember.Channel);
+        toRemember.Channel ??= new();
+        toRemember.Channel.Messages ??= [];
+        if (!toRemember.Channel.Messages.Contains(toRemember))
+        {
+            toRemember.Channel.Messages.Add(toRemember);
+            db.Update(toRemember.Channel);
+        //    db.SaveChanges();
+        }
+        db.Update(toRemember);
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
@@ -129,9 +136,9 @@ public static class Rememberer
                 ForgetChannel(childChannel);
             }
         }
-        if(toForget.Users?.Count > 0)
+        if (toForget.Users?.Count > 0)
         {
-            foreach(var account in toForget.Users.ToList())
+            foreach (var account in toForget.Users.ToList())
             {
                 ForgetAccount(account);
             }
