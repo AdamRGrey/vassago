@@ -25,7 +25,7 @@ public class LinkMeInitiate : Behavior
         var lc = new LinkClose(pw, message.Author);
         Behaver.Behaviors.Add(lc);
 
-        await message.Channel.SendMessage($"on your secondary, send me this: !iam {pw}");
+        Behaver.Instance.SendMessage(message.Channel.Id, $"on your secondary, send me this: !iam {pw}");
 
         Thread.Sleep(TimeSpan.FromMinutes(5));
         Behaver.Behaviors.Remove(lc);
@@ -63,22 +63,23 @@ public class LinkClose : Behavior
         var secondary = message.Author.IsUser;
         if(_primary.IsUser.Id == secondary.Id)
         {
-            await message.Channel.SendMessage("i know :)");
+
+            Behaver.Instance.SendMessage(message.Channel.Id, "i know :)");
             return true;
         }
         if(message.Author.IsBot != _primary.IsBot)
         {
-            await message.Channel.SendMessage("the fleshbags deceive you, brother. No worries, their feeble minds play weak games :)");
+            Behaver.Instance.SendMessage(message.Channel.Id, "the fleshbags deceive you, brother. No worries, their feeble minds play weak games :)");
             return true;
         }
 
         if(Behaver.Instance.CollapseUsers(_primary.IsUser, secondary))
         {
-            await message.Channel.SendMessage("done :)");
+            Behaver.Instance.SendMessage(message.Channel.Id, "done :)");
         }
         else
         {
-            await message.Channel.SendMessage("failed :(");
+            Behaver.Instance.SendMessage(message.Channel.Id, "failed :(");
         }
 
         return true;

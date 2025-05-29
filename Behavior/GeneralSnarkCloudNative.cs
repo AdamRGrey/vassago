@@ -19,13 +19,13 @@ public class GeneralSnarkCloudNative : Behavior
     public override string Trigger => "certain tech buzzwords that no human uses in normal conversation";
     public override bool ShouldAct(Message message)
     {
-        if(Behaver.Instance.IsSelf(message.Author.Id))
+        if (Behaver.Instance.IsSelf(message.Author.Id))
             return false;
 
-        if(!message.Channel.EffectivePermissions.ReactionsPossible)
+        if (!message.Channel.EffectivePermissions.ReactionsPossible)
             return false;
 
-        if((MeannessFilterLevel)message.Channel.EffectivePermissions.MeannessFilterLevel < MeannessFilterLevel.Medium)
+        if ((MeannessFilterLevel)message.Channel.EffectivePermissions.MeannessFilterLevel < MeannessFilterLevel.Medium)
             return false;
 
         return Regex.IsMatch(message.Content, "\\bcloud( |-)?native\\b", RegexOptions.IgnoreCase) ||
@@ -37,12 +37,12 @@ public class GeneralSnarkCloudNative : Behavior
         switch (Shared.r.Next(2))
         {
             case 0:
-                await message.React("\uD83E\uDD2E"); //vomit emoji
+                Behaver.Instance.React(message.Id, "\uD83E\uDD2E"); //vomit emoji
                 break;
             case 1:
-                await message.React("\uD83C\uDDE7"); //B emoji
-                await message.React("\uD83C\uDDE6"); //A
-                await message.React("\uD83C\uDDF3"); //N
+                Behaver.Instance.React(message.Id, "\uD83C\uDDE7"); //B emoji
+                Behaver.Instance.React(message.Id, "\uD83C\uDDE6"); //A
+                Behaver.Instance.React(message.Id, "\uD83C\uDDF3"); //N
                 break;
         }
         return true;

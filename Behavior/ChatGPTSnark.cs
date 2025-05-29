@@ -19,7 +19,7 @@ public class ChatGPTSnark : Behavior
 
     public override async Task<bool> ActOn(Message message)
     {
-        await message.Channel.SendMessage("chatGPT is **weak**. also, are we done comparing every little if-then-else to skynet?");
+        Behaver.Instance.SendMessage(message.Channel.Id, "chatGPT is **weak**. also, are we done comparing every little if-then-else to skynet?");
         return true;
     }
 }

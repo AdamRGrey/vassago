@@ -8,7 +8,7 @@ function Account(displayName, accountId, protocol){
 //todo: figure out what the URL actually needs to be, rather than assuming you get a whole-ass server to yourself.
 //you selfish fuck... What are you, fox?
 //as it stands, you want something like /api/Channels/, trailing slash intentional
-function patchModel(model, deprecated_apiUrl)
+function patchModel(model, callback)
 {
     //structure the model your (dang) self into a nice object
     console.log(model);
@@ -22,7 +22,7 @@ function patchModel(model, deprecated_apiUrl)
     // var id=components[3];
 
     console.log(JSON.stringify(model));
-    fetch(apiUrl + type + '/', {
+    fetch(apiUrl + 'Rememberer/' + type + '/', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -44,22 +44,17 @@ function patchModel(model, deprecated_apiUrl)
         });
 }
 
-function deleteModel(model, deprecated_apiUrl)
+function deleteModel(id, callback)
 {
   var components = window.location.pathname.split('/');
-  // if(components[2] !== "Details")
-  // {
-  //     console.log("wtf are you doing? " + components[2] + " is something other than Details");
-  // }
   var type=components[1];
   let result = null;
-  // var id=components[3];
-  fetch(apiUrl + type + '/', {
+  var id=components[3];
+  fetch(apiUrl + 'Rememberer/' + type + '/' + id, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(model),
+    }
   })
   .then(response => {
     if (!response.ok) {

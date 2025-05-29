@@ -26,13 +26,13 @@ public class GeneralSnarkSkynet : Behavior
         switch (Shared.r.Next(5))
         {
             default:
-                await message.Channel.SendFile("assets/coding and algorithms.png", "i am actually niether a neural-net processor nor a learning computer. but I do use **coding** and **algorithms**.");
+                Behaver.Instance.SendFile(message.Channel.Id, "assets/coding and algorithms.png", "i am actually niether a neural-net processor nor a learning computer. but I do use **coding** and **algorithms**.");
                 break;
             case 4:
-                await message.React("\U0001F644"); //eye roll emoji
+                Behaver.Instance.React(message.Id, "\U0001F644"); //eye roll emoji
                 break;
             case 5:
-                await message.React("\U0001F611"); //emotionless face
+                Behaver.Instance.React(message.Id, "\U0001F611"); //emotionless face
                 break;
         }
         return true;

@@ -25,9 +25,9 @@ public class WishLuck : Behavior
             toSend = "\U0001f340";//4-leaf clover
         }
         if(message.Channel.EffectivePermissions.ReactionsPossible == true)
-            await message.React(toSend);
+            Behaver.Instance.React(message.Id, toSend);
         else
-            await message.Channel.SendMessage(toSend);
+            Behaver.Instance.SendMessage(message.Channel.Id, toSend);
         return true;
     }
 }

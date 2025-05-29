@@ -22,7 +22,7 @@ public class RoomRead : Behavior
         sb.Append(". Lewdness level: ");
         sb.Append(message.Channel.EffectivePermissions.LewdnessFilterLevel.GetDescription());
         sb.Append(".");
-        await message.Channel.SendMessage(sb.ToString());
+        Behaver.Instance.SendMessage(message.Channel.Id, sb.ToString());
         return true;
     }
 }

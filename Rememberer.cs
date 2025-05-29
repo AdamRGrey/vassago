@@ -124,14 +124,14 @@ public static class Rememberer
     {
         if (toForget.SubChannels?.Count > 0)
         {
-            foreach (var childChannel in toForget.SubChannels)
+            foreach (var childChannel in toForget.SubChannels.ToList())
             {
                 ForgetChannel(childChannel);
             }
         }
         if(toForget.Users?.Count > 0)
         {
-            foreach(var account in toForget.Users)
+            foreach(var account in toForget.Users.ToList())
             {
                 ForgetAccount(account);
             }

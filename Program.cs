@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using vassago.Models;
 
-#pragma warning disable CA2254
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

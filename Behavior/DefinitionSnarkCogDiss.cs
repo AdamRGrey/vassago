@@ -28,7 +28,7 @@ public class DefinitionSnarkCogDiss : Behavior
 
     public override async Task<bool> ActOn(Message message)
     {
-        await message.Reply("that's not what cognitive dissonance means. Did you mean \"hypocrisy\"?");
+        Behaver.Instance.SendMessage(message.Channel.Id, "that's not what cognitive dissonance means. Did you mean \"hypocrisy\"?");
         return true;
     }
 }

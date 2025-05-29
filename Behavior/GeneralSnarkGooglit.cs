@@ -31,7 +31,7 @@ public class GeneralSnarkGooglit : Behavior
         switch (Shared.r.Next(4))
         {
             default:
-                await message.Channel.SendMessage("yeah no shit, obviously that resulted in nothing");
+                Behaver.Instance.SendMessage(message.Channel.Id, "yeah no shit, obviously that resulted in nothing");
                 break;
             case 1:
                 var results = "";
@@ -50,13 +50,13 @@ public class GeneralSnarkGooglit : Behavior
                         results = "the one that had a paragraph that restated the question but badly, a paragraph to give a wrong history on the question, a paragraph with amazon affiliate links, a pargraph that said \"ultimately you should do your own research\", then had a paragraph telling me to give Engagement for The Algorithm";
                         break;
                 }
-                await message.Channel.SendMessage("oh here, I memorized the results. My favorite is " + results);
+                Behaver.Instance.SendMessage(message.Channel.Id, "oh here, I memorized the results. My favorite is " + results);
                 break;
             case 2:
-                await message.Channel.SendMessage("Obviously that was already tried. Obviously it failed. If you ever tried to learn anything you'd know that's how it works.");
+                Behaver.Instance.SendMessage(message.Channel.Id, "Obviously that was already tried. Obviously it failed. If you ever tried to learn anything you'd know that's how it works.");
                 break;
             case 3:
-                await message.Channel.SendMessage("\"mnyehh JuSt GoOgLe It\" when's the last time you tried to research anything? Have you ever?");
+                Behaver.Instance.SendMessage(message.Channel.Id, "\"mnyehh JuSt GoOgLe It\" when's the last time you tried to research anything? Have you ever?");
                 break;
         }
         return true;

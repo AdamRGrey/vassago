@@ -28,7 +28,7 @@ public class DefinitionSnarkGaslight : Behavior
 
     public override async Task<bool> ActOn(Message message)
     {
-        await message.Channel.SendMessage("that's not what gaslight means. Did you mean \"deceive\"?");
+        Behaver.Instance.SendMessage(message.Channel.Id, "that's not what gaslight means. Did you mean \"deceive\"?");
         return true;
     }
 }

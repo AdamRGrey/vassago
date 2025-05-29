@@ -53,7 +53,7 @@ public class GeneralSnarkMisspellDefinitely : Behavior
         {
             if( Regex.IsMatch(message.Content, "\\b"+k+"\\b", RegexOptions.IgnoreCase))
             {
-                await message.Reply(k + "? so... " + snarkmap[k] + "?");
+                Behaver.Instance.Reply(message.Id, k + "? so... " + snarkmap[k] + "?");
                 return true;
             }
         }

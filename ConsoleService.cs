@@ -36,7 +36,7 @@ namespace vassago
                 {
                     var d = new DiscordInterface();
                     initTasks.Add(d.Init(dt));
-                    ProtocolInterfaces.ProtocolList.discords.Add(d);
+                    Shared.ProtocolList.Add(d);
                 }
 
             if (TwitchConfigs?.Any() ?? false)
@@ -44,7 +44,7 @@ namespace vassago
                 {
                     var t = new TwitchInterface.TwitchInterface();
                     initTasks.Add(t.Init(tc));
-                    ProtocolInterfaces.ProtocolList.twitchs.Add(t);
+                    Shared.ProtocolList.Add(t);
                 }
             
             Task.WaitAll(initTasks.ToArray(), cancellationToken);

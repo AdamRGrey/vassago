@@ -20,7 +20,11 @@ public class ChannelsController() : Controller
         //but that would take in all the messages. 
         //realistically I expect this will have less than 1MB of total "channels", and several GB of total messages per (text) channel.
 
-        var channel = allChannels.First(u => u.Id == id);
+        var channel = allChannels.FirstOrDefault(u => u.Id == id);
+        if(channel == null)
+            {
+                return Problem("couldn't find that channle");
+            }
         var walker = channel;
         while(walker != null)
         {

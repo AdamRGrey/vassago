@@ -32,7 +32,7 @@ public class RemembererController : ControllerBase
         return Rememberer.AttachmentDetail(id);
     }
     [HttpPut]
-    [Route("Channel")]
+    [Route("Channels")]
     [Produces("application/json")]
     public Channel CreateChannel(Guid id)
     {
@@ -75,7 +75,7 @@ public class RemembererController : ControllerBase
         return Rememberer.AttachmentDetail(id);
     }
     [HttpGet]
-    [Route("Channel")]
+    [Route("Channels")]
     [Produces("application/json")]
     public Channel GetChannel(Guid id)
     {
@@ -104,7 +104,7 @@ public class RemembererController : ControllerBase
     }
     //Update
     [HttpPatch]
-    [Route("Channel")]
+    [Route("Channels")]
     [Produces("application/json")]
     public IActionResult Patch([FromBody] Channel channel)
     {
@@ -154,21 +154,23 @@ public class RemembererController : ControllerBase
         return Ok();
     }
     [HttpDelete]
-    [Route("Channel")]
+    [Route("Channels/{id}")]
     [Produces("application/json")]
     public IActionResult DeleteChannel(Guid id)
     {
         var fromDb = Rememberer.ChannelDetail(id);
+        _logger.LogDebug($"delete channel {id}");
         if (fromDb == null)
         {
             _logger.LogError($"attempt to delete channel {id}, not found");
             return NotFound();
         }
         Rememberer.ForgetChannel(fromDb);
+        _logger.LogDebug($"delete channel {id} success");
         return Ok();
     }
     [HttpDelete]
-    [Route("Message")]
+    [Route("Message/{id}")]
     [Produces("application/json")]
     public IActionResult DeleteMessage(Guid id)
     {
@@ -182,7 +184,7 @@ public class RemembererController : ControllerBase
         return Ok();
     }
     [HttpDelete]
-    [Route("UAC")]
+    [Route("UAC/{id}")]
     [Produces("application/json")]
     public IActionResult DeleteUAC(Guid id)
     {
@@ -196,7 +198,7 @@ public class RemembererController : ControllerBase
         return Ok();
     }
     [HttpDelete]
-    [Route("User")]
+    [Route("User/{id}")]
     [Produces("application/json")]
     public IActionResult DeleteUser(Guid id)
     {

@@ -49,7 +49,7 @@ public class FiximageHeic : Behavior
             conversions.Add(actualDeheic(att, message));
         }
         Task.WaitAll(conversions.ToArray());
-        await message.React("\U0001F34F");
+        Behaver.Instance.React(message.Id, "\U0001F34F");
         return true;
     }
 
@@ -66,19 +66,19 @@ public class FiximageHeic : Behavior
             }
             if (ExternalProcess.GoPlz("convert", $"tmp/{att.Filename} tmp/{att.Filename}.jpg"))
             {
-                await message.Channel.SendFile($"tmp/{att.Filename}.jpg", "converted from jpeg-but-apple to jpeg");
+                Behaver.Instance.SendFile(message.Channel.Id, $"tmp/{att.Filename}.jpg", "converted from jpeg-but-apple to jpeg");
                 File.Delete($"tmp/{att.Filename}");
                 File.Delete($"tmp/{att.Filename}.jpg");
             }
             else
             {
-                await message.Channel.SendMessage("convert failed :(");
+                Behaver.Instance.SendMessage(message.Channel.Id, "convert failed :(");
                 Console.Error.WriteLine("convert failed :(");
             }
         }
         catch (Exception e)
         {
-            await message.Channel.SendMessage($"something failed. aaaadam! {JsonConvert.SerializeObject(e, Formatting.Indented)}");
+            Behaver.Instance.SendMessage(message.Channel.Id, $"something failed. aaaadam! {JsonConvert.SerializeObject(e, Formatting.Indented)}");
             Console.Error.WriteLine(JsonConvert.SerializeObject(e, Formatting.Indented));
             return false;
         }

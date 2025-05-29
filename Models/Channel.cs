@@ -38,13 +38,6 @@ public class Channel
     //both incoming and outgoing
     //public Dictionary<string, string> Aliases { get; set; }
 
-    [NonSerialized]
-    public Func<string, string, Task> SendFile;
-
-    [NonSerialized]
-    public Func<string, Task> SendMessage;
-
-
     public DefinitePermissionSettings EffectivePermissions
     {
         get

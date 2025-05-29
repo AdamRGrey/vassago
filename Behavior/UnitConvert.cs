@@ -23,13 +23,13 @@ public class UnitConvert : Behavior
             if (decimal.TryParse(theseMatches[0].Groups[1].Value, out asNumeric))
             {
                 Console.WriteLine("let's try and convert...");
-                await message.Channel.SendMessage(Conversion.Converter.Convert(asNumeric, theseMatches[0].Groups[2].Value, theseMatches[0].Groups[4].Value.ToLower()));
+                Behaver.Instance.SendMessage(message.Channel.Id, Conversion.Converter.Convert(asNumeric, theseMatches[0].Groups[2].Value, theseMatches[0].Groups[4].Value.ToLower()));
                 return true;
             }
-            await message.Channel.SendMessage("mysteriously semi-parsable");
+            Behaver.Instance.SendMessage(message.Channel.Id, "mysteriously semi-parsable");
             return true;
         }
-        await message.Channel.SendMessage( "unparsable");
+        Behaver.Instance.SendMessage(message.Channel.Id, "unparsable");
         return true;
     }
 }

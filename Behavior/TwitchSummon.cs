@@ -28,6 +28,14 @@ public class TwitchSummon : Behavior
         }
         Rememberer.RememberUAC(myUAC);
     }
+    internal static TwitchInterface.TwitchInterface getAnyTwitchInterface()
+    {
+        return Shared.ProtocolList.FirstOrDefault(ip =>
+                                         ip is TwitchInterface.TwitchInterface)
+            //.FirstOrDefault()
+            as TwitchInterface.TwitchInterface;
+    }
+
     public override bool ShouldAct(Message message)
     {
         if (!base.ShouldAct(message))
@@ -45,56 +53,57 @@ public class TwitchSummon : Behavior
 
     public override async Task<bool> ActOn(Message message)
     {
-        var ti = ProtocolInterfaces.ProtocolList.twitchs.FirstOrDefault();
+        var ti = getAnyTwitchInterface();
         if (ti != null)
         {
             var channelTarget = message.Content.Substring(message.Content.IndexOf(Trigger) + Trigger.Length + 1).Trim();
-            await message.Channel.SendMessage(ti.AttemptJoin(channelTarget));
+            Behaver.Instance.SendMessage(message.Channel.Id, ti.AttemptJoin(channelTarget));
         }
         else
         {
-            await message.Reply("i don't have a twitch interface running :(");
+            Behaver.Instance.Reply(message.Id, "i don't have a twitch interface running :(");
         }
         return true;
     }
-    [StaticPlz]
-    public class TwitchDismiss : Behavior
+}
+
+[StaticPlz]
+public class TwitchDismiss : Behavior
+{
+    public override string Name => "Twitch Dismiss";
+
+    public override string Trigger => "begone, @[me]";
+
+    public override bool ShouldAct(Message message)
     {
-        public override string Name => "Twitch Dismiss";
-
-        public override string Trigger => "begone, @[me]";
-
-        public override bool ShouldAct(Message message)
-        {
-            var ti = ProtocolInterfaces.ProtocolList.twitchs.FirstOrDefault();
+        var ti = TwitchSummon.getAnyTwitchInterface();
             // Console.WriteLine($"TwitchDismiss checking. menions me? {message.MentionsMe}");
-            if (message.MentionsMe &&
-                (Regex.IsMatch(message.Content.ToLower(), "\\bbegone\\b") || Regex.IsMatch(message.Content.ToLower(), "\\bfuck off\\b")))
-            {
-                var channelTarget = message.Content.Substring(message.Content.IndexOf(Trigger) + Trigger.Length + 1).Trim();
-                ti.AttemptLeave(channelTarget);
-                //TODO: PERMISSION! who can dismiss me? pretty simple list:
-                //1) anyone in the channel with authority*
-                //2) whoever summoned me
-                //* i don't know if the twitch *chat* interface will tell me if someone's a mod.
-                return true;
-            }
-            return false;
-        }
-
-        public override async Task<bool> ActOn(Message message)
+        if (message.MentionsMe &&
+            (Regex.IsMatch(message.Content.ToLower(), "\\bbegone\\b") || Regex.IsMatch(message.Content.ToLower(), "\\bfuck off\\b")))
         {
-            var ti = ProtocolInterfaces.ProtocolList.twitchs.FirstOrDefault();
-
-            if (ti != null)
-            {
-                ti.AttemptLeave(message.Channel.DisplayName);
-            }
-            else
-            {
-                await message.Reply("i don't have a twitch interface running :(");
-            }
+            var channelTarget = message.Content.Substring(message.Content.IndexOf(Trigger) + Trigger.Length + 1).Trim();
+            ti.AttemptLeave(channelTarget);
+            //TODO: PERMISSION! who can dismiss me? pretty simple list:
+            //1) anyone in the channel with authority*
+            //2) whoever summoned me
+            //* i don't know if the twitch *chat* interface will tell me if someone's a mod.
             return true;
         }
+        return false;
+    }
+
+    public override async Task<bool> ActOn(Message message)
+    {
+        var ti = TwitchSummon.getAnyTwitchInterface();
+
+        if (ti != null)
+        {
+            ti.AttemptLeave(message.Channel.DisplayName);
+        }
+        else
+        {
+            Behaver.Instance.Reply(message.Id, "i don't have a twitch interface running :(");
+        }
+        return true;
     }
 }

@@ -27,10 +27,10 @@ public class Detiktokify : Behavior
     public override bool ShouldAct(Message message)
     {
 
-        if(Behaver.Instance.IsSelf(message.Author.Id))
+        if (Behaver.Instance.IsSelf(message.Author.Id))
             return false;
 
-        if(message.Channel.EffectivePermissions.MaxAttachmentBytes == 0)
+        if (message.Channel.EffectivePermissions.MaxAttachmentBytes == 0)
             return false;
 
         var wordLikes = message.Content.Split(' ', StringSplitOptions.TrimEntries);
@@ -45,29 +45,27 @@ public class Detiktokify : Behavior
                 }
             }
         }
-        if(tiktokLinks.Any()){
+        if (tiktokLinks.Any())
+        {
             Console.WriteLine($"Should Act on message id {message.ExternalId}; with content {message.Content}");
         }
         return tiktokLinks.Any();
     }
     public override async Task<bool> ActOn(Message message)
     {
-        foreach(var link in tiktokLinks)
+        foreach (var link in tiktokLinks)
         {
             tiktokLinks.Remove(link);
             try
             {
                 Console.WriteLine($"detiktokifying {link}");
-                #pragma warning disable 4014
-                //await message.React("<:tiktok:1070038619584200884>");
-                #pragma warning restore 4014
-
                 var res = await ytdl.RunVideoDownload(link.ToString());
                 if (!res.Success)
                 {
                     Console.Error.WriteLine("tried to dl, failed. \n" + string.Join('\n', res.ErrorOutput));
-                    await message.React("problemon");
-                    await message.Channel.SendMessage("tried to dl, failed. \n");
+
+                    Behaver.Instance.SendMessage(message.Channel.Id, "tried to dl, failed. \n");
+                    Behaver.Instance.React(message.Channel.Id, "problemon");
                 }
                 else
                 {
@@ -79,12 +77,12 @@ public class Detiktokify : Behavior
                         {
                             try
                             {
-                                await message.Channel.SendFile(path, null);
+                                Behaver.Instance.SendFile(message.Channel.Id, path, null);
                             }
                             catch (Exception e)
                             {
                                 System.Console.Error.WriteLine(e);
-                                await message.Channel.SendMessage($"aaaadam!\n{e}");
+                                Behaver.Instance.SendMessage(message.Channel.Id, $"aaaadam!\n{e}");
                             }
                         }
                         else
@@ -97,14 +95,15 @@ public class Detiktokify : Behavior
                     else
                     {
                         Console.Error.WriteLine("idgi but something happened.");
-                        await message.React("problemon");
+
+                        Behaver.Instance.React(message.Id, "problemon");
                     }
                 }
             }
             catch (Exception e)
             {
                 Console.Error.WriteLine(e);
-                await message.React("problemon");
+                Behaver.Instance.React(message.Id, "problemon");
                 return false;
             }
         }

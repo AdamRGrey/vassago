@@ -32,7 +32,7 @@ public class GeneralSnarkPlaying : Behavior
     }
     public override async Task<bool> ActOn(Message message)
     {
-        await message.Channel.SendMessage("I believed you for a second, but then you assured me you's a \uD83C\uDDE7   \uD83C\uDDEE   \uD83C\uDDF9   \uD83C\uDDE8   \uD83C\uDDED");
+        Behaver.Instance.SendMessage(message.Channel.Id, "I believed you for a second, but then you assured me you's a \uD83C\uDDE7   \uD83C\uDDEE   \uD83C\uDDF9   \uD83C\uDDE8   \uD83C\uDDED");
         return true;
     }
 }

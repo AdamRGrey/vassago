@@ -29,43 +29,43 @@ public class Gratitude : Behavior
         switch (Shared.r.Next(4))
         {
             case 0:
-                await message.Channel.SendMessage("you're welcome, citizen!");
+                await Behaver.Instance.SendMessage(message.Channel.Id, "you're welcome, citizen!");
                 break;
             case 1:
-                await message.React(":)");
+                await Behaver.Instance.React(message.Id, ":)");
                 break;
             case 2:
-                await message.React("\U0001F607"); //smiling face with halo
+                Behaver.Instance.React(message.Id, "\U0001F607"); //smiling face with halo
                 break;
             case 3:
                 switch (Shared.r.Next(9))
                 {
                     case 0:
-                        await message.React("<3"); //normal heart, usually rendered red
+                        await Behaver.Instance.React(message.Id, "<3"); //normal heart, usually rendered red
                         break;
                     case 1:
-                        await message.React("\U0001F9E1"); //orange heart
+                        Behaver.Instance.React(message.Id, "\U0001F9E1"); //orange heart
                         break;
                     case 2:
-                        await message.React("\U0001F49B"); //yellow heart
+                        Behaver.Instance.React(message.Id, "\U0001F49B"); //yellow heart
                         break;
                     case 3:
-                        await message.React("\U0001F49A"); //green heart
+                        Behaver.Instance.React(message.Id, "\U0001F49A"); //green heart
                         break;
                     case 4:
-                        await message.React("\U0001F499"); //blue heart
+                        Behaver.Instance.React(message.Id, "\U0001F499"); //blue heart
                         break;
                     case 5:
-                        await message.React("\U0001F49C"); //purple heart
+                        Behaver.Instance.React(message.Id, "\U0001F49C"); //purple heart
                         break;
                     case 6:
-                        await message.React("\U0001F90E"); //brown heart
+                        Behaver.Instance.React(message.Id, "\U0001F90E"); //brown heart
                         break;
                     case 7:
-                        await message.React("\U0001F5A4"); //black heart
+                        Behaver.Instance.React(message.Id, "\U0001F5A4"); //black heart
                         break;
                     case 8:
-                        await message.React("\U0001F90D"); //white heart
+                        Behaver.Instance.React(message.Id, "\U0001F90D"); //white heart
                         break;
                 }
                 break;

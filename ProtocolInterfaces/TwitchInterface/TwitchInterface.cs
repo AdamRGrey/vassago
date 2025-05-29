@@ -10,19 +10,16 @@ using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
 using vassago.Behavior;
 using vassago.Models;
+using vassago.ProtocolInterfaces;
 
 namespace vassago.TwitchInterface;
 
-internal class unifiedTwitchMessage
+public class TwitchInterface : ProtocolInterface
 {
-    public unifiedTwitchMessage(ChatMessage chatMessage) { }
-}
-
-public class TwitchInterface
-{
-    internal const string PROTOCOL = "twitch";
+    public static new string Protocol { get => "twitch"; }
     private static SemaphoreSlim channelSetupSemaphpore = new SemaphoreSlim(1, 1);
     private Channel protocolAsChannel;
+    public override Channel SelfChannel { get => protocolAsChannel;}
     private Account selfAccountInProtocol;
     TwitchClient client;
 
@@ -32,7 +29,7 @@ public class TwitchInterface
 
         try
         {
-            protocolAsChannel = Rememberer.SearchChannel(c => c.ParentChannel == null && c.Protocol == PROTOCOL);
+            protocolAsChannel = Rememberer.SearchChannel(c => c.ParentChannel == null && c.Protocol == Protocol);
             if (protocolAsChannel == null)
             {
                 protocolAsChannel = new Channel()
@@ -45,12 +42,10 @@ public class TwitchInterface
                     LinksAllowed = false,
                     ReactionsPossible = false,
                     ExternalId = null,
-                    Protocol = PROTOCOL,
+                    Protocol = Protocol,
                     SubChannels = []
                 };
                 protocolAsChannel.DisplayName = "twitch (itself)";
-                protocolAsChannel.SendMessage = (t) => { throw new InvalidOperationException($"twitch itself cannot accept text"); };
-                protocolAsChannel.SendFile = (f, t) => { throw new InvalidOperationException($"twitch itself cannot send file"); };
                 protocolAsChannel = Rememberer.RememberChannel(protocolAsChannel);
                 Console.WriteLine($"protocol as channle added; {protocolAsChannel}");
             }
@@ -97,7 +92,8 @@ public class TwitchInterface
 
         //translate to internal, upsert
         var m = UpsertMessage(e.WhisperMessage);
-        m.Reply = (t) => { return Task.Run(() => { client.SendWhisper(e.WhisperMessage.Username, t); }); };
+        //can't send whispers without giving up cellphone number.
+        //m.Reply = (t) => { return Task.Run(() => { client.SendWhisper(e.WhisperMessage.Username, t); }); };
         m.Channel.ChannelType = vassago.Models.Enumerations.ChannelType.DM;
         //act on
         await Behaver.Instance.ActOn(m);
@@ -112,7 +108,6 @@ public class TwitchInterface
 
         //translate to internal, upsert
         var m = UpsertMessage(e.ChatMessage);
-        m.Reply = (t) => { return Task.Run(() => { client.SendReply(e.ChatMessage.Channel, e.ChatMessage.Id, t); }); };
         m.Channel.ChannelType = vassago.Models.Enumerations.ChannelType.Normal;
         //act on
         await Behaver.Instance.ActOn(m);
@@ -152,14 +147,14 @@ public class TwitchInterface
         acc ??= new Account()
         {
             IsUser = Rememberer.SearchUser(
-                u => u.Accounts.Any(a => a.ExternalId == username && a.Protocol == PROTOCOL))
+                u => u.Accounts.Any(a => a.ExternalId == username && a.Protocol == Protocol))
                 ?? new vassago.Models.User()
         };
 
         acc.Username = username;
         acc.ExternalId = username;
         //acc.IsBot = false? there is a way to tell, but you have to go back through the API
-        acc.Protocol = PROTOCOL;
+        acc.Protocol = Protocol;
         acc.SeenInChannel = inChannel;
 
         // Console.WriteLine($"we asked rememberer to search for acc's user. {acc.IsUser?.Id}");
@@ -185,7 +180,7 @@ public class TwitchInterface
     private Channel UpsertChannel(string channelName)
     {
         Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == channelName
-                                             && ci.Protocol == PROTOCOL);
+                                             && ci.Protocol == Protocol);
         if (c == null)
         {
             // Console.WriteLine($"couldn't find channel under protocol {PROTOCOL} with externalId {channelName}");
@@ -199,11 +194,9 @@ public class TwitchInterface
         c.ExternalId = channelName;
         c.ChannelType = vassago.Models.Enumerations.ChannelType.Normal;
         c.Messages ??= [];
-        c.Protocol = PROTOCOL;
+        c.Protocol = Protocol;
         c.ParentChannel = protocolAsChannel;
         c.SubChannels = c.SubChannels ?? new List<Channel>();
-        c.SendMessage = (t) => { return Task.Run(() => { client.SendMessage(channelName, t); }); };
-        c.SendFile = (f, t) => { throw new InvalidOperationException($"twitch cannot send files"); };
         c = Rememberer.RememberChannel(c);
 
         var selfAccountInChannel = c.Users?.FirstOrDefault(a => a.ExternalId == selfAccountInProtocol.ExternalId);
@@ -217,7 +210,7 @@ public class TwitchInterface
     private Channel UpsertDMChannel(string whisperWith)
     {
         Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == $"w_{whisperWith}"
-                                                     && ci.Protocol == PROTOCOL);
+                                                     && ci.Protocol == Protocol);
         if (c == null)
         {
             // Console.WriteLine($"couldn't find channel under protocol {PROTOCOL}, whisper with {whisperWith}");
@@ -231,25 +224,9 @@ public class TwitchInterface
         c.ExternalId = $"w_{whisperWith}";
         c.ChannelType = vassago.Models.Enumerations.ChannelType.DM;
         c.Messages ??= [];
-        c.Protocol = PROTOCOL;
+        c.Protocol = Protocol;
         c.ParentChannel = protocolAsChannel;
         c.SubChannels = c.SubChannels ?? new List<Channel>();
-        c.SendMessage = (t) =>
-        {
-            return Task.Run(() =>
-            {
-                try
-                {
-
-                    client.SendWhisper(whisperWith, t);
-                }
-                catch (Exception e)
-                {
-                    Console.Error.WriteLine(e);
-                }
-            });
-        };
-        c.SendFile = (f, t) => { throw new InvalidOperationException($"twitch cannot send files"); };
         c = Rememberer.RememberChannel(c);
 
         var selfAccountInChannel = c.Users.FirstOrDefault(a => a.ExternalId == selfAccountInProtocol.ExternalId);
@@ -266,10 +243,10 @@ public class TwitchInterface
     //none of the features we care about are on it!
     private Message UpsertMessage(ChatMessage chatMessage)
     {
-        var m = Rememberer.SearchMessage(mi => mi.ExternalId == chatMessage.Id && mi.Protocol == PROTOCOL)
+        var m = Rememberer.SearchMessage(mi => mi.ExternalId == chatMessage.Id && mi.Protocol == Protocol)
             ?? new()
             {
-                Protocol = PROTOCOL,
+                Protocol = Protocol,
                 Timestamp = (DateTimeOffset)DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)
             };
         m.Content = chatMessage.Message;
@@ -277,8 +254,6 @@ public class TwitchInterface
         m.Channel = UpsertChannel(chatMessage.Channel);
         m.Author = UpsertAccount(chatMessage.Username, m.Channel);
         m.MentionsMe = Regex.IsMatch(m.Content?.ToLower(), $"@\\b{selfAccountInProtocol.Username.ToLower()}\\b");
-        m.Reply = (t) => { return Task.Run(() => { client.SendReply(chatMessage.Channel, chatMessage.Id, t); }); };
-        m.React = (e) => { throw new InvalidOperationException($"twitch cannot react"); };
         Rememberer.RememberMessage(m);
         return m;
     }
@@ -288,11 +263,11 @@ public class TwitchInterface
     private Message UpsertMessage(WhisperMessage whisperMessage)
     {
         //WhisperMessage.Id corresponds to chatMessage.Id. \*eye twitch*
-        var m = Rememberer.SearchMessage(mi => mi.ExternalId == whisperMessage.MessageId && mi.Protocol == PROTOCOL)
+        var m = Rememberer.SearchMessage(mi => mi.ExternalId == whisperMessage.MessageId && mi.Protocol == Protocol)
             ?? new()
             {
                 Id = Guid.NewGuid(),
-                Protocol = PROTOCOL,
+                Protocol = Protocol,
                 Timestamp = (DateTimeOffset)DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)
             };
         m.Content = whisperMessage.Message;
@@ -300,8 +275,6 @@ public class TwitchInterface
         m.Channel = UpsertDMChannel(whisperMessage.Username);
         m.Author = UpsertAccount(whisperMessage.Username, m.Channel);
         m.MentionsMe = Regex.IsMatch(m.Content?.ToLower(), $"@\\b{selfAccountInProtocol.Username.ToLower()}\\b");
-        m.Reply = (t) => { return Task.Run(() => { client.SendWhisper(whisperMessage.Username, t); }); };
-        m.React = (e) => { throw new InvalidOperationException($"twitch cannot react"); };
         Rememberer.RememberMessage(m);
         return m;
     }
@@ -316,5 +289,23 @@ public class TwitchInterface
     {
         client.SendMessage(channelTarget, "o7");
         client.LeaveChannel(channelTarget);
+    }
+    public override async Task<int> SendMessage(Channel channel, string text)
+    {
+        Task.Run(() => { client.SendMessage(channel.ExternalId, text); });
+        return 200;
+    }
+    public override async Task<int> SendFile(Channel channel, string path, string accompanyingText)
+    {
+        return 405;
+    }
+    public override async Task<int> React(Message message, string reaction)
+    {
+        return 405;
+    }
+    public override async Task<int> Reply(Message message, string text)
+    {
+        Task.Run(() => { client.SendReply(message.Channel.ExternalId, message.ExternalId, text); });
+        return 200;
     }
 }

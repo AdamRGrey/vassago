@@ -15,18 +15,19 @@ using System.Reactive.Linq;
 
 namespace vassago.ProtocolInterfaces.DiscordInterface;
 
-    //data received
-    //translate data to internal type
-    //store
-    //ship off to behaver
+//data received
+//translate data to internal type
+//store
+//ship off to behaver
 
-public class DiscordInterface
+public class DiscordInterface : ProtocolInterface
 {
-    internal static string PROTOCOL { get => "discord"; }
+    public static new string Protocol { get => "discord"; }
     internal DiscordSocketClient client;
     private bool eventsSignedUp = false;
     private static readonly SemaphoreSlim discordChannelSetup = new(1, 1);
     private Channel protocolAsChannel;
+    public override Channel SelfChannel { get => protocolAsChannel;}
 
     public async Task Init(string config)
     {
@@ -52,7 +53,7 @@ public class DiscordInterface
 
         try
         {
-            protocolAsChannel = Rememberer.SearchChannel(c => c.ParentChannel == null && c.Protocol == PROTOCOL);
+            protocolAsChannel = Rememberer.SearchChannel(c => c.ParentChannel == null && c.Protocol == Protocol);
             if (protocolAsChannel == null)
             {
                 protocolAsChannel = new Channel()
@@ -65,7 +66,7 @@ public class DiscordInterface
                     LinksAllowed = true,
                     ReactionsPossible = true,
                     ExternalId = null,
-                    Protocol = PROTOCOL,
+                    Protocol = Protocol,
                     SubChannels = []
                 };
             }
@@ -74,8 +75,6 @@ public class DiscordInterface
                 Console.WriteLine($"discord, channel with id {protocolAsChannel.Id}, already exists");
             }
             protocolAsChannel.DisplayName = "discord (itself)";
-            protocolAsChannel.SendMessage = (t) => { throw new InvalidOperationException($"protocol isn't a real channel, cannot accept text"); };
-            protocolAsChannel.SendFile = (f, t) => { throw new InvalidOperationException($"protocol isn't a real channel, cannot send file"); };
             protocolAsChannel = Rememberer.RememberChannel(protocolAsChannel);
             Console.WriteLine($"protocol as channel addeed; {protocolAsChannel}");
         }
@@ -206,12 +205,12 @@ public class DiscordInterface
     }
     internal Message UpsertMessage(IUserMessage dMessage)
     {
-        var m = Rememberer.SearchMessage(mi => mi.ExternalId == dMessage.Id.ToString() && mi.Protocol == PROTOCOL)
+        var m = Rememberer.SearchMessage(mi => mi.ExternalId == dMessage.Id.ToString() && mi.Protocol == Protocol)
             ?? new()
             {
                 //I don't understand why messages need to have their Ids specified but no other entity does. shrug dot emoji
                 Id = Guid.NewGuid(),
-                Protocol = PROTOCOL
+                Protocol = Protocol
             };
 
         if (dMessage.Attachments?.Count > 0)
@@ -235,17 +234,15 @@ public class DiscordInterface
         m.MentionsMe = (dMessage.Author.Id != client.CurrentUser.Id
             && (dMessage.MentionedUserIds?.FirstOrDefault(muid => muid == client.CurrentUser.Id) > 0));
 
-        m.Reply = (t) => { return dMessage.ReplyAsync(TruncateText(t, m.Channel.MaxTextChars)); };
-        m.React = (e) => { return AttemptReact(dMessage, e); };
         Rememberer.RememberMessage(m);
         return m;
     }
     internal Channel UpsertChannel(IMessageChannel channel)
     {
-        Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
+        Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == Protocol);
         if (c == null)
         {
-            Console.WriteLine($"couldn't find channel under protocol {PROTOCOL} with externalId {channel.Id.ToString()}");
+            Console.WriteLine($"couldn't find channel under protocol {Protocol} with externalId {channel.Id.ToString()}");
             c = new Channel()
             {
                 Users = []
@@ -255,7 +252,7 @@ public class DiscordInterface
         c.ExternalId = channel.Id.ToString();
         c.ChannelType = (channel is IPrivateChannel) ? vassago.Models.Enumerations.ChannelType.DM : vassago.Models.Enumerations.ChannelType.Normal;
         c.Messages ??= [];
-        c.Protocol = PROTOCOL;
+        c.Protocol = Protocol;
         if (channel is IGuildChannel)
         {
             Console.WriteLine($"{channel.Name} is a guild channel. So i'm going to upsert the guild, {(channel as IGuildChannel).Guild}");
@@ -276,9 +273,9 @@ public class DiscordInterface
         switch (c.ChannelType)
         {
             case vassago.Models.Enumerations.ChannelType.DM:
-                var asPriv =(channel as IPrivateChannel);
+                var asPriv = (channel as IPrivateChannel);
                 var sender = asPriv?.Recipients?.FirstOrDefault(u => u.Id != client.CurrentUser.Id); // why yes, there's a list of recipients, and it's the sender.
-                if(sender != null)
+                if (sender != null)
                 {
                     c.DisplayName = "DM: " + sender.Username;
                 }
@@ -295,7 +292,7 @@ public class DiscordInterface
         Channel parentChannel = null;
         if (channel is IGuildChannel)
         {
-            parentChannel = Rememberer.SearchChannel(c => c.ExternalId == (channel as IGuildChannel).Guild.Id.ToString() && c.Protocol == PROTOCOL);
+            parentChannel = Rememberer.SearchChannel(c => c.ExternalId == (channel as IGuildChannel).Guild.Id.ToString() && c.Protocol == Protocol);
             if (parentChannel is null)
             {
                 Console.Error.WriteLine("why am I still null?");
@@ -311,19 +308,16 @@ public class DiscordInterface
             Console.Error.WriteLine($"trying to upsert channel {channel.Id}/{channel.Name}, but it's neither guildchannel nor private channel. shrug.jpg");
         }
         parentChannel.SubChannels ??= [];
-        if(!parentChannel.SubChannels.Contains(c))
+        if (!parentChannel.SubChannels.Contains(c))
         {
             parentChannel.SubChannels.Add(c);
         }
-
-        c.SendMessage = (t) => { return channel.SendMessageAsync(TruncateText(t, c.MaxTextChars));};
-        c.SendFile = (f, t) => { return channel.SendFileAsync(f, t); };
 
         c = Rememberer.RememberChannel(c);
 
         //Console.WriteLine($"no one knows how to make good tooling. c.users.first, which needs client currentuser id tostring. c: {c}, c.Users {c.Users}, client: {client}, client.CurrentUser: {client.CurrentUser}, client.currentUser.Id: {client.CurrentUser.Id}");
         var selfAccountInChannel = c.Users?.FirstOrDefault(a => a.ExternalId == client.CurrentUser.Id.ToString());
-        if(selfAccountInChannel == null)
+        if (selfAccountInChannel == null)
         {
             selfAccountInChannel = UpsertAccount(client.CurrentUser, c);
         }
@@ -332,10 +326,10 @@ public class DiscordInterface
     }
     internal Channel UpsertChannel(IGuild channel)
     {
-        Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == PROTOCOL);
+        Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == Protocol);
         if (c == null)
         {
-            Console.WriteLine($"couldn't find channel under protocol {PROTOCOL} with externalId {channel.Id.ToString()}");
+            Console.WriteLine($"couldn't find channel under protocol {Protocol} with externalId {channel.Id.ToString()}");
             c = new Channel();
         }
 
@@ -348,9 +342,6 @@ public class DiscordInterface
         c.SubChannels ??= [];
         c.MaxAttachmentBytes = channel.MaxUploadLimit;
 
-        c.SendMessage = (t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; cannot accept text"); };
-        c.SendFile = (f, t) => { throw new InvalidOperationException($"channel {channel.Name} is guild; send file"); };
-
         return Rememberer.RememberChannel(c);
     }
     internal static Account UpsertAccount(IUser discordUser, Channel inChannel)
@@ -361,15 +352,16 @@ public class DiscordInterface
         {
             Console.WriteLine($"acc's user: {acc.IsUser?.Id}");
         }
-        acc ??= new Account() {
-            IsUser = Rememberer.SearchUser(u => u.Accounts.Any(a => a.ExternalId == discordUser.Id.ToString() && a.Protocol == PROTOCOL))
+        acc ??= new Account()
+        {
+            IsUser = Rememberer.SearchUser(u => u.Accounts.Any(a => a.ExternalId == discordUser.Id.ToString() && a.Protocol == Protocol))
                 ?? new User()
         };
 
         acc.Username = discordUser.Username;
         acc.ExternalId = discordUser.Id.ToString();
         acc.IsBot = discordUser.IsBot || discordUser.IsWebhook;
-        acc.Protocol = PROTOCOL;
+        acc.Protocol = Protocol;
         acc.SeenInChannel = inChannel;
 
         Console.WriteLine($"we asked rememberer to search for acc's user. {acc.IsUser?.Id}");
@@ -384,7 +376,7 @@ public class DiscordInterface
         }
         Rememberer.RememberAccount(acc);
         inChannel.Users ??= [];
-        if(!inChannel.Users.Contains(acc))
+        if (!inChannel.Users.Contains(acc))
         {
             inChannel.Users.Add(acc);
             Rememberer.RememberChannel(inChannel);
@@ -392,36 +384,112 @@ public class DiscordInterface
         return acc;
     }
 
-    private static Task AttemptReact(IUserMessage msg, string e)
+    private static async Task<int> AttemptReact(IUserMessage msg, string e)
     {
         var c = Rememberer.SearchChannel(c => c.ExternalId == msg.Channel.Id.ToString());// db.Channels.FirstOrDefault(c => c.ExternalId == msg.Channel.Id.ToString());
         //var preferredEmote = c.EmoteOverrides?[e] ?? e; //TODO: emote overrides
         var preferredEmote = e;
         if (Emoji.TryParse(preferredEmote, out Emoji emoji))
         {
-            return msg.AddReactionAsync(emoji);
+            msg.AddReactionAsync(emoji);
+            return 200;
         }
         if (!Emote.TryParse(preferredEmote, out Emote emote))
         {
             if (preferredEmote == e)
                 Console.Error.WriteLine($"never heard of emote {e}");
-            return Task.CompletedTask;
+            return 405;
         }
 
-        return msg.AddReactionAsync(emote);
+        msg.AddReactionAsync(emote);
+        return 200;
     }
 
     private static string TruncateText(string msg, uint? chars)
     {
         chars ??= 500;
-        if(msg?.Length > chars)
+        if (msg?.Length > chars)
         {
-            return msg.Substring(0, (int)chars-2) + "✂";
+            return msg.Substring(0, (int)chars - 2) + "✂";
         }
         else
         {
             return msg;
         }
     }
+    public override async Task<int> SendMessage(Channel channel, string text)
+    {
+        var dcCh = await client.GetChannelAsync(ulong.Parse(channel.ExternalId));
+        if (dcCh == null)
+        {
+            return 404;
+        }
 
+        if (dcCh is IMessageChannel msgChannel)
+        {
+            await msgChannel.SendMessageAsync(TruncateText(text, channel.MaxTextChars));
+            return 200;
+        }
+        else
+        {
+            return 503;
+        }
+    }
+    public override async Task<int> SendFile(Channel channel, string path, string accompanyingText)
+    {
+        var dcCh = await client.GetChannelAsync(ulong.Parse(channel.ExternalId));
+        if (dcCh == null)
+        {
+            return 404;
+        }
+
+        if (dcCh is IMessageChannel msgChannel)
+        {
+            await msgChannel.SendFileAsync(path, TruncateText(accompanyingText, channel.MaxTextChars));
+            return 200;
+        }
+        else
+        {
+            return 503;
+        }
+    }
+    public override async Task<int> React(Message message, string reaction)
+    {
+        var dcCh = await client.GetChannelAsync(ulong.Parse(message.Channel.ExternalId));
+        if (dcCh == null)
+            return 404;
+
+        if (dcCh is IMessageChannel msgChannel)
+        {
+            var dcMsg = await msgChannel.GetMessageAsync(ulong.Parse(message.ExternalId));
+            if (dcMsg == null)
+                return 404;
+
+            return await AttemptReact(dcMsg as IUserMessage, reaction);
+        }
+        else
+        {
+            return 503;
+        }
+    }
+    public override async Task<int> Reply(Message message, string text)
+    {
+        var dcCh = await client.GetChannelAsync(ulong.Parse(message.Channel.ExternalId));
+        if (dcCh == null)
+            return 404;
+
+        if (dcCh is IMessageChannel msgChannel)
+        {
+            var dcMsg = await msgChannel.GetMessageAsync(ulong.Parse(message.ExternalId));
+            if (dcMsg == null)
+                return 404;
+
+            (dcMsg as IUserMessage).ReplyAsync(TruncateText(text, message.Channel.MaxTextChars));
+            return 200;
+        }
+        else
+        {
+            return 503;
+        }
+    }
 }

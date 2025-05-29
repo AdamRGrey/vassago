@@ -18,9 +18,9 @@ public class PulseCheck : Behavior
     public override async Task<bool> ActOn(Message message)
     {
         if(message.Channel.EffectivePermissions.MaxAttachmentBytes >= 16258)
-            await message.Channel.SendFile("assets/ekgblip.png", null);
+            Behaver.Instance.SendFile(message.Channel.Id, "assets/ekgblip.png", null);
         else
-            await message.Channel.SendMessage("[lub-dub]");
+            Behaver.Instance.SendMessage(message.Channel.Id, "[lub-dub]");
         return true;
     }
 }

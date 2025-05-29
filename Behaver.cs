@@ -1,9 +1,9 @@
 namespace vassago;
-#pragma warning disable 4014
 using gray_messages.chat;
 using franz;
 using vassago.Behavior;
 using vassago.Models;
+using vassago.ProtocolInterfaces;
 using System;
 using System.Linq;
 using System.Text;
@@ -49,7 +49,7 @@ public class Behaver
         foreach (var behavior in Behaviors.ToList())
         {
             //if (!behavior.ShouldAct(message, matchingUACs)) //TODO: this way
-            if(!behavior.ShouldAct(message))
+            if (!behavior.ShouldAct(message))
             {
                 continue;
             }
@@ -65,7 +65,7 @@ public class Behaver
                                 @"Well, that's a great question, and there are certainly many different possible answers. Ultimately, the decision will depend on a variety of factors, including your personal interests and goals, as well as any practical considerations (like the economy). I encourage you to do your research, speak with experts and educators, and explore your options before making a decision that's right for you.",
                                 @"┐(ﾟ ～ﾟ )┌", @"¯\_(ツ)_/¯", @"╮ (. ❛ ᴗ ❛.) ╭", @"╮(╯ _╰ )╭"
                             };
-            await message.Channel.SendMessage(responses[Shared.r.Next(responses.Count)]);
+            Behaver.Instance.SendMessage(message.Channel.Id, responses[Shared.r.Next(responses.Count)]);
             message.ActedOn = true;
             behaviorsActedOn.Add("generic question fallback");
         }
@@ -148,5 +148,67 @@ public class Behaver
         Rememberer.RememberUser(primary);
         return true;
     }
+    private ProtocolInterface fetchInterface(Channel ch)
+    {
+        var walkUp = ch;
+        while (walkUp.ParentChannel != null)
+        {
+            walkUp = walkUp.ParentChannel;
+        }
+        foreach (var iproto in Shared.ProtocolList)
+        {
+            if (iproto.SelfChannel.Id == walkUp.Id)
+                return iproto;
+        }
+        return null;
+    }
+    public async Task<int> SendMessage(Guid channelId, string text)
+    {
+        var channel = Rememberer.ChannelDetail(channelId);
+        if (channel == null)
+            return 404;
+        var iprotocol = fetchInterface(channel);
+        if (iprotocol == null)
+            return 404;
+
+        return await iprotocol.SendMessage(channel, text);
+    }
+    public async Task<int> React(Guid messageId, string reaction)
+    {
+        var message = Rememberer.MessageDetail(messageId);
+        if (message == null)
+            return 404;
+        var iprotocol = fetchInterface(message.Channel);
+        if (iprotocol == null)
+            return 404;
+
+        return await iprotocol.React(message, reaction);
+    }
+    public async Task<int> Reply(Guid messageId, string text)
+    {
+        var message = Rememberer.MessageDetail(messageId);
+        if (message == null)
+        {
+            Console.WriteLine($"message {messageId} not found");
+            return 404;
+        }
+        var iprotocol = fetchInterface(message.Channel);
+        if (iprotocol == null)
+        {
+            Console.WriteLine($"couldn't find channel for {message.Channel.Id} not found");
+                return 404;
+        }
+        return await iprotocol.Reply(message, text);
+    }
+    public async Task<int> SendFile(Guid channelId, string path, string accompanyingText)
+    {
+        var channel = Rememberer.ChannelDetail(channelId);
+        if (channel == null)
+            return 404;
+        var iprotocol = fetchInterface(channel);
+        if (iprotocol == null)
+            return 404;
+
+        return await iprotocol.SendFile(channel, path, accompanyingText);
+    }
 }
-#pragma warning restore 4014 //the "async not awaited" error

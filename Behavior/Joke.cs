@@ -25,31 +25,29 @@ public class Joke : Behavior
         jokes = jokes.Where(l => !string.IsNullOrWhiteSpace(l))?.ToArray();
         if (jokes?.Length == 0)
         {
-            await message.Channel.SendMessage("I don't know any. Adam!");
+            Behaver.Instance.SendMessage(message.Channel.Id, "I don't know any. Adam!");
         }
         var thisJoke = jokes[Shared.r.Next(jokes.Length)];
         if (thisJoke.Contains("?") && !thisJoke.EndsWith('?'))
         {
-            #pragma warning disable 4014
             Task.Run(async () =>
             {
                 var firstIndexAfterQuestionMark = thisJoke.LastIndexOf('?') + 1;
                 var straightline = thisJoke.Substring(0, firstIndexAfterQuestionMark);
                 var punchline = thisJoke.Substring(firstIndexAfterQuestionMark, thisJoke.Length - firstIndexAfterQuestionMark).Trim();
-                Task.WaitAll(message.Channel.SendMessage(straightline));
+                Task.WaitAll(Behaver.Instance.SendMessage(message.Channel.Id, straightline));
                 Thread.Sleep(TimeSpan.FromSeconds(Shared.r.Next(5, 30)));
                 if (message.Channel.EffectivePermissions.ReactionsPossible == true && Shared.r.Next(8) == 0)
                 {
                     Behaver.Behaviors.Add(new LaughAtOwnJoke(punchline));
                 }
-                await message.Channel.SendMessage(punchline);
+                Behaver.Instance.SendMessage(message.Channel.Id, punchline);
                 // var myOwnMsg = await message.Channel.SendMessage(punchline);
             });
-            #pragma warning restore 4014
         }
         else
         {
-            await message.Channel.SendMessage(thisJoke);
+            Behaver.Instance.SendMessage(message.Channel.Id, thisJoke);
         }
         return true;
     }
@@ -69,7 +67,7 @@ public class LaughAtOwnJoke : Behavior
     }
     public override bool ShouldAct(Message message)
     {
-        if(Behaver.Instance.IsSelf(message.Author.Id))
+        if (Behaver.Instance.IsSelf(message.Author.Id))
             return false;
 
         Console.WriteLine($"{message.Content} == {_punchline}");
@@ -79,7 +77,7 @@ public class LaughAtOwnJoke : Behavior
 
     public override async Task<bool> ActOn(Message message)
     {
-        await message.React("\U0001F60E"); //smiling face with sunglasses
+        Behaver.Instance.React(message.Id, "\U0001F60E"); //smiling face with sunglasses
         Behaver.Behaviors.Remove(this);
         return true;
     }

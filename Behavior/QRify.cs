@@ -21,7 +21,7 @@ public class QRify : Behavior
 
     public override bool ShouldAct(Message message)
     {
-        if(message.Channel.EffectivePermissions.MaxAttachmentBytes < 1024)
+        if (message.Channel.EffectivePermissions.MaxAttachmentBytes < 1024)
             return false;
         return base.ShouldAct(message);
     }
@@ -42,16 +42,16 @@ public class QRify : Behavior
         File.WriteAllText($"tmp/qr{todaysnumber}.svg", qrCodeAsSvg);
         if (ExternalProcess.GoPlz("convert", $"tmp/qr{todaysnumber}.svg tmp/qr{todaysnumber}.png"))
         {
-            if(message.Channel.EffectivePermissions.MaxAttachmentBytes >= (ulong)(new System.IO.FileInfo($"tmp/qr{todaysnumber}.png").Length))
-                await message.Channel.SendFile($"tmp/qr{todaysnumber}.png", null);
+            if (message.Channel.EffectivePermissions.MaxAttachmentBytes >= (ulong)(new System.IO.FileInfo($"tmp/qr{todaysnumber}.png").Length))
+                Behaver.Instance.SendFile(message.Channel.Id, $"tmp/qr{todaysnumber}.png", null);
             else
-                await message.Channel.SendMessage($"resulting qr image 2 big 4 here ({(ulong)(new System.IO.FileInfo($"tmp/qr{todaysnumber}.png").Length)} / {message.Channel.EffectivePermissions.MaxAttachmentBytes})");
+                Behaver.Instance.SendMessage(message.Channel.Id, $"resulting qr image 2 big 4 here ({(ulong)(new System.IO.FileInfo($"tmp / qr{ todaysnumber}.png").Length)} / {message.Channel.EffectivePermissions.MaxAttachmentBytes})");
             File.Delete($"tmp/qr{todaysnumber}.svg");
             File.Delete($"tmp/qr{todaysnumber}.png");
         }
         else
         {
-            await message.Channel.SendMessage("convert failed :( aaaaaaadam!");
+            Behaver.Instance.SendMessage(message.Channel.Id, "convert failed :( aaaaaaadam!");
             Console.Error.WriteLine($"convert failed :( qr{todaysnumber}");
             return false;
         }

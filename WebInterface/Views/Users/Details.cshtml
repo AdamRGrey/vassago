@@ -11,7 +11,7 @@
         <tr>
             <th scope="row">Display Name (here)</th>
             <td><input type="text" id="displayName" value="@Model.DisplayName" disabled alt="todo"></input> <button
-                    onclick="patchModel(jsonifyUser(), @Html.Raw("'/api/Users/'"))" disabled alt"todo">update</button></td>
+                    onclick="patchModel(jsonifyUser())" disabled alt"todo">update</button></td>
         </tr>
         <tr>
             <th scope="row">Accounts</th>
@@ -54,12 +54,12 @@
             }
             sb.Append("]}]");
         }
-                console.log(@Html.Raw(sb.ToString()));
+            console.log(@Html.Raw(sb.ToString()));
             var tree = @Html.Raw(sb.ToString());
             return tree;
         }
 
         $('#accountsTree').bstreeview({ data: getAccountsTree() });
-        document.querySelectorAll("input[type=checkbox]").forEach(node => { node.onchange = () => { patchModel(jsonifyUser(), '/api/Users/') } });
+        document.querySelectorAll("input[type=checkbox]").forEach(node => { node.onchange = () => { patchModel(jsonifyUser()) } });
     </script>
 }

@@ -160,11 +160,11 @@ public class Webhook : Behavior
         {
             var tragedy = $"{response.StatusCode} - {response.ReasonPhrase} - {await response.Content.ReadAsStringAsync()}";
             Console.Error.WriteLine(tragedy);
-            await message.Reply(tragedy);
+            Behaver.Instance.Reply(message.Id, tragedy);
         }
         else
         {
-            await message.Reply(await response.Content.ReadAsStringAsync());
+           Behaver.Instance.Reply(message.Id, await response.Content.ReadAsStringAsync());
         }
         return true;
     }
