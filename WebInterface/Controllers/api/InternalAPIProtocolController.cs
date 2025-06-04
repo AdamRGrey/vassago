@@ -45,15 +45,18 @@ public class InternalAPIProtocolController : ControllerBase
 
     public class extraSpecialObjectReadGlorifiedTupleFor_SendFile
     {
-        public Guid channelId; public string path; public string accompanyingText;
+        public Guid channelId;
+        public string accompanyingText;
+        public string base64dData;
+        public string filename;
     }
     [HttpPost]
     [Route("SendFile")]
     [Produces("application/json")]
     public IActionResult SendFile([FromBody] extraSpecialObjectReadGlorifiedTupleFor_SendFile param)
     {
-        Console.WriteLine($"SendFile- {param.channelId}, {param.path}, {param.accompanyingText}");
-        return StatusCode(Behaver.Instance.SendFile(param.channelId, param.path, param.accompanyingText).Result);
+        Console.WriteLine($"SendFile- {param.channelId}, {param.filename} (base64'd, {param.base64dData?.Length} chars), {param.accompanyingText}");
+        return StatusCode(Behaver.Instance.SendFile(param.channelId, param.base64dData, param.filename, param.accompanyingText).Result);
     }
 
     public class extraSpecialObjectReadGlorifiedTupleFor_ReactToMessage

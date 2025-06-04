@@ -27,7 +27,7 @@ public class DiscordInterface : ProtocolInterface
     private bool eventsSignedUp = false;
     private static readonly SemaphoreSlim discordChannelSetup = new(1, 1);
     private Channel protocolAsChannel;
-    public override Channel SelfChannel { get => protocolAsChannel;}
+    public override Channel SelfChannel { get => protocolAsChannel; }
 
     public async Task Init(string config)
     {
@@ -434,7 +434,7 @@ public class DiscordInterface : ProtocolInterface
             return 503;
         }
     }
-    public override async Task<int> SendFile(Channel channel, string path, string accompanyingText)
+    public override async Task<int> SendFile(Channel channel, string base64dData, string filename, string accompanyingText)
     {
         var dcCh = await client.GetChannelAsync(ulong.Parse(channel.ExternalId));
         if (dcCh == null)
@@ -444,7 +444,10 @@ public class DiscordInterface : ProtocolInterface
 
         if (dcCh is IMessageChannel msgChannel)
         {
-            await msgChannel.SendFileAsync(path, TruncateText(accompanyingText, channel.MaxTextChars));
+            using (var ms = new MemoryStream(Convert.FromBase64String(base64dData)))
+            {
+                await msgChannel.SendFileAsync(ms, filename, TruncateText(accompanyingText, channel.MaxTextChars));
+            }
             return 200;
         }
         else

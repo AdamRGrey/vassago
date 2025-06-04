@@ -224,4 +224,15 @@ public class Behaver
 
         return await iprotocol.SendFile(channel, path, accompanyingText);
     }
+    public async Task<int> SendFile(Guid channelId, string base64dData, string filename, string accompanyingText)
+    {
+        var channel = Rememberer.ChannelDetail(channelId);
+        if (channel == null)
+            return 404;
+        var iprotocol = fetchInterface(channel);
+        if (iprotocol == null)
+            return 404;
+
+        return await iprotocol.SendFile(channel, base64dData, filename, accompanyingText);
+    }
 }

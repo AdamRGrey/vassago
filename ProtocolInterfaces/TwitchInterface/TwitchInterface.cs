@@ -295,7 +295,7 @@ public class TwitchInterface : ProtocolInterface
         Task.Run(() => { client.SendMessage(channel.ExternalId, text); });
         return 200;
     }
-    public override async Task<int> SendFile(Channel channel, string path, string accompanyingText)
+    public override async Task<int> SendFile(Channel channel, string base64dData, string filename, string accompanyingText)
     {
         return 405;
     }
