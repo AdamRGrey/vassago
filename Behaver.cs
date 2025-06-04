@@ -194,7 +194,7 @@ public class Behaver
             Console.WriteLine($"couldn't find protocol for {message.Channel?.Id}");
             return 404;
         }
-Console.WriteLine("I remember this message, i have found a protocol, i am ready to react toit");
+        Console.WriteLine("I remember this message, i have found a protocol, i am ready to react toit");
         return await iprotocol.React(message, reaction);
     }
     public async Task<int> Reply(Guid messageId, string text)

@@ -20,6 +20,7 @@ public class Channel
     public List<Channel> SubChannels { get; set; }
     [JsonIgnore]
     public Channel ParentChannel { get; set; }
+    public Guid? ParentChannelId { get; set; }
     public string Protocol { get; set; }
     [DeleteBehavior(DeleteBehavior.Cascade)]
     public List<Message> Messages { get; set; }

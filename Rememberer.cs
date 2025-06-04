@@ -8,6 +8,25 @@ public static class Rememberer
 {
     private static readonly SemaphoreSlim dbAccessSemaphore = new(1, 1);
     private static readonly ChattingContext db = new();
+    private static List<Channel> channels;
+    private static bool channelCacheDirty = true;
+
+    private static void cacheChannels()
+    {
+        dbAccessSemaphore.Wait();
+        channels = db.Channels.ToList();
+        foreach (Channel ch in channels)
+        {
+            if (ch.ParentChannelId != null)
+            {
+                ch.ParentChannel = channels.FirstOrDefault(c => c.Id == ch.ParentChannelId);
+                ch.ParentChannel.SubChannels ??= [];
+                ch.ParentChannel.SubChannels.Add(ch);
+            }
+        }
+        channelCacheDirty = false;
+        dbAccessSemaphore.Release();
+    }
 
     public static Account SearchAccount(Expression<Func<Account, bool>> predicate)
     {
@@ -33,13 +52,11 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static Channel SearchChannel(Expression<Func<Channel, bool>> predicate)
+    public static Channel SearchChannel(Func<Channel, bool> predicate)
     {
-        Channel toReturn;
-        dbAccessSemaphore.Wait();
-        toReturn = db.Channels.FirstOrDefault(predicate);
-        dbAccessSemaphore.Release();
-        return toReturn;
+        if(channelCacheDirty)
+            Task.Run(() => cacheChannels()).Wait();
+        return channels.FirstOrDefault(predicate);
     }
     public static Message SearchMessage(Expression<Func<Message, bool>> predicate)
     {
@@ -75,10 +92,14 @@ public static class Rememberer
     }
     public static Channel RememberChannel(Channel toRemember)
     {
+        if(channelCacheDirty)
+            Task.Run(() => cacheChannels()).Wait(); //so we always do 2 db trips?
         dbAccessSemaphore.Wait();
         db.Update(toRemember);
         db.SaveChanges();
         dbAccessSemaphore.Release();
+        channelCacheDirty = true;
+        cacheChannels();
         return toRemember;
     }
     public static void RememberMessage(Message toRemember)
@@ -202,14 +223,9 @@ public static class Rememberer
     }
     public static Channel ChannelDetail(Guid Id)
     {
-        Channel toReturn;
-        dbAccessSemaphore.Wait();
-        toReturn = db.Channels.Find(Id);
-        dbAccessSemaphore.Release();
-        return toReturn;
-        // .Include(u => u.SubChannels)
-        // .Include(u => u.Users)
-        // .Include(u => u.ParentChannel);
+        if(channelCacheDirty)
+            Task.Run(() => cacheChannels()).Wait();
+        return channels.Find(c => c.Id == Id);
     }
     public static Message MessageDetail(Guid Id)
     {
