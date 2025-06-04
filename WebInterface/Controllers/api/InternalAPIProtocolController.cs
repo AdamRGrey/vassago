@@ -17,59 +17,37 @@ public class InternalAPIProtocolController : ControllerBase
         _logger = logger;
     }
 
-    public class extraSpecialObjectReadGlorifiedTupleFor_PostMessage
-    {
-        public string messageText;
-        public Guid channelId;
-    }
     [HttpPost]
     [Route("PostMessage")]
     [Produces("application/json")]
-    public IActionResult PostMessage([FromBody] extraSpecialObjectReadGlorifiedTupleFor_PostMessage param)
+    public IActionResult PostMessage(string messageText, Guid channelId)
     {
-        return StatusCode(Behaver.Instance.SendMessage(param.channelId, param.messageText).Result);
+        return StatusCode(Behaver.Instance.SendMessage(channelId, messageText).Result);
     }
-    public class extraSpecialObjectReadGlorifiedTupleFor_ReplyToMessage
-    {
-        public string messageText;
-        public Guid repliedMessageId;
-    }
+
     [HttpPost]
     [Route("ReplyToMessage")]
     [Produces("application/json")]
-    public IActionResult ReplyToMessage([FromBody] extraSpecialObjectReadGlorifiedTupleFor_ReplyToMessage param)
+    public IActionResult ReplyToMessage(string messageText, Guid repliedMessageId)
     {
-        Console.WriteLine($"ReplyToMessage - {param.repliedMessageId}, {param.messageText}");
-        return StatusCode(Behaver.Instance.Reply(param.repliedMessageId, param.messageText).Result);
-    }
-
-    public class extraSpecialObjectReadGlorifiedTupleFor_SendFile
-    {
-        public Guid channelId;
-        public string accompanyingText;
-        public string base64dData;
-        public string filename;
+        Console.WriteLine($"ReplyToMessage - {repliedMessageId}, {messageText}");
+        return StatusCode(Behaver.Instance.Reply(repliedMessageId, messageText).Result);
     }
     [HttpPost]
     [Route("SendFile")]
     [Produces("application/json")]
-    public IActionResult SendFile([FromBody] extraSpecialObjectReadGlorifiedTupleFor_SendFile param)
+    public IActionResult SendFile(Guid channelId, string accompanyingText, string base64dData, string filename)
     {
-        Console.WriteLine($"SendFile- {param.channelId}, {param.filename} (base64'd, {param.base64dData?.Length} chars), {param.accompanyingText}");
-        return StatusCode(Behaver.Instance.SendFile(param.channelId, param.base64dData, param.filename, param.accompanyingText).Result);
+        Console.WriteLine($"SendFile- {channelId}, {filename} (base64'd, {base64dData?.Length} chars), {accompanyingText}");
+        return StatusCode(Behaver.Instance.SendFile(channelId, base64dData, filename, accompanyingText).Result);
     }
 
-    public class extraSpecialObjectReadGlorifiedTupleFor_ReactToMessage
-    {
-        public string reactionString;
-        public Guid reactedMessageId;
-    }
     [HttpPost]
     [Route("ReactToMessage")]
     [Produces("application/json")]
-    public IActionResult ReactToMessage([FromBody] extraSpecialObjectReadGlorifiedTupleFor_ReactToMessage param)
+    public IActionResult ReactToMessage(string reactionString, Guid reactedMessageId)
     {
-        Console.WriteLine($"ReactToMessage- {param.reactedMessageId}, {param.reactionString}");
-        return StatusCode(Behaver.Instance.React(param.reactedMessageId, param.reactionString).Result);
+        Console.WriteLine($"ReactToMessage- {reactedMessageId}, {reactionString}");
+        return StatusCode(Behaver.Instance.React(reactedMessageId, reactionString).Result);
     }
 }
