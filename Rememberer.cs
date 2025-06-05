@@ -23,6 +23,10 @@ public static class Rememberer
                 ch.ParentChannel.SubChannels ??= [];
                 ch.ParentChannel.SubChannels.Add(ch);
             }
+            if (ch.Messages?.Count > 0)
+            {
+                Console.WriteLine($"{ch.DisplayName} got {ch.Messages.Count} messages");
+            }
         }
         channelCacheDirty = false;
         dbAccessSemaphore.Release();
@@ -54,7 +58,7 @@ public static class Rememberer
     }
     public static Channel SearchChannel(Func<Channel, bool> predicate)
     {
-        if(channelCacheDirty)
+        if (channelCacheDirty)
             Task.Run(() => cacheChannels()).Wait();
         return channels.FirstOrDefault(predicate);
     }
@@ -63,6 +67,14 @@ public static class Rememberer
         Message toReturn;
         dbAccessSemaphore.Wait();
         toReturn = db.Messages.FirstOrDefault(predicate);
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
+    public static List<Message> SearchMessages(Expression<Func<Message, bool>> predicate)
+    {
+        List<Message> toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.Messages.Where(predicate).ToList();
         dbAccessSemaphore.Release();
         return toReturn;
     }
@@ -92,7 +104,7 @@ public static class Rememberer
     }
     public static Channel RememberChannel(Channel toRemember)
     {
-        if(channelCacheDirty)
+        if (channelCacheDirty)
             Task.Run(() => cacheChannels()).Wait(); //so we always do 2 db trips?
         dbAccessSemaphore.Wait();
         db.Update(toRemember);
@@ -221,11 +233,14 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static Channel ChannelDetail(Guid Id)
+    public static Channel ChannelDetail(Guid Id, bool messages = false)
     {
-        if(channelCacheDirty)
+        if (channelCacheDirty)
             Task.Run(() => cacheChannels()).Wait();
-        return channels.Find(c => c.Id == Id);
+        var ch = channels.Find(c => c.Id == Id);
+        if (messages)
+            ch.Messages = SearchMessages(m => m.ChannelId == ch.Id);
+        return ch;
     }
     public static Message MessageDetail(Guid Id)
     {

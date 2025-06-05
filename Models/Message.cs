@@ -22,4 +22,5 @@ public class Message
     public List<Attachment> Attachments { get; set; }
     public Account Author { get; set; }
     public Channel Channel { get; set; }
+    public Guid? ChannelId { get; set; }
 }
