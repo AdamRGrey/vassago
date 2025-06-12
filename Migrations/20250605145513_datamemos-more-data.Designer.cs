@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using vassago.Models;
@@ -11,12 +12,14 @@ using vassago.Models;
 
 namespace vassago.Migrations
 {
+#pragma warning disable 612, 618, 8981
     [DbContext(typeof(ChattingContext))]
-    partial class ChattingContextModelSnapshot : ModelSnapshot
+    [Migration("20250605145513_datamemos-more-data")]
+    partial class datamemosmoredata
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
-#pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "7.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
@@ -380,7 +383,7 @@ namespace vassago.Migrations
                 {
                     b.Navigation("Accounts");
                 });
-#pragma warning restore 612, 618
+#pragma warning restore 612, 618, 8981
         }
     }
 }

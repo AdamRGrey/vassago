@@ -36,8 +36,6 @@ public class Channel
     public Enumerations.LewdnessFilterLevel? LewdnessFilterLevel { get; set; }
     public Enumerations.MeannessFilterLevel? MeannessFilterLevel { get; set; }
     public List<UAC> UACs { get; set; }
-    //both incoming and outgoing
-    //public Dictionary<string, string> Aliases { get; set; }
 
     public DefinitePermissionSettings EffectivePermissions
     {

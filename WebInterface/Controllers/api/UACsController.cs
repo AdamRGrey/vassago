@@ -8,7 +8,7 @@ namespace vassago.Controllers.api;
 
 [Route("api/[controller]")]
 [ApiController]
-public class UACController: ControllerBase
+public class UACController : ControllerBase
 {
     private readonly ILogger<UACController> _logger;
 
@@ -34,7 +34,7 @@ public class UACController: ControllerBase
         var uacFromDb = Rememberer.SearchUAC(uac => uac.Id == uac_guid);
         if (uacFromDb == null)
         {
-            var err =$"attempt to link channel for uac {uac_guid}, not found";
+            var err = $"attempt to link channel for uac {uac_guid}, not found";
             _logger.LogError(err);
             return NotFound(err);
         }
@@ -209,5 +209,24 @@ public class UACController: ControllerBase
         uacFromDb.Channels.Remove(channelFromDb);
         Rememberer.RememberUAC(uacFromDb);
         return Ok(uacFromDb);
+    }
+    [HttpPut]
+    [Route("CreateForChannels/{Id}")]
+    [Produces("application/json")]
+    public IActionResult CreateForChannels(Guid Id)
+    {
+        _logger.LogDebug($"made it to controller. creating for channel {Id}");
+        var targetChannel = Rememberer.ChannelDetail(Id);
+        if (targetChannel == null)
+        {
+            return NotFound();
+        }
+        var newUAC = new UAC()
+        {
+            Channels = [targetChannel]
+        };
+        Rememberer.RememberUAC(newUAC);
+        Rememberer.RememberChannel(targetChannel);
+        return Ok(newUAC.Id);
     }
 }

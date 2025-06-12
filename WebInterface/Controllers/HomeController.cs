@@ -43,7 +43,12 @@ public class HomeController : Controller
                 {
                     sb.Append(',');
                 }
-                sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "UACs", values: new {id = uac.Id})}\\\">{uac.DisplayName}</a>\"}}");
+                var displayedName = uac.DisplayName;
+                if(string.IsNullOrWhiteSpace(displayedName))
+                {
+                    displayedName = $"[unnamed - {uac.Id}]";
+                }
+                sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "UACs", values: new {id = uac.Id})}\\\">{displayedName}</a>\"}}");
             }
             sb.Append("]}");
         }
@@ -78,7 +83,7 @@ public class HomeController : Controller
         //type error, e is not defined
         //channels
         sb.Append(",{text: \"channels\", expanded:true, nodes: [");
-        var topLevelChannels = Rememberer.ChannelsOverview().Where(x => x.ParentChannel == null);
+        var topLevelChannels = Rememberer.ChannelsOverview().Where(x => x.ParentChannel == null).ToList();
         first = true;
         foreach (var topLevelChannel in topLevelChannels)
         {

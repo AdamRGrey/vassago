@@ -13,32 +13,28 @@ public class ChannelsController() : Controller
     public IActionResult Details(Guid id)
     {
         var allChannels = Rememberer.ChannelsOverview();
-        if(allChannels == null)
-            return Problem("Entity set '_db.Channels' is null.");
-        //"but adam", says the strawman, "why load *every* channel and walk your way up? surely there's a .Load command that works or something."
-        //eh. I checked. Not really. You could make an SQL view that recurses its way up, meh idk how. You could just eagerly load *every* related object...
-        //but that would take in all the messages. 
-        //realistically I expect this will have less than 1MB of total "channels", and several GB of total messages per (text) channel.
+        if (allChannels == null)
+            return Problem("no channels.");
 
         var channel = allChannels.FirstOrDefault(u => u.Id == id);
-        if(channel == null)
-            {
-                return Problem("couldn't find that channle");
-            }
-        var walker = channel;
-        while(walker != null)
+        if (channel == null)
         {
-            ViewData["breadcrumbs"] = $"<a href=\"{Url.ActionLink(action: "Details", controller: "Channels", values: new {id = walker.Id})}\">{walker.DisplayName}</a>/" + 
+            return Problem($"couldn't find channle {id}");
+        }
+        var walker = channel;
+        while (walker != null)
+        {
+            ViewData["breadcrumbs"] = $"<a href=\"{Url.ActionLink(action: "Details", controller: "Channels", values: new { id = walker.Id })}\">{walker.DisplayName}</a>/" +
                 ViewData["breadcrumbs"];
             walker = walker.ParentChannel;
         }
         var sb = new StringBuilder();
         sb.Append('[');
         sb.Append($"{{text: \"{channel.SubChannels?.Count}\", nodes: [");
-        var first=true;
-        foreach(var subChannel in channel.SubChannels)
+        var first = true;
+        foreach (var subChannel in channel.SubChannels)
         {
-            if(!first)
+            if (!first)
             {
                 sb.Append(',');
             }
@@ -46,11 +42,11 @@ public class ChannelsController() : Controller
             {
                 first = false;
             }
-            sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Channels", values: new {id = subChannel.Id})}\\\">{subChannel.DisplayName}</a>\"}}");
+            sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Channels", values: new { id = subChannel.Id })}\\\">{subChannel.DisplayName}</a>\"}}");
         }
         sb.Append("]}]");
 
-        ViewData.Add("channelsTree", sb.ToString());
+        ViewData.Add("subChannelsTree", sb.ToString());
         return View(
             new Tuple<Channel, Enumerations.LewdnessFilterLevel, Enumerations.MeannessFilterLevel>(
                 channel, channel.EffectivePermissions.LewdnessFilterLevel, channel.EffectivePermissions.MeannessFilterLevel

@@ -104,6 +104,12 @@
       </td>
     </tr>
     <tr>
+      <th scope="row">Datamemos</th>
+      <td>
+        <div id="dataMemosTree"></div>
+    </td>
+    </tr>
+    <tr>
       <td colspan="2">
         <button onclick="forget()">forget</button>
       </td>
@@ -138,15 +144,49 @@
         deleteModel(jsonifyChannel().Id, window.history.back);
       }
     }
+    function createMemo()
+    {
+        console.log("creating memo for channel..");
+        createMemoFor((newMemoId) => {
+            window.location.href = "/UACs/Details/" + newMemoId;
+        });
+    }
     
     function channelsTree() {
-      var tree = @Html.Raw(ViewData["channelsTree"]);
+      //TOOD: see how accountsTree does all our HTML-ification over here in HTML land? but this doesn't? we should pick one and stick with it.
+      var tree = @Html.Raw(ViewData["subChannelsTree"]);
       return tree;
     }
+    function dataMemosTree(){
+      @{
+            var dmsb = new StringBuilder();
+            dmsb.Append("[{text: \"Data Memos\", \"expanded\":true, nodes: [");
+            var firstMemo = true;
+            if(ThisChannel.UACs != null) foreach(var memo in ThisChannel.UACs)
+            {
+                if(!firstMemo)
+                    dmsb.Append(',');
+                var effectiveDisplayName = memo.DisplayName;
+                if(string.IsNullOrWhiteSpace(effectiveDisplayName))
+                {
+                    effectiveDisplayName = $"[nameless] {memo.Id}";
+                }
+                dmsb.Append($"{{text: \"<a href=\\\"/UACs/Details/{memo.Id}\\\">{effectiveDisplayName}</a>\"}}");
+                firstMemo = false;
+            }
+            if(!firstMemo)
+                dmsb.Append(',');
+            dmsb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"createMemo()\\\">+</button>\"}}");
+            dmsb.Append("]}]");
+        }
+      var tree = @Html.Raw(dmsb.ToString());
+      return tree;
+}
 
     function accountsTree() {
       @{
         var sb = new StringBuilder();
+
         sb.Append("[{text: \"accounts\", \"expanded\":true, nodes: [");
         var first = true;
         foreach (var acc in ThisChannel.Users?.OrderBy(a => a?.SeenInChannel?.LineageSummary))
@@ -157,6 +197,7 @@
             first=false;
         }
         sb.Append("]}]");
+
       }
       //console.log(@Html.Raw(sb.ToString()));
       var tree = @Html.Raw(sb.ToString());
@@ -164,6 +205,7 @@
     }
     $('#channelsTree').bstreeview({ data: channelsTree() });
     $('#accountsTree').bstreeview({ data: accountsTree() });
+    $('#dataMemosTree').bstreeview({ data: dataMemosTree() });
 
   </script>
 }

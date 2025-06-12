@@ -49,7 +49,7 @@ function deleteModel(id, callback)
   var components = window.location.pathname.split('/');
   var type=components[1];
   let result = null;
-  var id=components[3];
+  var id=components[3]; //wait... i send it the ID then overwrite it? lmao what? TODO: fix
   fetch(apiUrl + 'Rememberer/' + type + '/' + id, {
     method: 'DELETE',
     headers: {
@@ -71,9 +71,37 @@ function deleteModel(id, callback)
     console.error('Error:', error);
   });
 }
+function createMemoFor(callback)
+{
+  let components = window.location.pathname.split('/');
+  let type=components[1];
+  type = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+  let result = null;
+  let id=components[3];
+  console.log("createMemoFor" + type + "(" + id + ")");
+  fetch(apiUrl + "UAC/CreateFor" + type + "/" + id, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not "ok". which is not ok.');
+    }
+    return response.json();
+  })
+  .then(returnedSuccessdata => {
+    console.log("success");
+    console.log('returnedSuccessdata:', returnedSuccessdata);
+    if(callback !== null) { callback(returnedSuccessdata); }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+}
 function linkUAC_Channel(channel_guid, callback)
 {
-
   var components = window.location.pathname.split('/');
   var id=components[3];
   let model={"uac_guid": id,

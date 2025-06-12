@@ -15,18 +15,23 @@ public static class Rememberer
     {
         dbAccessSemaphore.Wait();
         channels = db.Channels.ToList();
+        Console.WriteLine($"caching channels. {channels.Count} channels retrieved");
         foreach (Channel ch in channels)
         {
             if (ch.ParentChannelId != null)
             {
                 ch.ParentChannel = channels.FirstOrDefault(c => c.Id == ch.ParentChannelId);
                 ch.ParentChannel.SubChannels ??= [];
-                ch.ParentChannel.SubChannels.Add(ch);
+                if (!ch.ParentChannel.SubChannels.Contains(ch))
+                {
+                    ch.ParentChannel.SubChannels.Add(ch);
+                }
             }
             if (ch.Messages?.Count > 0)
             {
                 Console.WriteLine($"{ch.DisplayName} got {ch.Messages.Count} messages");
             }
+            ch.SubChannels ??= [];
         }
         channelCacheDirty = false;
         dbAccessSemaphore.Release();
@@ -179,6 +184,8 @@ public static class Rememberer
         db.Channels.Remove(toForget);
         db.SaveChanges();
         dbAccessSemaphore.Release();
+        channelCacheDirty = true;
+        cacheChannels();
     }
     public static void ForgetMessage(Message toForget)
     {
@@ -211,11 +218,9 @@ public static class Rememberer
     }
     public static List<Channel> ChannelsOverview()
     {
-        List<Channel> toReturn;
-        dbAccessSemaphore.Wait();
-        toReturn = [.. db.Channels.Include(u => u.SubChannels).Include(c => c.ParentChannel)];
-        dbAccessSemaphore.Release();
-        return toReturn;
+        if (channelCacheDirty)
+            Task.Run(() => cacheChannels()).Wait();
+        return channels;
     }
     public static Account AccountDetail(Guid Id)
     {
@@ -318,5 +323,7 @@ public static class Rememberer
         db.Update(toRemember);
         db.SaveChanges();
         dbAccessSemaphore.Release();
+        if (toRemember.Channels?.Count() > 0)
+            cacheChannels();
     }
 }
