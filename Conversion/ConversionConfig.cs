@@ -10,13 +10,14 @@ namespace vassago.Conversion
             public string Canonical { get; set; }
             public IEnumerable<string> Aliases { get; set; }
         }
-        public class LinearPair
+        public class FormulaicPair
         {
             public string item1 { get; set; }
             public string item2 { get; set; }
-            public decimal factor { get; set; }
+            public string formulaforward {get; set; }
+            public string formulabackward {get; set; }
         }
         public IEnumerable<KnownUnit> Units { get; set; }
-        public IEnumerable<LinearPair> LinearPairs { get; set; }
+        public IEnumerable<FormulaicPair> FormulaicPairs { get; set; }
     }
 }

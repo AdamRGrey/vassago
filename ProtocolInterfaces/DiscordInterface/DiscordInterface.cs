@@ -171,7 +171,7 @@ public class DiscordInterface : ProtocolInterface
             case "freedomunits":
                 try
                 {
-                    var amt = Convert.ToDecimal((double)(command.Data.Options.First(o => o.Name == "amount").Value));
+                    var amt = (double)(command.Data.Options.First(o => o.Name == "amount").Value);
                     var src = (string)command.Data.Options.First(o => o.Name == "src-unit").Value;
                     var dest = (string)command.Data.Options.First(o => o.Name == "dest-unit").Value;
                     var conversionResult = Conversion.Converter.Convert(amt, src, dest);

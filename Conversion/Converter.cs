@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using Jace;
 using Newtonsoft.Json;
 using QRCoder;
 
@@ -16,12 +17,12 @@ namespace vassago.Conversion
 {
     public static class Converter
     {
-        private delegate decimal Convert1Way(decimal input);
         private static string currencyPath;
         private static ExchangePairs currencyConf = null;
         private static DateTime lastUpdatedCurrency = DateTime.UnixEpoch;
-        private static List<Tuple<string, string, Convert1Way, Convert1Way>> knownConversions = new List<Tuple<string, string, Convert1Way, Convert1Way>>();
+        private static List<Tuple<string, string,Func<double, double>, Func<double, double>>> knownConversions = new List<Tuple<string, string, Func<double, double>,Func<double, double>>>();
         private static Dictionary<List<string>, string> knownAliases = new Dictionary<List<string>, string>(new List<KeyValuePair<List<string>, string>>());
+        private static CalculationEngine engine = new CalculationEngine();
         public static string DebugInfo()
         {
             var convertibles = knownConversions.Select(kc => kc.Item1).Union(knownConversions.Select(kc => kc.Item2)).Union(
@@ -44,16 +45,16 @@ namespace vassago.Conversion
         }
         private static void loadStatic()
         {
-            knownConversions = new List<Tuple<string, string, Convert1Way, Convert1Way>>();
+            knownConversions = new List<Tuple<string, string, Func<double, double>, Func<double, double>>>();
             knownAliases = new Dictionary<List<string>, string>(new List<KeyValuePair<List<string>, string>>());
             var convConf = JsonConvert.DeserializeObject<ConversionConfig>(File.ReadAllText("assets/conversion.json").ToLower());
             foreach (var unit in convConf.Units)
             {
                 knownAliases.Add(unit.Aliases.ToList(), unit.Canonical);
             }
-            foreach (var lp in convConf.LinearPairs)
+            foreach (var lp in convConf.FormulaicPairs)
             {
-                AddLinearPair(lp.item1, lp.item2, lp.factor);
+                AddLinearPair(lp.item1, lp.item2, lp.formulaforward, lp.formulabackward );
             }
             loadCurrency();
         }
@@ -78,12 +79,12 @@ namespace vassago.Conversion
                     {
                         knownAliases.Add(new List<string>() { rate.Key.ToLower() }, rate.Key);
                     }
-                    AddLinearPair(currencyConf.Base, rate.Key, rate.Value);
+                    AddLinearPair(currencyConf.Base, rate.Key, $"i1 * {rate.Value}", $"i1 / {rate.Value}");
                 }
             }
         }
 
-        public static string Convert(decimal numericTerm, string sourceunit, string destinationUnit)
+        public static string Convert(double numericTerm, string sourceunit, string destinationUnit)
         {
             //normalize units
             var normalizationAttemptSource = NormalizeUnit(sourceunit.ToLower());
@@ -264,12 +265,20 @@ namespace vassago.Conversion
             }
             return null;
         }
-        private static void AddLinearPair(string key1, string key2, decimal factor)
+        private static void AddLinearPair(string key1, string key2, string formulaForward, string formulaBackward)
         {
-            var reverseFactor = 1.0m / factor;
-            knownConversions.Add(new Tuple<string, string, Convert1Way, Convert1Way>(
-                key1, key2, x => x * factor, y => y * reverseFactor
-            ));
+            knownConversions.Add(new Tuple<string, string, Func<double, double>, Func<double, double>>(
+                                     key1,
+                                     key2,
+                                     (Func<double, double>) engine.Formula(formulaForward)
+                                         .Parameter("i1", DataType.FloatingPoint)
+                                     .Result(DataType.FloatingPoint)
+                                     .Build(),
+                                     (Func<double, double>) engine.Formula(formulaBackward)
+                                         .Parameter("i1", DataType.FloatingPoint)
+                                     .Result(DataType.FloatingPoint)
+                                     .Build()
+                                 ));
         }
     }
 }

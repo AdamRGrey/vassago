@@ -15,6 +15,7 @@
     <PackageReference Include="bootstrap" Version="5.3.3" />
     <PackageReference Include="discord.net" Version="3.10.0" />
     <PackageReference Include="greyn.franz" Version="2.1.0" />
+    <PackageReference Include="jace" Version="1.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.20" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
