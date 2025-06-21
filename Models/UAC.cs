@@ -32,6 +32,6 @@ public class UAC
     ///</summary>
     public string Description { get; set; }
 
-    public Dictionary<string, string> CommandAliases {get; set;}
-    public Dictionary<string, string> Localization {get; set;}
+    public Dictionary<string, string> CommandAlterations {get; set;}
+    public Dictionary<string, string> Translations {get; set;}
 }

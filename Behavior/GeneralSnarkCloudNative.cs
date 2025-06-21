@@ -17,7 +17,7 @@ public class GeneralSnarkCloudNative : Behavior
     public override string Name => "general snarkiness: cloud native";
 
     public override string Trigger => "certain tech buzzwords that no human uses in normal conversation";
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
         if (Behaver.Instance.IsSelf(message.Author.Id))
             return false;
@@ -28,8 +28,8 @@ public class GeneralSnarkCloudNative : Behavior
         if ((MeannessFilterLevel)message.Channel.EffectivePermissions.MeannessFilterLevel < MeannessFilterLevel.Medium)
             return false;
 
-        return Regex.IsMatch(message.Content, "\\bcloud( |-)?native\\b", RegexOptions.IgnoreCase) ||
-               Regex.IsMatch(message.Content, "\\benterprise( |-)?(level|solution)\\b", RegexOptions.IgnoreCase);
+        return Regex.IsMatch(message.TranslatedContent, "\\bcloud( |-)?native\\b", RegexOptions.IgnoreCase) ||
+               Regex.IsMatch(message.TranslatedContent, "\\benterprise( |-)?(level|solution)\\b", RegexOptions.IgnoreCase);
     }
 
     public override async Task<bool> ActOn(Message message)

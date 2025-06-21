@@ -269,6 +269,56 @@ function unlinkUAC_Channel(user_guid, callback)
     console.error('Error:', error);
   });
 }
+function addUAC_Translation(callback)
+{
+  var components = window.location.pathname.split('/');
+  var id=components[3];
+  fetch(apiUrl + "UAC/AddTranslation/" + id, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not "ok". which is not ok.');
+    }
+    return response.json();
+  })
+  .then(returnedSuccessdata => {
+    // perhaps a success callback
+    console.log('returnedSuccessdata:', returnedSuccessdata);
+    if(callback !== null) { callback(); }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+}
+function addUAC_CommandAlteration(callback)
+{
+  var components = window.location.pathname.split('/');
+  var id=components[3];
+  fetch(apiUrl + "UAC/AddCommandAlteration/" + id, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not "ok". which is not ok.');
+    }
+    return response.json();
+  })
+  .then(returnedSuccessdata => {
+    // perhaps a success callback
+    console.log('returnedSuccessdata:', returnedSuccessdata);
+    if(callback !== null) { callback(); }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+}
 //give me account, we'll tear it off from user.
 function unlinkAccountUser(callback)
 {

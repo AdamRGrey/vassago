@@ -19,7 +19,7 @@ public class GeneralSnarkPlaying : Behavior
 
     public override string Description => "I didn't think you were playing, but now I do";
 
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
         if(Behaver.Instance.IsSelf(message.Author.Id))
             return false;
@@ -28,7 +28,7 @@ public class GeneralSnarkPlaying : Behavior
             (LewdnessFilterLevel)message.Channel.EffectivePermissions.LewdnessFilterLevel  < LewdnessFilterLevel.Moderate)
             return false;
 
-        return Regex.IsMatch(message.Content, "^(s?he|(yo)?u|y'?all|they) thinks? i'?m (playin|jokin|kiddin)g?$", RegexOptions.IgnoreCase);
+        return Regex.IsMatch(message.TranslatedContent, "^(s?he|(yo)?u|y'?all|they) thinks? i'?m (playin|jokin|kiddin)g?$", RegexOptions.IgnoreCase);
     }
     public override async Task<bool> ActOn(Message message)
     {

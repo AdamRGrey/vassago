@@ -18,12 +18,12 @@ public class DefinitionSnarkGaslight : Behavior
 
     public override string Description => "snarkiness about the rampant misuse of the term gaslighting";
 
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
         if((MeannessFilterLevel)message.Channel.EffectivePermissions.MeannessFilterLevel < MeannessFilterLevel.Unrestricted)
             return false;
 
-        return base.ShouldAct(message);
+        return base.ShouldAct(message, matchedUACs);
     }
 
     public override async Task<bool> ActOn(Message message)

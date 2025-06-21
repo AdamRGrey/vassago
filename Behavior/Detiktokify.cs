@@ -24,7 +24,7 @@ public class Detiktokify : Behavior
         ytdl.OutputFolder = "";
         ytdl.OutputFileTemplate = "tiktokbad.%(ext)s";
     }
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
 
         if (Behaver.Instance.IsSelf(message.Author.Id))
@@ -33,7 +33,7 @@ public class Detiktokify : Behavior
         if (message.Channel.EffectivePermissions.MaxAttachmentBytes == 0)
             return false;
 
-        var wordLikes = message.Content.Split(' ', StringSplitOptions.TrimEntries);
+        var wordLikes = message.TranslatedContent.Split(' ', StringSplitOptions.TrimEntries);
         var possibleLinks = wordLikes?.Where(wl => Uri.IsWellFormedUriString(wl, UriKind.Absolute)).Select(wl => new Uri(wl));
         if (possibleLinks != null && possibleLinks.Count() > 0)
         {
@@ -47,7 +47,7 @@ public class Detiktokify : Behavior
         }
         if (tiktokLinks.Any())
         {
-            Console.WriteLine($"Should Act on message id {message.ExternalId}; with content {message.Content}");
+            Console.WriteLine($"Should Act on message id {message.ExternalId}; with content {message.TranslatedContent}");
         }
         return tiktokLinks.Any();
     }

@@ -13,11 +13,19 @@ public abstract class Behavior
     //recommendation: set up your UACs in your constructor.
     public abstract Task<bool> ActOn(Message message);
 
-    public virtual bool ShouldAct(Message message)
+    public virtual bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
         if(Behaver.Instance.IsSelf(message.Author.Id))
             return false;
-        return Regex.IsMatch(message.Content, $"{Trigger}\\b", RegexOptions.IgnoreCase);
+        var triggerTarget = Trigger ;
+        foreach(var uacMatch in matchedUACs)
+        {
+            foreach(var substitution in uacMatch.CommandAlterations)
+            {
+                triggerTarget = new Regex(substitution.Key).Replace(triggerTarget, substitution.Value);
+            }
+        }
+        return Regex.IsMatch(message.TranslatedContent, $"{triggerTarget}\\b", RegexOptions.IgnoreCase);
     }
 
     public abstract string Name { get; }

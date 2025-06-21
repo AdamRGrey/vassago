@@ -19,6 +19,7 @@ namespace vassago
             TwitchConfigs = aspConfig.GetSection("TwitchConfigs").Get<IEnumerable<TwitchConfig>>();
             Conversion.Converter.Load(aspConfig["ExchangePairsLocation"]);
             Telefranz.Configure(aspConfig["KafkaName"], aspConfig["KafkaBootstrap"]);
+            Console.WriteLine($"Telefranz.Configure({aspConfig["KafkaName"]}, {aspConfig["KafkaBootstrap"]});");
             vassago.Behavior.Webhook.SetupWebhooks(aspConfig.GetSection("Webhooks"));
         }
 

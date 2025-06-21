@@ -19,11 +19,11 @@ public class QRify : Behavior
 
     public override string Description => "generate text QR codes";
 
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
         if (message.Channel.EffectivePermissions.MaxAttachmentBytes < 1024)
             return false;
-        return base.ShouldAct(message);
+        return base.ShouldAct(message, matchedUACs);
     }
 
     public override async Task<bool> ActOn(Message message)

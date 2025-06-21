@@ -15,6 +15,7 @@ public class Message
     public string Protocol { get; set; }
     public string ExternalId { get; set; }
     public string Content { get; set; }
+    public string TranslatedContent { get; set; }
     public bool MentionsMe { get; set; }
     public DateTimeOffset Timestamp { get; set; }
     public bool ActedOn { get; set; }

@@ -36,9 +36,9 @@ public class TwitchSummon : Behavior
             as TwitchInterface.TwitchInterface;
     }
 
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
-        if (!base.ShouldAct(message))
+        if (!base.ShouldAct(message, matchedUACs))
             return false;
         var uacConf = Rememberer.SearchUAC(uac => uac.OwnerId == uacID);
         if (uacConf == null)
@@ -74,7 +74,7 @@ public class TwitchDismiss : Behavior
 
     public override string Trigger => "begone, @[me]";
 
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
         var ti = TwitchSummon.getAnyTwitchInterface();
             // Console.WriteLine($"TwitchDismiss checking. menions me? {message.MentionsMe}");

@@ -67,9 +67,9 @@ public class Webhook : Behavior
         }
     }
 
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
-        if (!base.ShouldAct(message))
+        if (!base.ShouldAct(message, matchedUACs))
             return false;
 
         Console.WriteLine("webhook checking");

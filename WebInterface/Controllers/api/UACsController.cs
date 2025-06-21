@@ -229,4 +229,39 @@ public class UACController : ControllerBase
         Rememberer.RememberChannel(targetChannel);
         return Ok(newUAC.Id);
     }
+    [HttpPut]
+    [Route("AddTranslation/{Id}")]
+    [Produces("application/json")]
+    public IActionResult AddTranslation(Guid Id)
+    {
+        _logger.LogDebug($"made it to controller. creating translation for uac {Id}");
+        var uacFromDb = Rememberer.SearchUAC(uac => uac.Id == Id);
+        if (uacFromDb == null)
+        {
+            _logger.LogError($"attempt to create translation for uac {Id}, not found");
+            return NotFound();
+        }
+        uacFromDb.Translations ??= [];
+        uacFromDb.Translations.Add(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+        Rememberer.RememberUAC(uacFromDb);
+        return Ok(uacFromDb.Translations.Count);
+    }
+    [HttpPut]
+    [Route("AddCommandAlteration/{Id}")]
+    [Produces("application/json")]
+    public IActionResult AddCommandAlteration(Guid Id)
+    {
+        _logger.LogDebug($"made it to controller. creating command alteration for uac {Id}");
+        var uacFromDb = Rememberer.SearchUAC(uac => uac.Id == Id);
+        if (uacFromDb == null)
+        {
+            _logger.LogError($"attempt to create command alteration for uac {Id}, not found");
+            return NotFound();
+        }
+        uacFromDb.CommandAlterations ??= [];
+        uacFromDb.CommandAlterations.Add(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+        Rememberer.RememberUAC(uacFromDb);
+        return Ok(uacFromDb.CommandAlterations.Count);
+    }
+
 }

@@ -16,12 +16,12 @@ public class Gratitude : Behavior
 
     public override string Trigger => "thank me";
 
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
         if(Behaver.Instance.IsSelf(message.Author.Id))
             return false;
 
-        return Regex.IsMatch(message.Content, "\\bthank (yo)?u\\b", RegexOptions.IgnoreCase) && message.MentionsMe;
+        return Regex.IsMatch(message.TranslatedContent, "\\bthank (yo)?u\\b", RegexOptions.IgnoreCase) && message.MentionsMe;
     }
     public override async Task<bool> ActOn(Message message)
     {

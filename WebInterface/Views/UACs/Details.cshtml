@@ -10,7 +10,7 @@
   <tbody>
     <tr>
       <th scope="row">Display Name</th>
-      <td>@Model.DisplayName</td>
+      <td><input class="form-control" type="text" value="@Model.DisplayName" id="displayName"/></td>
     </tr>
     <tr>
       <th scope="row">Description</th>
@@ -19,30 +19,99 @@
     <tr>
       <th scope="row">Channels</th>
       <td>
-          @Html.Raw("<div id=\"channelsTree\"></div>")
+          <div id="channelsTree"></div>
       </td>
     </tr>
     <tr>
       <th scope="row">Users</th>
       <td>
-          @Html.Raw("<div id=\"usersTree\"></div>")
+          <div id="usersTree"></div>
       </td>
     </tr>
     <tr>
       <th scope="row">AccountInChannels</th>
       <td>
-          @Html.Raw("<div id=\"accountsTree\"></div>")
+          <div id="accountsTree"></div>
       </td>
+    </tr>
+    <tr>
+      <th scope="row">Translations (@Model.Translations?.Count)</th>
+      <td>
+        next will be iterating over a dictionary. All reference on the internet implies this should work. And I'm sick of trying to figure out why it doens't.
+        <table class="table">
+            <tbody>
+            @{ var i = 0; }
+                @foreach(var kvp in Model.Translations)
+                {
+                    i++;
+                    if(String.IsNullOrWhiteSpace(kvp.Key) || String.IsNullOrWhiteSpace(kvp.Value))
+                    {
+                        continue;
+                    }
+                     Html.Raw("<tr><td colspan=\"3\">o_O</td></tr>");
+                     Html.Raw("<tr>");
+                     Html.Raw("<td><input type=\"text\" name=\"Model.Translations[{i}].Key\" value=\"{Model.Translations.ElementAt(i).Key}\" /></td>");
+                     Html.Raw("<td><input type=\"text\" name=\"Model.Translations[{i}].Value\" value=\"{Model.Translations.ElementAt(i).Value}\" /></td>");
+                     Html.Raw("<td><button type=\"button\" class=\"btn btn-danger\" onclick=\"removeTranslation()\">delete</button></td>");
+                     Html.Raw("</tr>");
+                }
+            <tr>
+            <td colspan="3">
+                <button type="button" class="btn btn-primary" onclick="addUAC_Translation()">add translation</button>
+            </td>
+            </tr>
+            </tbody>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <th scope="row">Command Alterations (@Model.CommandAlterations?.Count)</th>
+      <td>
+        <table class="table">
+            <tbody>
+            @{
+            var j = 0;
+            foreach(var kvp in Model.CommandAlterations.ToList())
+                {
+                j++;
+                     Html.Raw(j);
+                     Html.Raw("<tr><td colspan=\"3\">o_O</td></tr>");
+                     Html.Raw("<tr>");
+                     Html.Raw("<td><input type=\"text\" name=\"Model.CommandAlterations[{j}].Key\" value=\"{Model.CommandAlterations.ElementAt(j).Key}\" /></td>");
+                     Html.Raw("<td><input type=\"text\" name=\"Model.CommandAlterations[{j}].Value\" value=\"{Model.CommandAlterations.ElementAt(j).Value}\" /></td>");
+                     Html.Raw("<td><button type=\"button\" class=\"btn btn-danger\" onclick=\"removeCommandAlteration()\">delete</button></td>");
+                     Html.Raw("</tr>");
+            j++;
+                }
+            }
+            <tr>
+            <td colspan="3">
+                <button type="button" class="btn btn-primary" onclick="addUAC_CommandAlteration()">add alteration</button>
+            </td>
+            </tr>
+            </tbody>
+        </table>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2"><button class="btn btn-success">asdf</button></td>
     </tr>
     </tbody>
 </table>
 
-<div id="add-modal" class="modal" tabindex="-1" role="dialog">
+"adam", you may say, "why are there both translations and command alterations?"<br />
+translations are like.. if someone says "addicting", you can safely guess that they don't know they should be saying "addictive".<br />
+so if you say "this game is addicting", that comes in, we just pretend you said "this game is addictive".<br />
+Command alterations, I have to acknowledge that you *did* say !freedomunits, but I'm changing my behavior and not converting. <br />
+I guess theoretically you could "translate" freedomunits to nothing, then freeerdumberunits to freedomunits? but if we're doing that it becomes necessary to care about order, and get that right.<br />
+so let's say, "translations" are "i'll pretend you said", and "command alterations" are "i'll pretend I expected".
+
+<div id="link-modal" class="modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Insert GUID</h5>
-        <button type="button" class="btn btn-close" data-dismiss="add-modal" aria-label="Close">
+        <button type="button" class="btn btn-close" data-dismiss="link-modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -58,7 +127,33 @@
       </div>
       <div class="modal-footer">
         <button id="modalsubmit" type="button" class="btn btn-primary">Save changes</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="add-modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="link-modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="unlink-modal" class="modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm</h5>
+        <button type="button" class="btn-close" data-dismiss="unlink-modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>
+            are you sure you want to unlink
+            <input id="unlinkModalText" enabled="false" type="text" />
+        </p>
+        <p>
+            to be clear; this is going to "unlink", not like.. delete.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button id="modalsubmit" type="button" class="btn btn-danger">unlink</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="unlink-modal">Close</button>
       </div>
     </div>
   </div>
@@ -75,88 +170,55 @@
       </div>
       <div class="modal-body">
         <p>
-            are you sure you wnat to unlink
+            are you sure you want to delete
             <input id="removeModalText" enabled="false" type="text" />
-        </p>
-        <p>
-            to be clear; this is going to "unlink", not like.. delete.
         </p>
       </div>
       <div class="modal-footer">
-        <button id="modalsubmit" type="button" class="btn btn-danger">unlink</button>
+        <button id="modalsubmit" type="button" class="btn btn-danger">delete</button>
         <button type="button" class="btn btn-secondary" data-dismiss="remove-modal">Close</button>
       </div>
     </div>
   </div>
 </div>
 
-
 @section Scripts{
   <script type="text/javascript">
-  function addChannel(){
-      let modalbutton = document.querySelector("#add-modal button#modalsubmit");
-      modalbutton.onclick = addChannelSubmit;
-      $("#add-modal").modal("show");
-    }
-  function addChannelSubmit(){
-    let guid = document.querySelector("#add-modal #addmodaltext").value;
-    linkUAC_Channel(guid, () => { window.location.reload(); });
-    $("#add-modal").modal("hide");
-    console.log(guid);
+  function linkModal(submitFn)
+  {
+      let modalbutton = document.querySelector("#link-modal button#modalsubmit");
+      modalbutton.onclick = () => { linkSubmitModal(submitFn); };
+      $("#link-modal").modal("show");
   }
-  function addUser(){
-    let modalbutton = document.querySelector("#add-modal button#modalsubmit");
-    modalbutton.onclick = addUserSubmit;
-    $("#add-modal").modal("show");
+  function linkSubmitModal(submitFn)
+  {
+    let guid = document.querySelector("#link-modal #addmodaltext").value;
+    submitFn(guid, () => { window.location.reload(); });
+    $("#link-modal").modal("hide");
+    console.log(submitFn + "(guid)");
   }
-  function addUserSubmit(){
-    let guid = document.querySelector("#add-modal #addmodaltext").value;
-    linkUAC_User(guid, () => {window.location.reload(); });
-    $("#add-modal").modal("hide");
-    console.log(guid);
-  }
-  function addAccount(){
-    let modalbutton = document.querySelector("#add-modal button#modalsubmit");
-    modalbutton.onclick = addAccountSubmit;
-    $("#add-modal").modal("show");
-  }
-  function addAccountSubmit(){
-    let guid = document.querySelector("#add-modal #addmodaltext").value;
-    linkUAC_Account(guid, () => { window.location.reload(); });
-    $("#add-modal").modal("hide");
-    console.log(guid);
-  }
-  function removeUser(guid){
-    document.querySelector("#remove-modal #removeModalText").value = guid;
-    let modalbutton = document.querySelector("#remove-modal button#modalsubmit");
-    modalbutton.onclick = removeUserSubmit;
+  function unlinkModal(submitFn, target)
+  {
+    document.querySelector("#unlink-modal #removeModalText").value = target;
+    let modalbutton = document.querySelector("#unlink-modal button#modalsubmit");
+    modalbutton.onclick = () => { unlinkModalSubmit(submitFn, target); };
     $("#remove-modal").modal("show");
   }
-  function removeUserSubmit(){
-    let guid = document.querySelector("#remove-modal #removeModalText").value;
-    unlinkUAC_User(guid, () => { window.location.reload(); });
-    $("#remove-modal").modal("hide");
+  function unlinkModalSubmit(submitFn, target)
+  {
+    submitFn(target, () => { window.location.reload(); });
+    $("#unlink-modal").modal("hide");
   }
-  function removeChannel(guid){
-    document.querySelector("#remove-modal #removeModalText").value = guid;
+  function removeModal(submitFn, idx)
+  {
+    document.querySelector("#remove-modal #removeModalText").value = target;
     let modalbutton = document.querySelector("#remove-modal button#modalsubmit");
-    modalbutton.onclick = removeChannelSubmit;
+    modalbutton.onclick = () => { removeModalSubmit(submitFn, idx); };
     $("#remove-modal").modal("show");
   }
-  function removeChannelSubmit(){
-    let guid = document.querySelector("#remove-modal #removeModalText").value;
-    unlinkUAC_Channel(guid, () => { window.location.reload(); });
-    $("#remove-modal").modal("hide");
-  }
-  function removeAccount(guid){
-    document.querySelector("#remove-modal #removeModalText").value = guid;
-    let modalbutton = document.querySelector("#remove-modal button#modalsubmit");
-    modalbutton.onclick = removeAccountSubmit;
-    $("#remove-modal").modal("show");
-  }
-  function removeAccountSubmit(){
-    let guid = document.querySelector("#remove-modal #removeModalText").value;
-    unlinkUAC_Account(guid , () => { window.location.reload(); });
+  function removeModalSubmit(submitFn, idx)
+  {
+    submitFn(idx, () => { window.location.reload(); });
     $("#remove-modal").modal("hide");
   }
   function channelsTree() {
@@ -164,11 +226,11 @@
       var sb = new StringBuilder();
       sb.Append("[{text: \"Channels\", \"expanded\":true, nodes: [");
 
-      sb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"addChannel()\\\">add channel</button>\"}}");
+      sb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"linkModal(linkUAC_Channel)\\\">add channel</button>\"}}");
       foreach (var acc in Model.Channels?.OrderBy(a => a.DisplayName))
       {
         sb.Append(',');
-        sb.Append($"{{text: \"<a href=\\\"/Channels/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn btn-danger\\\" onclick=\\\"removeChannel('{acc.Id}')\\\">remove</button>\"}}");
+        sb.Append($"{{text: \"<a href=\\\"/Channels/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn btn-danger\\\" onclick=\\\"unlinkModal(unlinkUAC_Channel, '{acc.Id}')\\\">remove</button>\"}}");
       }
       sb.Append("]}]");
     }
@@ -180,11 +242,11 @@
       sb = new StringBuilder();
       sb.Append("[{text: \"Users\", \"expanded\":true, nodes: [");
 
-      sb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"addUser()\\\">add user</button>\"}}");
+      sb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"linkModal(linkUAC_User)\\\">add user</button>\"}}");
       foreach (var acc in Model.Users?.OrderBy(a => a.DisplayName))
       {
         sb.Append(',');
-        sb.Append($"{{text: \"<a href=\\\"/Users/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn btn-danger\\\" onclick=\\\"removeUser('{acc.Id}')\\\">remove</button>\"}}");
+        sb.Append($"{{text: \"<a href=\\\"/Users/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn btn-danger\\\" onclick=\\\"unlinkModal(unlinkUAC_User, '{acc.Id}')\\\">remove</button>\"}}");
       }
       sb.Append("]}]");
     }
@@ -196,17 +258,18 @@
       sb = new StringBuilder();
       sb.Append("[{text: \"Accounts\", \"expanded\":true, nodes: [");
 
-      sb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"addAccount()\\\">add account</button>\"}}");
+      sb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"linkModal(linkUAC_Account)\\\">add account</button>\"}}");
       foreach (var acc in Model.AccountInChannels?.OrderBy(a => a.DisplayName))
       {
         sb.Append(',');
-        sb.Append($"{{text: \"<a href=\\\"/Accounts/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn btn-danger\\\" onclick=\\\"removeAccount('{acc.Id}')\\\">remove</button>\"}}");
+        sb.Append($"{{text: \"<a href=\\\"/Accounts/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn btn-danger\\\" onclick=\\\"unlinkModal(unlinkUAC_Acocunt, '{acc.Id}')\\\">remove</button>\"}}");
       }
       sb.Append("]}]");
     }
     var tree = @Html.Raw(sb.ToString());
     return tree;
   }
+
   $('#channelsTree').bstreeview({ data: channelsTree() });
   $('#usersTree').bstreeview({ data: usersTree() });
   $('#accountsTree').bstreeview({ data: accountsTree() });

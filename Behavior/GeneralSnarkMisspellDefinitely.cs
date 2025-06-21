@@ -32,7 +32,7 @@ public class GeneralSnarkMisspellDefinitely : Behavior
       {"defineatly", "only the gods know"},
       {"definitly", "unless someone cute shows up"}
     };
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
         if(Behaver.Instance.IsSelf(message.Author.Id))
             return false;
@@ -42,7 +42,7 @@ public class GeneralSnarkMisspellDefinitely : Behavior
 
         foreach(var k in snarkmap.Keys)
         {
-            if( Regex.IsMatch(message.Content?.ToLower(), "\\b"+k+"\\b", RegexOptions.IgnoreCase))
+            if( Regex.IsMatch(message.TranslatedContent?.ToLower(), "\\b"+k+"\\b", RegexOptions.IgnoreCase))
                 return true;
         }
         return false;
@@ -51,7 +51,7 @@ public class GeneralSnarkMisspellDefinitely : Behavior
     {
         foreach(var k in snarkmap.Keys)
         {
-            if( Regex.IsMatch(message.Content, "\\b"+k+"\\b", RegexOptions.IgnoreCase))
+            if( Regex.IsMatch(message.TranslatedContent, "\\b"+k+"\\b", RegexOptions.IgnoreCase))
             {
                 Behaver.Instance.Reply(message.Id, k + "? so... " + snarkmap[k] + "?");
                 return true;

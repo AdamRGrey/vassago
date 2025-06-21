@@ -65,13 +65,13 @@ public class LaughAtOwnJoke : Behavior
     {
         _punchline = punchline;
     }
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
         if (Behaver.Instance.IsSelf(message.Author.Id))
             return false;
 
-        Console.WriteLine($"{message.Content} == {_punchline}");
-        return message.Content == _punchline
+        Console.WriteLine($"{message.TranslatedContent} == {_punchline}");
+        return message.TranslatedContent == _punchline
         && Behaver.Instance.IsSelf(message.Author.Id);
     }
 

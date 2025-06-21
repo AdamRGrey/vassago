@@ -18,12 +18,12 @@ public class DefinitionSnarkCogDiss : Behavior
 
     public override string Description => "snarkiness about the rampant misuse of the term cognitive dissonance";
 
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
         if((MeannessFilterLevel)message.Channel.EffectivePermissions.MeannessFilterLevel < MeannessFilterLevel.Medium)
             return false;
 
-        return base.ShouldAct(message);
+        return base.ShouldAct(message, matchedUACs);
     }
 
     public override async Task<bool> ActOn(Message message)

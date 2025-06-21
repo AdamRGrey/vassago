@@ -45,11 +45,21 @@ public class Behaver
     {
         //TODO: this is yet another hit to the database, and a big one. cache them in memory! there needs to be a feasibly-viewable amount, anyway.
         var matchingUACs = Rememberer.MatchUACs(message);
+        message.TranslatedContent = message.Content;
+        foreach (var uacMatch in matchingUACs)
+        {
+            uacMatch.Translations ??= [];
+            uacMatch.CommandAlterations ??= [];
+            foreach (var localization in uacMatch.Translations) //honestly, i'm *still* mad that foreach thing in null is an exception. in what world is "if not null then" assumed?
+            {
+                var r = new Regex(localization.Key);
+                message.TranslatedContent = r.Replace(message.TranslatedContent, localization.Value);
+            }
+        }
         var behaviorsActedOn = new List<string>();
         foreach (var behavior in Behaviors.ToList())
         {
-            //if (!behavior.ShouldAct(message, matchingUACs)) //TODO: this way
-            if (!behavior.ShouldAct(message))
+            if (!behavior.ShouldAct(message, matchingUACs))
             {
                 continue;
             }
@@ -58,7 +68,7 @@ public class Behaver
             behaviorsActedOn.Add(behavior.ToString());
             Console.WriteLine("acted on, moving forward");
         }
-        if (message.ActedOn == false && message.MentionsMe && message.Content.Contains('?') && !Behaver.Instance.SelfAccounts.Any(acc => acc.Id == message.Author.Id))
+        if (message.ActedOn == false && message.MentionsMe && message.TranslatedContent.Contains('?') && !Behaver.Instance.SelfAccounts.Any(acc => acc.Id == message.Author.Id))
         {
             Console.WriteLine("providing bullshit nonanswer / admitting uselessness");
             var responses = new List<string>(){
@@ -81,7 +91,8 @@ public class Behaver
             Api_Uri = Shared.API_URL,
             MessageId = message.Id,
 
-            MessageContent = message.Content,
+            Content = message.TranslatedContent,
+            RawContent = message.Content,
             MentionsMe = message.MentionsMe,
             Timestamp = message.Timestamp,
             AttachmentCount = (uint)(message.Attachments?.Count() ?? 0),
@@ -99,7 +110,9 @@ public class Behaver
             UAC_Matches = matchingUACs.Select(uac => uac.Id).ToList(),
             BehavedOnBy = actedOnBy
         };
+        Console.WriteLine("producing message");
         Telefranz.Instance.ProduceMessage(kafkaesque);
+        Console.WriteLine("survived producing message");
     }
 
     internal bool IsSelf(Guid AccountId)

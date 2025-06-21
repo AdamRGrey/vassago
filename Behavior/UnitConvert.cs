@@ -15,7 +15,7 @@ public class UnitConvert : Behavior
     public override async Task<bool> ActOn(Message message)
     {
 
-        var theseMatches = Regex.Matches(message.Content, "\\s(-?[\\d]+\\.?\\d*) ?([^\\d\\s].*) (in|to|as) ([^\\d\\s].*)$", RegexOptions.IgnoreCase);
+        var theseMatches = Regex.Matches(message.TranslatedContent, "\\s(-?[\\d]+\\.?\\d*) ?([^\\d\\s].*) (in|to|as) ([^\\d\\s].*)$", RegexOptions.IgnoreCase);
 
         if (theseMatches != null && theseMatches.Count > 0 && theseMatches[0].Groups != null && theseMatches[0].Groups.Count == 5)
         {

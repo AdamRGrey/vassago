@@ -18,12 +18,12 @@ public class GeneralSnarkGooglit : Behavior
 
     public override string Description => "snarkiness about how research is not a solved problem";
 
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
         if (Behaver.Instance.IsSelf(message.Author.Id))
             return false;
 
-        return Regex.IsMatch(message.Content, $"(just )?google( (it|that|things|before))\\b", RegexOptions.IgnoreCase);
+        return Regex.IsMatch(message.TranslatedContent, $"(just )?google( (it|that|things|before))\\b", RegexOptions.IgnoreCase);
     }
 
     public override async Task<bool> ActOn(Message message)

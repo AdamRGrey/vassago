@@ -19,7 +19,7 @@ public class FiximageHeic : Behavior
     public override string Description => "convert heic images to jpg";
 
     private List<Attachment> heics = new List<Attachment>();
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
         if(Behaver.Instance.IsSelf(message.Author.Id))
             return false;

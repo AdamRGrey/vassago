@@ -50,7 +50,7 @@ public class LinkClose : Behavior
         _primary = primary;
     }
 
-    public override bool ShouldAct(Message message)
+    public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
         return message.Content == $"!iam {_pw}";
     }
