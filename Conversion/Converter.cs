@@ -181,7 +181,10 @@ namespace vassago.Conversion
                         accumulator = reverseConversion.Item4(accumulator);
                     }
                 }
-                if (currencyConf != null && (normalizedDestUnit == currencyConf.Base || currencyConf.rates.Select(r => r.Key).Contains(normalizedDestUnit)))
+                if (currencyConf != null && (
+                        (normalizedDestUnit == currencyConf.Base || currencyConf.rates.Select(r => r.Key).Contains(normalizedDestUnit))
+                        && (normalizedSourceUnit == currencyConf.Base || currencyConf.rates.Select(r => r.Key).Contains(normalizedSourceUnit))
+                    ))
                 {
                     return $"{String.Format("approximately {0:0.00}", accumulator)} {normalizedDestUnit} as of {currencyConf.DateUpdated.ToLongDateString()}";
                 }
