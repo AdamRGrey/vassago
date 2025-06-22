@@ -69,22 +69,25 @@ public class Webhook : Behavior
 
     public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
-        if (!base.ShouldAct(message, matchedUACs))
-            return false;
-
-        Console.WriteLine("webhook checking");
-
         if (configuredWebhooks?.Count() < 1)
         {
-            Console.Error.WriteLine("no webhooks configured!");
+            return false;
         }
 
-        var webhookableMessageContent = message.Content.Substring(message.Content.IndexOf(Trigger) + Trigger.Length + 1);
-        Console.WriteLine($"webhookable content: {webhookableMessageContent}");
         foreach (var wh in configuredWebhooks)
         {
-            if (webhookableMessageContent.StartsWith(wh.Trigger))
+            var triggerTarget = wh.Trigger;
+            foreach (var uacMatch in matchedUACs)
             {
+                foreach (var substitution in uacMatch.CommandAlterations)
+                {
+                    triggerTarget = new Regex(substitution.Key).Replace(triggerTarget, substitution.Value);
+                }
+            }
+            if (Regex.IsMatch(message.TranslatedContent, $"\\b{triggerTarget}\\b", RegexOptions.IgnoreCase))
+            {
+                var webhookableMessageContent = message.Content.Substring(message.Content.IndexOf(triggerTarget) + triggerTarget.Length + 1);
+                Console.WriteLine($"webhookable content: {webhookableMessageContent}");
                 var uacConf = Rememberer.SearchUAC(uac => uac.OwnerId == wh.uacID);
                 if (uacConf.Users.Contains(message.Author.IsUser) || uacConf.Channels.Contains(message.Channel) || uacConf.AccountInChannels.Contains(message.Author))
                 {
@@ -92,7 +95,7 @@ public class Webhook : Behavior
                     authedCache.TryAdd(message.Id, new WebhookActionOrder()
                     {
                         Conf = wh,
-                        webhookContent = webhookableMessageContent.Substring(wh.Trigger.Length + 1),
+                        webhookContent = webhookableMessageContent,
                     });
                     Console.WriteLine($"added {message.Id} to authedcache");
                     return true;
@@ -164,7 +167,7 @@ public class Webhook : Behavior
         }
         else
         {
-           Behaver.Instance.Reply(message.Id, await response.Content.ReadAsStringAsync());
+            Behaver.Instance.Reply(message.Id, await response.Content.ReadAsStringAsync());
         }
         return true;
     }
