@@ -121,8 +121,9 @@ public class TwitchInterface : ProtocolInterface
         selfAccountInProtocol = UpsertAccount(e.BotUsername, protocolAsChannel);
         selfAccountInProtocol.DisplayName = e.BotUsername;
         Behaver.Instance.MarkSelf(selfAccountInProtocol);
-
         Console.WriteLine($"Connected to {e.AutoJoinChannel}");
+
+        AttemptJoin(e.BotUsername);
     }
 
     private void Client_OnJoinedChannel(object sender, OnJoinedChannelArgs e)
