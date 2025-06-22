@@ -37,24 +37,14 @@
     <tr>
       <th scope="row">Translations (@Model.Translations?.Count)</th>
       <td>
-        next will be iterating over a dictionary. All reference on the internet implies this should work. And I'm sick of trying to figure out why it doens't.
+        next would be iterating over a dictionary. All reference on the internet implies this should work. I'm sick of trying to figure out why it doesn't. razor says to me, so i say to you: go fuck yourself; edit the db manually.
         <table class="table">
             <tbody>
-            @{ var i = 0; }
-                @foreach(var kvp in Model.Translations)
-                {
-                    i++;
-                    if(String.IsNullOrWhiteSpace(kvp.Key) || String.IsNullOrWhiteSpace(kvp.Value))
-                    {
-                        continue;
-                    }
-                     Html.Raw("<tr><td colspan=\"3\">o_O</td></tr>");
-                     Html.Raw("<tr>");
-                     Html.Raw("<td><input type=\"text\" name=\"Model.Translations[{i}].Key\" value=\"{Model.Translations.ElementAt(i).Key}\" /></td>");
-                     Html.Raw("<td><input type=\"text\" name=\"Model.Translations[{i}].Value\" value=\"{Model.Translations.ElementAt(i).Value}\" /></td>");
-                     Html.Raw("<td><button type=\"button\" class=\"btn btn-danger\" onclick=\"removeTranslation()\">delete</button></td>");
-                     Html.Raw("</tr>");
-                }
+                     @Html.Raw("<tr>");
+                     @Html.Raw("<td><input type=\"text\" name=\"Model.Translations[{i}].Key\" value=\"{Model.Translations.ElementAt(i).Key}\" /></td>");
+                     @Html.Raw("<td><input type=\"text\" name=\"Model.Translations[{i}].Value\" value=\"{Model.Translations.ElementAt(i).Value}\" /></td>");
+                     @Html.Raw("<td><button type=\"button\" class=\"btn btn-danger\" onclick=\"removeTranslation()\">delete</button></td>");
+                     @Html.Raw("</tr>");
             <tr>
             <td colspan="3">
                 <button type="button" class="btn btn-primary" onclick="addUAC_Translation()">add translation</button>
@@ -69,21 +59,13 @@
       <td>
         <table class="table">
             <tbody>
-            @{
-            var j = 0;
-            foreach(var kvp in Model.CommandAlterations.ToList())
-                {
-                j++;
-                     Html.Raw(j);
-                     Html.Raw("<tr><td colspan=\"3\">o_O</td></tr>");
-                     Html.Raw("<tr>");
-                     Html.Raw("<td><input type=\"text\" name=\"Model.CommandAlterations[{j}].Key\" value=\"{Model.CommandAlterations.ElementAt(j).Key}\" /></td>");
-                     Html.Raw("<td><input type=\"text\" name=\"Model.CommandAlterations[{j}].Value\" value=\"{Model.CommandAlterations.ElementAt(j).Value}\" /></td>");
-                     Html.Raw("<td><button type=\"button\" class=\"btn btn-danger\" onclick=\"removeCommandAlteration()\">delete</button></td>");
-                     Html.Raw("</tr>");
-            j++;
-                }
-            }
+                     @Html.Raw("<tr><td colspan=\"3\">o_O</td></tr>");
+                     @Html.Raw("<tr>");
+                     @Html.Raw("<td><input type=\"text\" name=\"Model.CommandAlterations[{j}].Key\" value=\"{Model.CommandAlterations.ElementAt(j).Key}\" /></td>");
+                     @Html.Raw("<td><input type=\"text\" name=\"Model.CommandAlterations[{j}].Value\" value=\"{Model.CommandAlterations.ElementAt(j).Value}\" /></td>");
+                     @Html.Raw("<td><button type=\"button\" class=\"btn btn-danger\" onclick=\"removeCommandAlteration()\">delete</button></td>");
+                     @Html.Raw("</tr>");
+
             <tr>
             <td colspan="3">
                 <button type="button" class="btn btn-primary" onclick="addUAC_CommandAlteration()">add alteration</button>

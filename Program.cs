@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
+using vassago;
 using vassago.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,5 +45,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
+
+Shared.App = app;
 
 app.Run();

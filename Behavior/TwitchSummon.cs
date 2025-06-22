@@ -40,15 +40,10 @@ public class TwitchSummon : Behavior
     {
         if (!base.ShouldAct(message, matchedUACs))
             return false;
-        var uacConf = Rememberer.SearchUAC(uac => uac.OwnerId == uacID);
-        if (uacConf == null)
-        {
-            Console.Error.WriteLine("no UAC conf for TwitchSummon! Set one up!");
-        }
 
-        Console.WriteLine($"uacConf: {uacConf} users: {uacConf?.Users?.Count()}. message author: {message?.Author}. has an IsUser: {message?.Author?.IsUser}.");
-        Console.WriteLine($"and therefore: {uacConf.Users.Contains(message.Author.IsUser)}");
-        return uacConf.Users.Contains(message.Author.IsUser);
+        Console.WriteLine($"myUAC: {myUAC} users: {myUAC?.Users?.Count()}. message author: {message?.Author}. has an IsUser: {message?.Author?.IsUser}.");
+        Console.WriteLine($"and therefore: {myUAC.Users.Contains(message.Author.IsUser)}");
+        return myUAC.Users.Contains(message.Author.IsUser);
     }
 
     public override async Task<bool> ActOn(Message message)

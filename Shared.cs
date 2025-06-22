@@ -11,6 +11,7 @@ public static class Shared
     public static string DBConnectionString { get; set; }
     public static HttpClient HttpClient { get; internal set; } = new HttpClient();
     public static bool SetupSlashCommands { get; set; }
-    public static Uri API_URL {get;set;}
+    public static Uri API_URL { get; set; }
     public static List<ProtocolInterface> ProtocolList { get; set; } = new();
+    public static WebApplication App { get; set; }
 }
