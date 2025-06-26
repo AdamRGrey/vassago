@@ -10,6 +10,7 @@ namespace vassago.Controllers.api;
 public class RemembererController : ControllerBase
 {
     private readonly ILogger<RemembererController> _logger;
+    private static Rememberer r = Rememberer.Instance;
 
     public RemembererController(ILogger<RemembererController> logger)
     {
@@ -22,42 +23,42 @@ public class RemembererController : ControllerBase
     [Produces("application/json")]
     public Account CreateAccount(Guid id)
     {
-        return Rememberer.AccountDetail(id);
+        return r.AccountDetail(id);
     }
     [HttpPut]
     [Route("Attachment")]
     [Produces("application/json")]
     public Attachment CreateAttachment(Guid id)
     {
-        return Rememberer.AttachmentDetail(id);
+        return r.AttachmentDetail(id);
     }
     [HttpPut]
     [Route("Channels")]
     [Produces("application/json")]
     public Channel CreateChannel(Guid id)
     {
-        return Rememberer.ChannelDetail(id);
+        return r.ChannelDetail(id);
     }
     [HttpPut]
     [Route("Message")]
     [Produces("application/json")]
     public Message CreateMessage(Guid id)
     {
-        return Rememberer.MessageDetail(id);
+        return r.MessageDetail(id);
     }
     [HttpPut]
     [Route("UAC")]
     [Produces("application/json")]
     public UAC CreateUAC(Guid id)
     {
-        return Rememberer.UACDetail(id);
+        return r.UACDetail(id);
     }
     [HttpPut]
     [Route("User")]
     [Produces("application/json")]
     public User CreateUser(Guid id)
     {
-        return Rememberer.UserDetail(id);
+        return r.UserDetail(id);
     }
     //Read
     [HttpGet]
@@ -65,42 +66,42 @@ public class RemembererController : ControllerBase
     [Produces("application/json")]
     public Account GetAccount(Guid id)
     {
-        return Rememberer.AccountDetail(id);
+        return r.AccountDetail(id);
     }
     [HttpGet]
     [Route("Attachment")]
     [Produces("application/json")]
     public Attachment GetAttachment(Guid id)
     {
-        return Rememberer.AttachmentDetail(id);
+        return r.AttachmentDetail(id);
     }
     [HttpGet]
     [Route("Channels")]
     [Produces("application/json")]
     public Channel GetChannel(Guid id)
     {
-        return Rememberer.ChannelDetail(id);
+        return r.ChannelDetail(id);
     }
     [HttpGet]
     [Route("Message")]
     [Produces("application/json")]
     public Message GetMessage(Guid id)
     {
-        return Rememberer.MessageDetail(id);
+        return r.MessageDetail(id);
     }
     [HttpGet]
     [Route("UAC")]
     [Produces("application/json")]
     public UAC GetUAC(Guid id)
     {
-        return Rememberer.UACDetail(id);
+        return r.UACDetail(id);
     }
     [HttpGet]
     [Route("User")]
     [Produces("application/json")]
     public User GetUser(Guid id)
     {
-        return Rememberer.UserDetail(id);
+        return r.UserDetail(id);
     }
     //Update
     [HttpPatch]
@@ -108,7 +109,7 @@ public class RemembererController : ControllerBase
     [Produces("application/json")]
     public IActionResult Patch([FromBody] Channel channel)
     {
-        var fromDb = Rememberer.ChannelDetail(channel.Id);
+        var fromDb = r.ChannelDetail(channel.Id);
         if (fromDb == null)
         {
             _logger.LogError($"attempt to update channel {channel.Id}, not found");
@@ -121,7 +122,7 @@ public class RemembererController : ControllerBase
         //settable values: lewdness filter level, meanness filter level. maybe i could decorate them...
         fromDb.LewdnessFilterLevel = channel.LewdnessFilterLevel;
         fromDb.MeannessFilterLevel = channel.MeannessFilterLevel;
-        Rememberer.RememberChannel(fromDb);
+        r.RememberChannel(fromDb);
         return Ok(fromDb);
     }
     //Delete
@@ -130,13 +131,13 @@ public class RemembererController : ControllerBase
     [Produces("application/json")]
     public IActionResult DeleteAccount(Guid id)
     {
-        var fromDb = Rememberer.AccountDetail(id);
+        var fromDb = r.AccountDetail(id);
         if (fromDb == null)
         {
             _logger.LogError($"attempt to delete account {id}, not found");
             return NotFound();
         }
-        Rememberer.ForgetAccount(fromDb);
+        r.ForgetAccount(fromDb);
         return Ok();
     }
     [HttpDelete]
@@ -144,13 +145,13 @@ public class RemembererController : ControllerBase
     [Produces("application/json")]
     public IActionResult DeleteAttachment(Guid id)
     {
-        var fromDb = Rememberer.AttachmentDetail(id);
+        var fromDb = r.AttachmentDetail(id);
         if (fromDb == null)
         {
             _logger.LogError($"attempt to delete attachment {id}, not found");
             return NotFound();
         }
-        Rememberer.ForgetAttachment(fromDb);
+        r.ForgetAttachment(fromDb);
         return Ok();
     }
     [HttpDelete]
@@ -158,14 +159,14 @@ public class RemembererController : ControllerBase
     [Produces("application/json")]
     public IActionResult DeleteChannel(Guid id)
     {
-        var fromDb = Rememberer.ChannelDetail(id);
+        var fromDb = r.ChannelDetail(id);
         _logger.LogDebug($"delete channel {id}");
         if (fromDb == null)
         {
             _logger.LogError($"attempt to delete channel {id}, not found");
             return NotFound();
         }
-        Rememberer.ForgetChannel(fromDb);
+        r.ForgetChannel(fromDb);
         _logger.LogDebug($"delete channel {id} success");
         return Ok();
     }
@@ -174,13 +175,13 @@ public class RemembererController : ControllerBase
     [Produces("application/json")]
     public IActionResult DeleteMessage(Guid id)
     {
-        var fromDb = Rememberer.MessageDetail(id);
+        var fromDb = r.MessageDetail(id);
         if (fromDb == null)
         {
             _logger.LogError($"attempt to delete message {id}, not found");
             return NotFound();
         }
-        Rememberer.ForgetMessage(fromDb);
+        r.ForgetMessage(fromDb);
         return Ok();
     }
     [HttpDelete]
@@ -188,13 +189,13 @@ public class RemembererController : ControllerBase
     [Produces("application/json")]
     public IActionResult DeleteUAC(Guid id)
     {
-        var fromDb = Rememberer.UACDetail(id);
+        var fromDb = r.UACDetail(id);
         if (fromDb == null)
         {
             _logger.LogError($"attempt to delete uac {id}, not found");
             return NotFound();
         }
-        Rememberer.ForgetUAC(fromDb);
+        r.ForgetUAC(fromDb);
         return Ok();
     }
     [HttpDelete]
@@ -202,13 +203,13 @@ public class RemembererController : ControllerBase
     [Produces("application/json")]
     public IActionResult DeleteUser(Guid id)
     {
-        var fromDb = Rememberer.UserDetail(id);
+        var fromDb = r.UserDetail(id);
         if (fromDb == null)
         {
             _logger.LogError($"attempt to delete user {id}, not found");
             return NotFound();
         }
-        Rememberer.ForgetUser(fromDb);
+        r.ForgetUser(fromDb);
         return Ok();
     }
 }

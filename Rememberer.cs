@@ -4,18 +4,38 @@ using System.Linq.Expressions;
 using vassago.Models;
 using Microsoft.EntityFrameworkCore;
 
-public static class Rememberer
+public class Rememberer
 {
-    private static readonly SemaphoreSlim dbAccessSemaphore = new(1, 1);
-    private static readonly ChattingContext db = new();
-    private static List<Channel> channels;
-    private static bool channelCacheDirty = true;
+    private readonly SemaphoreSlim dbAccessSemaphore = new(1, 1);
+    private readonly ChattingContext db = new();
+    private List<Channel> channels;
+    private bool channelCacheDirty = true;
+    private Rememberer() { }
+    private static Rememberer _instance = null;
+    public static Rememberer Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
 
-    private static void cacheChannels()
+                lock (instantiationLock)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new Rememberer();
+                    }
+                }
+            }
+            return _instance;
+        }
+    }
+    private static readonly object instantiationLock = new();
+
+    private void cacheChannels()
     {
         dbAccessSemaphore.Wait();
         channels = db.Channels.ToList();
-        Console.WriteLine($"caching channels. {channels.Count} channels retrieved");
         foreach (Channel ch in channels)
         {
             if (ch.ParentChannelId != null)
@@ -27,17 +47,13 @@ public static class Rememberer
                     ch.ParentChannel.SubChannels.Add(ch);
                 }
             }
-            if (ch.Messages?.Count > 0)
-            {
-                Console.WriteLine($"{ch.DisplayName} got {ch.Messages.Count} messages");
-            }
             ch.SubChannels ??= [];
         }
         channelCacheDirty = false;
         dbAccessSemaphore.Release();
     }
 
-    public static Account SearchAccount(Expression<Func<Account, bool>> predicate)
+    public Account SearchAccount(Expression<Func<Account, bool>> predicate)
     {
         Account toReturn;
         dbAccessSemaphore.Wait();
@@ -45,7 +61,7 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static List<Account> SearchAccounts(Expression<Func<Account, bool>> predicate)
+    public List<Account> SearchAccounts(Expression<Func<Account, bool>> predicate)
     {
         List<Account> toReturn;
         dbAccessSemaphore.Wait();
@@ -53,7 +69,7 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static Attachment SearchAttachment(Expression<Func<Attachment, bool>> predicate)
+    public Attachment SearchAttachment(Expression<Func<Attachment, bool>> predicate)
     {
         Attachment toReturn;
         dbAccessSemaphore.Wait();
@@ -61,13 +77,13 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static Channel SearchChannel(Func<Channel, bool> predicate)
+    public Channel SearchChannel(Func<Channel, bool> predicate)
     {
         if (channelCacheDirty)
             Task.Run(() => cacheChannels()).Wait();
         return channels.FirstOrDefault(predicate);
     }
-    public static Message SearchMessage(Expression<Func<Message, bool>> predicate)
+    public Message SearchMessage(Expression<Func<Message, bool>> predicate)
     {
         Message toReturn;
         dbAccessSemaphore.Wait();
@@ -75,7 +91,7 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static List<Message> SearchMessages(Expression<Func<Message, bool>> predicate)
+    public List<Message> SearchMessages(Expression<Func<Message, bool>> predicate)
     {
         List<Message> toReturn;
         dbAccessSemaphore.Wait();
@@ -83,7 +99,7 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static User SearchUser(Expression<Func<User, bool>> predicate)
+    public User SearchUser(Expression<Func<User, bool>> predicate)
     {
         User toReturn;
         dbAccessSemaphore.Wait();
@@ -91,7 +107,7 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static void RememberAccount(Account toRemember)
+    public void RememberAccount(Account toRemember)
     {
         dbAccessSemaphore.Wait();
         toRemember.IsUser ??= new User { Accounts = [toRemember] };
@@ -99,7 +115,7 @@ public static class Rememberer
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
-    public static void RememberAttachment(Attachment toRemember)
+    public void RememberAttachment(Attachment toRemember)
     {
         dbAccessSemaphore.Wait();
         toRemember.Message ??= new Message() { Attachments = [toRemember] };
@@ -107,7 +123,7 @@ public static class Rememberer
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
-    public static Channel RememberChannel(Channel toRemember)
+    public Channel RememberChannel(Channel toRemember)
     {
         if (channelCacheDirty)
             Task.Run(() => cacheChannels()).Wait(); //so we always do 2 db trips?
@@ -119,7 +135,7 @@ public static class Rememberer
         cacheChannels();
         return toRemember;
     }
-    public static void RememberMessage(Message toRemember)
+    public void RememberMessage(Message toRemember)
     {
         dbAccessSemaphore.Wait();
         toRemember.Channel ??= new();
@@ -133,21 +149,21 @@ public static class Rememberer
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
-    public static void RememberUser(User toRemember)
+    public void RememberUser(User toRemember)
     {
         dbAccessSemaphore.Wait();
         db.Users.Update(toRemember);
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
-    public static void ForgetAccount(Account toForget)
+    public void ForgetAccount(Account toForget)
     {
         var user = toForget.IsUser;
         var usersOnlyAccount = user.Accounts?.Count == 1;
 
         if (usersOnlyAccount)
         {
-            Rememberer.ForgetUser(user);
+            ForgetUser(user);
         }
         else
         {
@@ -157,14 +173,14 @@ public static class Rememberer
             dbAccessSemaphore.Release();
         }
     }
-    public static void ForgetAttachment(Attachment toForget)
+    public void ForgetAttachment(Attachment toForget)
     {
         dbAccessSemaphore.Wait();
         db.Attachments.Remove(toForget);
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
-    public static void ForgetChannel(Channel toForget)
+    public void ForgetChannel(Channel toForget)
     {
         if (toForget.SubChannels?.Count > 0)
         {
@@ -187,28 +203,28 @@ public static class Rememberer
         channelCacheDirty = true;
         cacheChannels();
     }
-    public static void ForgetMessage(Message toForget)
+    public void ForgetMessage(Message toForget)
     {
         dbAccessSemaphore.Wait();
         db.Messages.Remove(toForget);
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
-    public static void ForgetUAC(UAC toForget)
+    public void ForgetUAC(UAC toForget)
     {
         dbAccessSemaphore.Wait();
         db.UACs.Remove(toForget);
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
-    public static void ForgetUser(User toForget)
+    public void ForgetUser(User toForget)
     {
         dbAccessSemaphore.Wait();
         db.Users.Remove(toForget);
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
-    public static List<Account> AccountsOverview()
+    public List<Account> AccountsOverview()
     {
         List<Account> toReturn;
         dbAccessSemaphore.Wait();
@@ -216,13 +232,16 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static List<Channel> ChannelsOverview()
+    ///<summary>
+    ///intentionally does not include Users; to help search for orphaned accounts.
+    ///</summary>
+    public List<Channel> ChannelsOverview()
     {
         if (channelCacheDirty)
             Task.Run(() => cacheChannels()).Wait();
-        return channels;
+        return channels.ToList();
     }
-    public static Account AccountDetail(Guid Id)
+    public Account AccountDetail(Guid Id)
     {
         Account toReturn;
         dbAccessSemaphore.Wait();
@@ -230,7 +249,7 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static Attachment AttachmentDetail(Guid Id)
+    public Attachment AttachmentDetail(Guid Id)
     {
         Attachment toReturn;
         dbAccessSemaphore.Wait();
@@ -238,16 +257,18 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static Channel ChannelDetail(Guid Id, bool messages = false)
+    public Channel ChannelDetail(Guid Id, bool accounts = true, bool messages = false)
     {
         if (channelCacheDirty)
             Task.Run(() => cacheChannels()).Wait();
         var ch = channels.Find(c => c.Id == Id);
+        if(accounts)
+            ch.Users = SearchAccounts(a => a.SeenInChannel == ch);
         if (messages)
             ch.Messages = SearchMessages(m => m.ChannelId == ch.Id);
         return ch;
     }
-    public static Message MessageDetail(Guid Id)
+    public Message MessageDetail(Guid Id)
     {
         Message toReturn;
         dbAccessSemaphore.Wait();
@@ -256,7 +277,7 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static UAC UACDetail(Guid Id)
+    public UAC UACDetail(Guid Id)
     {
         UAC toReturn;
         dbAccessSemaphore.Wait();
@@ -264,7 +285,7 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static User UserDetail(Guid Id)
+    public User UserDetail(Guid Id)
     {
         User toReturn;
         dbAccessSemaphore.Wait();
@@ -272,7 +293,7 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static List<User> UsersOverview()
+    public List<User> UsersOverview()
     {
         List<User> toReturn;
         dbAccessSemaphore.Wait();
@@ -280,7 +301,7 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static List<UAC> UACsOverview()
+    public List<UAC> UACsOverview()
     {
         List<UAC> toReturn;
         dbAccessSemaphore.Wait();
@@ -288,7 +309,7 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static UAC SearchUAC(Expression<Func<UAC, bool>> predicate)
+    public UAC SearchUAC(Expression<Func<UAC, bool>> predicate)
     {
         UAC toReturn;
         dbAccessSemaphore.Wait();
@@ -297,7 +318,7 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static List<UAC> MatchUACs(Message message)
+    public List<UAC> MatchUACs(Message message)
     {
         var msgId = message.Id;
         var accId = message.Author.Id;
@@ -308,7 +329,7 @@ public static class Rememberer
                           || uac.Users.FirstOrDefault(usr => usr.Id == usrId) != null
                           || uac.Channels.FirstOrDefault(ch => ch.Id == chId) != null);
     }
-    public static List<UAC> SearchUACs(Expression<Func<UAC, bool>> predicate)
+    public List<UAC> SearchUACs(Expression<Func<UAC, bool>> predicate)
     {
         List<UAC> toReturn;
         dbAccessSemaphore.Wait();
@@ -317,7 +338,7 @@ public static class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
-    public static void RememberUAC(UAC toRemember)
+    public void RememberUAC(UAC toRemember)
     {
         dbAccessSemaphore.Wait();
         db.Update(toRemember);

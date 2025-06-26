@@ -10,11 +10,11 @@ public class UACsController() : Controller
 {
     public IActionResult Index()
     {
-        return View(Rememberer.UACsOverview());
+        return View(Rememberer.Instance.UACsOverview());
     }
     public IActionResult Details(Guid id)
     {
-        return View(Rememberer.SearchUAC(uac => uac.Id == id));
+        return View(Rememberer.Instance.SearchUAC(uac => uac.Id == id));
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

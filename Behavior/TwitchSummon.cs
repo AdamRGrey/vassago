@@ -16,7 +16,7 @@ public class TwitchSummon : Behavior
 
     public TwitchSummon()
     {
-        myUAC = Rememberer.SearchUAC(uac => uac.OwnerId == uacID);
+        myUAC = rememberer.SearchUAC(uac => uac.OwnerId == uacID);
         if (myUAC == null)
         {
             myUAC = new()
@@ -26,7 +26,7 @@ public class TwitchSummon : Behavior
                 Description = @"matching this means you can summon the bot <i>to</i> <b>any</b> twitch channel"
             };
         }
-        Rememberer.RememberUAC(myUAC);
+        rememberer.RememberUAC(myUAC);
     }
     internal static TwitchInterface.TwitchInterface getAnyTwitchInterface()
     {

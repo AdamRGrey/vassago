@@ -12,6 +12,7 @@ public abstract class Behavior
 {
     //recommendation: set up your UACs in your constructor.
     public abstract Task<bool> ActOn(Message message);
+    protected static Rememberer rememberer = Rememberer.Instance;
 
     public virtual bool ShouldAct(Message message, List<UAC> matchedUACs)
     {

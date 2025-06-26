@@ -28,6 +28,7 @@ public class DiscordInterface : ProtocolInterface
     private static readonly SemaphoreSlim discordChannelSetup = new(1, 1);
     private Channel protocolAsChannel;
     public override Channel SelfChannel { get => protocolAsChannel; }
+    private static Rememberer r = Rememberer.Instance;
 
     public async Task Init(string config)
     {
@@ -53,7 +54,7 @@ public class DiscordInterface : ProtocolInterface
 
         try
         {
-            protocolAsChannel = Rememberer.SearchChannel(c => c.ParentChannel == null && c.Protocol == Protocol);
+            protocolAsChannel = r.SearchChannel(c => c.ParentChannel == null && c.Protocol == Protocol);
             if (protocolAsChannel == null)
             {
                 protocolAsChannel = new Channel()
@@ -75,7 +76,7 @@ public class DiscordInterface : ProtocolInterface
                 Console.WriteLine($"discord, channel with id {protocolAsChannel.Id}, already exists");
             }
             protocolAsChannel.DisplayName = "discord (itself)";
-            protocolAsChannel = Rememberer.RememberChannel(protocolAsChannel);
+            protocolAsChannel = r.RememberChannel(protocolAsChannel);
             Console.WriteLine($"protocol as channel addeed; {protocolAsChannel}");
         }
         finally
@@ -192,7 +193,7 @@ public class DiscordInterface : ProtocolInterface
     }
     internal static vassago.Models.Attachment UpsertAttachment(IAttachment dAttachment)
     {
-        var a = Rememberer.SearchAttachment(ai => ai.ExternalId == dAttachment.Id)
+        var a = r.SearchAttachment(ai => ai.ExternalId == dAttachment.Id)
             ?? new vassago.Models.Attachment();
 
         a.ContentType = dAttachment.ContentType;
@@ -200,12 +201,12 @@ public class DiscordInterface : ProtocolInterface
         a.Filename = dAttachment.Filename;
         a.Size = dAttachment.Size;
         a.Source = new Uri(dAttachment.Url);
-        Rememberer.RememberAttachment(a);
+        r.RememberAttachment(a);
         return a;
     }
     internal Message UpsertMessage(IUserMessage dMessage)
     {
-        var m = Rememberer.SearchMessage(mi => mi.ExternalId == dMessage.Id.ToString() && mi.Protocol == Protocol)
+        var m = r.SearchMessage(mi => mi.ExternalId == dMessage.Id.ToString() && mi.Protocol == Protocol)
             ?? new()
             {
                 Protocol = Protocol
@@ -231,13 +232,13 @@ public class DiscordInterface : ProtocolInterface
         m.MentionsMe = (dMessage.Author.Id != client.CurrentUser.Id
             && (dMessage.MentionedUserIds?.FirstOrDefault(muid => muid == client.CurrentUser.Id) > 0));
 
-        Rememberer.RememberMessage(m);
+        r.RememberMessage(m);
         Console.WriteLine($"received message; author: {m.Author.DisplayName}, {m.Author.Id}. messageid:{m.Id}");
         return m;
     }
     internal Channel UpsertChannel(IMessageChannel channel)
     {
-        Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == Protocol);
+        Channel c = r.SearchChannel(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == Protocol);
         if (c == null)
         {
             Console.WriteLine($"couldn't find channel under protocol {Protocol} with externalId {channel.Id.ToString()}");
@@ -290,7 +291,7 @@ public class DiscordInterface : ProtocolInterface
         Channel parentChannel = null;
         if (channel is IGuildChannel)
         {
-            parentChannel = Rememberer.SearchChannel(c => c.ExternalId == (channel as IGuildChannel).Guild.Id.ToString() && c.Protocol == Protocol);
+            parentChannel = r.SearchChannel(c => c.ExternalId == (channel as IGuildChannel).Guild.Id.ToString() && c.Protocol == Protocol);
             if (parentChannel is null)
             {
                 Console.Error.WriteLine("why am I still null?");
@@ -311,7 +312,7 @@ public class DiscordInterface : ProtocolInterface
             parentChannel.SubChannels.Add(c);
         }
 
-        c = Rememberer.RememberChannel(c);
+        c = r.RememberChannel(c);
 
         //Console.WriteLine($"no one knows how to make good tooling. c.users.first, which needs client currentuser id tostring. c: {c}, c.Users {c.Users}, client: {client}, client.CurrentUser: {client.CurrentUser}, client.currentUser.Id: {client.CurrentUser.Id}");
         var selfAccountInChannel = c.Users?.FirstOrDefault(a => a.ExternalId == client.CurrentUser.Id.ToString());
@@ -324,7 +325,7 @@ public class DiscordInterface : ProtocolInterface
     }
     internal Channel UpsertChannel(IGuild channel)
     {
-        Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == Protocol);
+        Channel c = r.SearchChannel(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == Protocol);
         if (c == null)
         {
             Console.WriteLine($"couldn't find channel under protocol {Protocol} with externalId {channel.Id.ToString()}");
@@ -340,11 +341,11 @@ public class DiscordInterface : ProtocolInterface
         c.SubChannels ??= [];
         c.MaxAttachmentBytes = channel.MaxUploadLimit;
 
-        return Rememberer.RememberChannel(c);
+        return r.RememberChannel(c);
     }
     internal static Account UpsertAccount(IUser discordUser, Channel inChannel)
     {
-        var acc = Rememberer.SearchAccount(ui => ui.ExternalId == discordUser.Id.ToString() && ui.SeenInChannel.Id == inChannel.Id);
+        var acc = r.SearchAccount(ui => ui.ExternalId == discordUser.Id.ToString() && ui.SeenInChannel.Id == inChannel.Id);
         Console.WriteLine($"upserting account, retrieved {acc?.Id}.");
         if (acc != null)
         {
@@ -352,7 +353,7 @@ public class DiscordInterface : ProtocolInterface
         }
         acc ??= new Account()
         {
-            IsUser = Rememberer.SearchUser(u => u.Accounts.Any(a => a.ExternalId == discordUser.Id.ToString() && a.Protocol == Protocol))
+            IsUser = r.SearchUser(u => u.Accounts.Any(a => a.ExternalId == discordUser.Id.ToString() && a.Protocol == Protocol))
                 ?? new User()
         };
 
@@ -372,12 +373,12 @@ public class DiscordInterface : ProtocolInterface
         {
             Console.WriteLine($"channel has {inChannel.Users.Count} accounts");
         }
-        Rememberer.RememberAccount(acc);
+        r.RememberAccount(acc);
         inChannel.Users ??= [];
         if (!inChannel.Users.Contains(acc))
         {
             inChannel.Users.Add(acc);
-            Rememberer.RememberChannel(inChannel);
+            r.RememberChannel(inChannel);
         }
         return acc;
     }
@@ -385,7 +386,7 @@ public class DiscordInterface : ProtocolInterface
     private static async Task<int> AttemptReact(IUserMessage msg, string e)
     {
         Console.WriteLine("discord attempting to react");
-        var c = Rememberer.SearchChannel(c => c.ExternalId == msg.Channel.Id.ToString());// db.Channels.FirstOrDefault(c => c.ExternalId == msg.Channel.Id.ToString());
+        var c = r.SearchChannel(c => c.ExternalId == msg.Channel.Id.ToString());// db.Channels.FirstOrDefault(c => c.ExternalId == msg.Channel.Id.ToString());
         //var preferredEmote = c.EmoteOverrides?[e] ?? e; //TODO: emote overrides
         var preferredEmote = e;
         if (Emoji.TryParse(preferredEmote, out Emoji emoji))

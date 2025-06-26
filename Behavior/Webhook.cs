@@ -37,7 +37,7 @@ public class Webhook : Behavior
                 Console.WriteLine($"{kvp[0]}: {kvp[1]}");
             }
             var changed = false;
-            var myUAC = Rememberer.SearchUAC(uac => uac.OwnerId == conf.uacID);
+            var myUAC = rememberer.SearchUAC(uac => uac.OwnerId == conf.uacID);
             if (myUAC == null)
             {
                 myUAC = new()
@@ -47,7 +47,7 @@ public class Webhook : Behavior
                     Description = conf.Description
                 };
                 changed = true;
-                Rememberer.RememberUAC(myUAC);
+                rememberer.RememberUAC(myUAC);
             }
             else
             {
@@ -63,7 +63,7 @@ public class Webhook : Behavior
                 }
             }
             if (changed)
-                Rememberer.RememberUAC(myUAC);
+                rememberer.RememberUAC(myUAC);
         }
     }
 
@@ -88,7 +88,7 @@ public class Webhook : Behavior
             {
                 var webhookableMessageContent = message.Content.Substring(message.Content.IndexOf(triggerTarget) + triggerTarget.Length + 1);
                 Console.WriteLine($"webhookable content: {webhookableMessageContent}");
-                var uacConf = Rememberer.SearchUAC(uac => uac.OwnerId == wh.uacID);
+                var uacConf = rememberer.SearchUAC(uac => uac.OwnerId == wh.uacID);
                 if (uacConf.Users.Contains(message.Author.IsUser) || uacConf.Channels.Contains(message.Channel) || uacConf.AccountInChannels.Contains(message.Author))
                 {
                     Console.WriteLine("webhook UAC passed, preparing WebhookActionOrder");

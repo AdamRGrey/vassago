@@ -189,7 +189,8 @@
 
         sb.Append("[{text: \"accounts\", \"expanded\":true, nodes: [");
         var first = true;
-        foreach (var acc in ThisChannel.Users?.OrderBy(a => a?.SeenInChannel?.LineageSummary))
+        Console.WriteLine($"{ThisChannel.DisplayName} has {ThisChannel.Users?.Count ?? 0} users.");
+        foreach (var acc in ThisChannel.Users?.OrderBy(a => a?.SeenInChannel?.LineageSummary ?? " ERROR"))
         {
             if(!first)
                 sb.Append(','); 

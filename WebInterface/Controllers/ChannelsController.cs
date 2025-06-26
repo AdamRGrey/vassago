@@ -10,16 +10,16 @@ namespace vassago.WebInterface.Controllers;
 
 public class ChannelsController() : Controller
 {
+    private static Rememberer r = Rememberer.Instance;
     public IActionResult Details(Guid id)
     {
-        var allChannels = Rememberer.ChannelsOverview();
-        if (allChannels == null)
-            return Problem("no channels.");
-
-        var channel = allChannels.FirstOrDefault(u => u.Id == id);
+        var channel = r.ChannelDetail(id);
         if (channel == null)
         {
             return Problem($"couldn't find channle {id}");
+        }
+        else {
+            Console.WriteLine($"details.cshtml will have a channel; {channel}.");
         }
         var walker = channel;
         while (walker != null)

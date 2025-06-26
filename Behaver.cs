@@ -17,6 +17,7 @@ public class Behaver
     private List<Account> SelfAccounts { get; set; } = new List<Account>();
     private User SelfUser { get; set; }
     public static List<vassago.Behavior.Behavior> Behaviors { get; private set; } = new List<vassago.Behavior.Behavior>();
+    private static Rememberer r = Rememberer.Instance;
     internal Behaver()
     {
         var subtypes = AppDomain.CurrentDomain.GetAssemblies()
@@ -44,7 +45,7 @@ public class Behaver
     public async Task<bool> ActOn(Message message)
     {
         //TODO: this is yet another hit to the database, and a big one. cache them in memory! there needs to be a feasibly-viewable amount, anyway.
-        var matchingUACs = Rememberer.MatchUACs(message);
+        var matchingUACs = r.MatchUACs(message);
         message.TranslatedContent = message.Content;
         foreach (var uacMatch in matchingUACs)
         {
@@ -79,7 +80,7 @@ public class Behaver
             message.ActedOn = true;
             behaviorsActedOn.Add("generic question fallback");
         }
-        Rememberer.RememberMessage(message);
+        r.RememberMessage(message);
         ForwardToKafka(message, behaviorsActedOn, matchingUACs);
         return message.ActedOn;
     }
@@ -117,7 +118,7 @@ public class Behaver
 
     internal bool IsSelf(Guid AccountId)
     {
-        var acc = Rememberer.SearchAccount(a => a.Id == AccountId);
+        var acc = r.SearchAccount(a => a.Id == AccountId);
 
         return SelfAccounts.Any(acc => acc.Id == AccountId);
     }
@@ -132,8 +133,8 @@ public class Behaver
         {
             CollapseUsers(SelfUser, selfAccount.IsUser);
         }
-        SelfAccounts = Rememberer.SearchAccounts(a => a.IsUser == SelfUser);
-        Rememberer.RememberAccount(selfAccount);
+        SelfAccounts = r.SearchAccounts(a => a.IsUser == SelfUser);
+        r.RememberAccount(selfAccount);
     }
 
     public bool CollapseUsers(User primary, User secondary)
@@ -147,18 +148,18 @@ public class Behaver
             a.IsUser = primary;
         }
         secondary.Accounts.Clear();
-        var uacs = Rememberer.SearchUACs(u => u.Users.FirstOrDefault(u => u.Id == secondary.Id) != null);
+        var uacs = r.SearchUACs(u => u.Users.FirstOrDefault(u => u.Id == secondary.Id) != null);
         if (uacs.Count() > 0)
         {
             foreach (var uac in uacs)
             {
                 uac.Users.RemoveAll(u => u.Id == secondary.Id);
                 uac.Users.Add(primary);
-                Rememberer.RememberUAC(uac);
+                r.RememberUAC(uac);
             }
         }
-        Rememberer.ForgetUser(secondary);
-        Rememberer.RememberUser(primary);
+        r.ForgetUser(secondary);
+        r.RememberUser(primary);
         return true;
     }
     private ProtocolInterface fetchInterface(Channel ch)
@@ -177,7 +178,7 @@ public class Behaver
     }
     public async Task<int> SendMessage(Guid channelId, string text)
     {
-        var channel = Rememberer.ChannelDetail(channelId);
+        var channel = r.ChannelDetail(channelId);
         if (channel == null)
             return 404;
         var iprotocol = fetchInterface(channel);
@@ -189,7 +190,7 @@ public class Behaver
     public async Task<int> React(Guid messageId, string reaction)
     {
         Console.WriteLine($"sanity check: behaver is reacting, {messageId}, {reaction}");
-        var message = Rememberer.MessageDetail(messageId);
+        var message = r.MessageDetail(messageId);
         if (message == null)
         {
             Console.Error.WriteLine($"message {messageId} not found");
@@ -212,7 +213,7 @@ public class Behaver
     }
     public async Task<int> Reply(Guid messageId, string text)
     {
-        var message = Rememberer.MessageDetail(messageId);
+        var message = r.MessageDetail(messageId);
         if (message == null)
         {
             Console.WriteLine($"message {messageId} not found");
@@ -228,7 +229,7 @@ public class Behaver
     }
     public async Task<int> SendFile(Guid channelId, string path, string accompanyingText)
     {
-        var channel = Rememberer.ChannelDetail(channelId);
+        var channel = r.ChannelDetail(channelId);
         if (channel == null)
             return 404;
         var iprotocol = fetchInterface(channel);
@@ -239,7 +240,7 @@ public class Behaver
     }
     public async Task<int> SendFile(Guid channelId, string base64dData, string filename, string accompanyingText)
     {
-        var channel = Rememberer.ChannelDetail(channelId);
+        var channel = r.ChannelDetail(channelId);
         if (channel == null)
             return 404;
         var iprotocol = fetchInterface(channel);

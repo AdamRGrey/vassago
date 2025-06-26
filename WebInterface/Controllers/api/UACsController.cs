@@ -11,6 +11,7 @@ namespace vassago.Controllers.api;
 public class UACController : ControllerBase
 {
     private readonly ILogger<UACController> _logger;
+    private static Rememberer r = Rememberer.Instance;
 
     public UACController(ILogger<UACController> logger)
     {
@@ -31,14 +32,14 @@ public class UACController : ControllerBase
     {
         var uac_guid = req.uac_guid;
         var channel_guid = req.channel_guid;
-        var uacFromDb = Rememberer.SearchUAC(uac => uac.Id == uac_guid);
+        var uacFromDb = r.SearchUAC(uac => uac.Id == uac_guid);
         if (uacFromDb == null)
         {
             var err = $"attempt to link channel for uac {uac_guid}, not found";
             _logger.LogError(err);
             return NotFound(err);
         }
-        var channelFromDb = Rememberer.SearchChannel(c => c.Id == channel_guid);
+        var channelFromDb = r.SearchChannel(c => c.Id == channel_guid);
         if (channelFromDb == null)
         {
             var err = $"attempt to link channel for channel {channel_guid}, not found";
@@ -52,7 +53,7 @@ public class UACController : ControllerBase
             return BadRequest("channel already linked");
         }
         uacFromDb.Channels.Add(channelFromDb);
-        Rememberer.RememberUAC(uacFromDb);
+        r.RememberUAC(uacFromDb);
         return Ok(uacFromDb);
     }
     public class extraSpecialObjectReadGlorifiedTupleFor_LinkUser
@@ -67,13 +68,13 @@ public class UACController : ControllerBase
     {
         var uac_guid = req.uac_guid;
         var user_guid = req.user_guid;
-        var uacFromDb = Rememberer.SearchUAC(uac => uac.Id == uac_guid);
+        var uacFromDb = r.SearchUAC(uac => uac.Id == uac_guid);
         if (uacFromDb == null)
         {
             _logger.LogError($"attempt to link channal for uac {uac_guid}, not found");
             return NotFound();
         }
-        var userFromDb = Rememberer.SearchUser(c => c.Id == user_guid);
+        var userFromDb = r.SearchUser(c => c.Id == user_guid);
         if (userFromDb == null)
         {
             _logger.LogError($"attempt to link user for user {user_guid}, not found");
@@ -86,7 +87,7 @@ public class UACController : ControllerBase
             return BadRequest("user already linked");
         }
         uacFromDb.Users.Add(userFromDb);
-        Rememberer.RememberUAC(uacFromDb);
+        r.RememberUAC(uacFromDb);
         return Ok(uacFromDb);
     }
     public class extraSpecialObjectReadGlorifiedTupleFor_LinkAccount
@@ -101,13 +102,13 @@ public class UACController : ControllerBase
     {
         var uac_guid = req.uac_guid;
         var account_guid = req.account_guid;
-        var uacFromDb = Rememberer.SearchUAC(uac => uac.Id == uac_guid);
+        var uacFromDb = r.SearchUAC(uac => uac.Id == uac_guid);
         if (uacFromDb == null)
         {
             _logger.LogError($"attempt to link channal for uac {uac_guid}, not found");
             return NotFound();
         }
-        var accountFromDb = Rememberer.SearchAccount(c => c.Id == account_guid);
+        var accountFromDb = r.SearchAccount(c => c.Id == account_guid);
         if (accountFromDb == null)
         {
             _logger.LogError($"attempt to link account for user {account_guid}, not found");
@@ -120,7 +121,7 @@ public class UACController : ControllerBase
             return BadRequest("account already linked");
         }
         uacFromDb.AccountInChannels.Add(accountFromDb);
-        Rememberer.RememberUAC(uacFromDb);
+        r.RememberUAC(uacFromDb);
         return Ok(uacFromDb);
     }
     [HttpPatch]
@@ -130,13 +131,13 @@ public class UACController : ControllerBase
     {
         var uac_guid = req.uac_guid;
         var user_guid = req.user_guid;
-        var uacFromDb = Rememberer.SearchUAC(uac => uac.Id == uac_guid);
+        var uacFromDb = r.SearchUAC(uac => uac.Id == uac_guid);
         if (uacFromDb == null)
         {
             _logger.LogError($"attempt to unlink uac for uac {uac_guid}, not found");
             return NotFound();
         }
-        var userFromDb = Rememberer.SearchUser(c => c.Id == user_guid);
+        var userFromDb = r.SearchUser(c => c.Id == user_guid);
         if (userFromDb == null)
         {
             _logger.LogError($"attempt to unlink user for user {user_guid}, not found");
@@ -149,7 +150,7 @@ public class UACController : ControllerBase
             return BadRequest("user not linked");
         }
         uacFromDb.Users.Remove(userFromDb);
-        Rememberer.RememberUAC(uacFromDb);
+        r.RememberUAC(uacFromDb);
         return Ok(uacFromDb);
     }
     [HttpPatch]
@@ -159,13 +160,13 @@ public class UACController : ControllerBase
     {
         var uac_guid = req.uac_guid;
         var account_guid = req.account_guid;
-        var uacFromDb = Rememberer.SearchUAC(uac => uac.Id == uac_guid);
+        var uacFromDb = r.SearchUAC(uac => uac.Id == uac_guid);
         if (uacFromDb == null)
         {
             _logger.LogError($"attempt to unlink uac for uac {uac_guid}, not found");
             return NotFound();
         }
-        var accountFromDb = Rememberer.SearchAccount(a => a.Id == account_guid);
+        var accountFromDb = r.SearchAccount(a => a.Id == account_guid);
         if (accountFromDb == null)
         {
             _logger.LogError($"attempt to unlink account for user {account_guid}, not found");
@@ -178,7 +179,7 @@ public class UACController : ControllerBase
             return BadRequest("account not linked");
         }
         uacFromDb.AccountInChannels.Remove(accountFromDb);
-        Rememberer.RememberUAC(uacFromDb);
+        r.RememberUAC(uacFromDb);
         return Ok(uacFromDb);
     }
     [HttpPatch]
@@ -188,13 +189,13 @@ public class UACController : ControllerBase
     {
         var uac_guid = req.uac_guid;
         var channel_guid = req.channel_guid;
-        var uacFromDb = Rememberer.SearchUAC(uac => uac.Id == uac_guid);
+        var uacFromDb = r.SearchUAC(uac => uac.Id == uac_guid);
         if (uacFromDb == null)
         {
             _logger.LogError($"attempt to unlink channal for uac {uac_guid}, not found");
             return NotFound();
         }
-        var channelFromDb = Rememberer.SearchChannel(c => c.Id == channel_guid);
+        var channelFromDb = r.SearchChannel(c => c.Id == channel_guid);
         if (channelFromDb == null)
         {
             _logger.LogError($"attempt to unlink user for user {channel_guid}, not found");
@@ -207,7 +208,7 @@ public class UACController : ControllerBase
             return BadRequest("user not linked");
         }
         uacFromDb.Channels.Remove(channelFromDb);
-        Rememberer.RememberUAC(uacFromDb);
+        r.RememberUAC(uacFromDb);
         return Ok(uacFromDb);
     }
     [HttpPut]
@@ -216,7 +217,7 @@ public class UACController : ControllerBase
     public IActionResult CreateForChannels(Guid Id)
     {
         _logger.LogDebug($"made it to controller. creating for channel {Id}");
-        var targetChannel = Rememberer.ChannelDetail(Id);
+        var targetChannel = r.ChannelDetail(Id);
         if (targetChannel == null)
         {
             return NotFound();
@@ -225,8 +226,8 @@ public class UACController : ControllerBase
         {
             Channels = [targetChannel]
         };
-        Rememberer.RememberUAC(newUAC);
-        Rememberer.RememberChannel(targetChannel);
+        r.RememberUAC(newUAC);
+        r.RememberChannel(targetChannel);
         return Ok(newUAC.Id);
     }
     [HttpPut]
@@ -235,7 +236,7 @@ public class UACController : ControllerBase
     public IActionResult AddTranslation(Guid Id)
     {
         _logger.LogDebug($"made it to controller. creating translation for uac {Id}");
-        var uacFromDb = Rememberer.SearchUAC(uac => uac.Id == Id);
+        var uacFromDb = r.SearchUAC(uac => uac.Id == Id);
         if (uacFromDb == null)
         {
             _logger.LogError($"attempt to create translation for uac {Id}, not found");
@@ -243,7 +244,7 @@ public class UACController : ControllerBase
         }
         uacFromDb.Translations ??= [];
         uacFromDb.Translations.Add(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
-        Rememberer.RememberUAC(uacFromDb);
+        r.RememberUAC(uacFromDb);
         return Ok(uacFromDb.Translations.Count);
     }
     [HttpPut]
@@ -252,7 +253,7 @@ public class UACController : ControllerBase
     public IActionResult AddCommandAlteration(Guid Id)
     {
         _logger.LogDebug($"made it to controller. creating command alteration for uac {Id}");
-        var uacFromDb = Rememberer.SearchUAC(uac => uac.Id == Id);
+        var uacFromDb = r.SearchUAC(uac => uac.Id == Id);
         if (uacFromDb == null)
         {
             _logger.LogError($"attempt to create command alteration for uac {Id}, not found");
@@ -260,7 +261,7 @@ public class UACController : ControllerBase
         }
         uacFromDb.CommandAlterations ??= [];
         uacFromDb.CommandAlterations.Add(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
-        Rememberer.RememberUAC(uacFromDb);
+        r.RememberUAC(uacFromDb);
         return Ok(uacFromDb.CommandAlterations.Count);
     }
 

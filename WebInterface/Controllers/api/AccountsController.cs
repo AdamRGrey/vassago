@@ -11,6 +11,7 @@ namespace vassago.Controllers.api;
 public class AccountsController : ControllerBase
 {
     private readonly ILogger<AccountsController> _logger;
+    private static Rememberer r = Rememberer.Instance;
 
     public AccountsController(ILogger<AccountsController> logger)
     {
@@ -29,14 +30,14 @@ public class AccountsController : ControllerBase
     public IActionResult UnlinkUser([FromBody] extraSpecialObjectReadGlorifiedTupleFor_UnlinkUser req)
     {
         var acc_guid = req.acc_guid;
-        var accFromDb = Rememberer.SearchAccount(acc => acc.Id == acc_guid);
+        var accFromDb = r.SearchAccount(acc => acc.Id == acc_guid);
         if (accFromDb == null)
         {
             var err = $"attempt to unlink user for acc {acc_guid}, not found";
             _logger.LogError(err);
             return NotFound(err);
         }
-        var userFromDb = Rememberer.SearchUser(c => c.Id == accFromDb.IsUser.Id);
+        var userFromDb = r.SearchUser(c => c.Id == accFromDb.IsUser.Id);
         if (userFromDb == null)
         {
             var err = $"attempt to unlink user for {acc_guid}, doesn't have a user";
@@ -46,7 +47,7 @@ public class AccountsController : ControllerBase
 
         accFromDb.IsUser = null;
 
-        Rememberer.RememberAccount(accFromDb);
+        r.RememberAccount(accFromDb);
         return Ok(accFromDb);
     }
 }

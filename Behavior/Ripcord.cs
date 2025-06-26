@@ -16,7 +16,7 @@ public class Ripcord: Behavior
 
     public Ripcord()
     {
-        myUAC = Rememberer.SearchUAC(uac => uac.OwnerId == uacID);
+        myUAC = rememberer.SearchUAC(uac => uac.OwnerId == uacID);
         if (myUAC == null)
         {
             myUAC = new()
@@ -26,7 +26,7 @@ public class Ripcord: Behavior
                 Description = @"matching this means you can tell the bot to shutdown, now"
             };
         }
-        Rememberer.RememberUAC(myUAC);
+        rememberer.RememberUAC(myUAC);
     }
     public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {

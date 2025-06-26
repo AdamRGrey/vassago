@@ -21,6 +21,7 @@ public class TwitchInterface : ProtocolInterface
     private Channel protocolAsChannel;
     public override Channel SelfChannel { get => protocolAsChannel;}
     private Account selfAccountInProtocol;
+    private static Rememberer r = Rememberer.Instance;
     TwitchClient client;
 
     private async Task SetupTwitchChannel()
@@ -29,7 +30,7 @@ public class TwitchInterface : ProtocolInterface
 
         try
         {
-            protocolAsChannel = Rememberer.SearchChannel(c => c.ParentChannel == null && c.Protocol == Protocol);
+            protocolAsChannel = r.SearchChannel(c => c.ParentChannel == null && c.Protocol == Protocol);
             if (protocolAsChannel == null)
             {
                 protocolAsChannel = new Channel()
@@ -46,7 +47,7 @@ public class TwitchInterface : ProtocolInterface
                     SubChannels = []
                 };
                 protocolAsChannel.DisplayName = "twitch (itself)";
-                protocolAsChannel = Rememberer.RememberChannel(protocolAsChannel);
+                protocolAsChannel = r.RememberChannel(protocolAsChannel);
                 Console.WriteLine($"protocol as channle added; {protocolAsChannel}");
             }
             else
@@ -139,7 +140,7 @@ public class TwitchInterface : ProtocolInterface
     private Account UpsertAccount(string username, Channel inChannel)
     {
         //Console.WriteLine($"upserting twitch account. username: {username}. inChannel: {inChannel?.Id}");
-        var acc = Rememberer.SearchAccount(ui => ui.ExternalId == username && ui.SeenInChannel.ExternalId == inChannel.ExternalId);
+        var acc = r.SearchAccount(ui => ui.ExternalId == username && ui.SeenInChannel.ExternalId == inChannel.ExternalId);
         // Console.WriteLine($"upserting twitch account, retrieved {acc?.Id}.");
         if (acc != null)
         {
@@ -147,7 +148,7 @@ public class TwitchInterface : ProtocolInterface
         }
         acc ??= new Account()
         {
-            IsUser = Rememberer.SearchUser(
+            IsUser = r.SearchUser(
                 u => u.Accounts.Any(a => a.ExternalId == username && a.Protocol == Protocol))
                 ?? new vassago.Models.User()
         };
@@ -168,19 +169,19 @@ public class TwitchInterface : ProtocolInterface
         // {
         //     Console.WriteLine($"channel has {inChannel.Users.Count} accounts");
         // }
-        Rememberer.RememberAccount(acc);
+        r.RememberAccount(acc);
         inChannel.Users ??= [];
         if (!inChannel.Users.Contains(acc))
         {
             inChannel.Users.Add(acc);
-            Rememberer.RememberChannel(inChannel);
+            r.RememberChannel(inChannel);
         }
         return acc;
     }
 
     private Channel UpsertChannel(string channelName)
     {
-        Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == channelName
+        Channel c = r.SearchChannel(ci => ci.ExternalId == channelName
                                              && ci.Protocol == Protocol);
         if (c == null)
         {
@@ -198,7 +199,7 @@ public class TwitchInterface : ProtocolInterface
         c.Protocol = Protocol;
         c.ParentChannel = protocolAsChannel;
         c.SubChannels = c.SubChannels ?? new List<Channel>();
-        c = Rememberer.RememberChannel(c);
+        c = r.RememberChannel(c);
 
         var selfAccountInChannel = c.Users?.FirstOrDefault(a => a.ExternalId == selfAccountInProtocol.ExternalId);
         if (selfAccountInChannel == null)
@@ -210,7 +211,7 @@ public class TwitchInterface : ProtocolInterface
     }
     private Channel UpsertDMChannel(string whisperWith)
     {
-        Channel c = Rememberer.SearchChannel(ci => ci.ExternalId == $"w_{whisperWith}"
+        Channel c = r.SearchChannel(ci => ci.ExternalId == $"w_{whisperWith}"
                                                      && ci.Protocol == Protocol);
         if (c == null)
         {
@@ -228,7 +229,7 @@ public class TwitchInterface : ProtocolInterface
         c.Protocol = Protocol;
         c.ParentChannel = protocolAsChannel;
         c.SubChannels = c.SubChannels ?? new List<Channel>();
-        c = Rememberer.RememberChannel(c);
+        c = r.RememberChannel(c);
 
         var selfAccountInChannel = c.Users.FirstOrDefault(a => a.ExternalId == selfAccountInProtocol.ExternalId);
         if (selfAccountInChannel == null)
@@ -244,7 +245,7 @@ public class TwitchInterface : ProtocolInterface
     //none of the features we care about are on it!
     private Message UpsertMessage(ChatMessage chatMessage)
     {
-        var m = Rememberer.SearchMessage(mi => mi.ExternalId == chatMessage.Id && mi.Protocol == Protocol)
+        var m = r.SearchMessage(mi => mi.ExternalId == chatMessage.Id && mi.Protocol == Protocol)
             ?? new()
             {
                 Protocol = Protocol,
@@ -255,7 +256,7 @@ public class TwitchInterface : ProtocolInterface
         m.Channel = UpsertChannel(chatMessage.Channel);
         m.Author = UpsertAccount(chatMessage.Username, m.Channel);
         m.MentionsMe = Regex.IsMatch(m.Content?.ToLower(), $"@\\b{selfAccountInProtocol.Username.ToLower()}\\b");
-        Rememberer.RememberMessage(m);
+        r.RememberMessage(m);
         return m;
     }
     //n.b., I see you future adam. "we should unify these, they're redundant".
@@ -264,7 +265,7 @@ public class TwitchInterface : ProtocolInterface
     private Message UpsertMessage(WhisperMessage whisperMessage)
     {
         //WhisperMessage.Id corresponds to chatMessage.Id. \*eye twitch*
-        var m = Rememberer.SearchMessage(mi => mi.ExternalId == whisperMessage.MessageId && mi.Protocol == Protocol)
+        var m = r.SearchMessage(mi => mi.ExternalId == whisperMessage.MessageId && mi.Protocol == Protocol)
             ?? new()
             {
                 Id = Guid.NewGuid(),
@@ -276,7 +277,7 @@ public class TwitchInterface : ProtocolInterface
         m.Channel = UpsertDMChannel(whisperMessage.Username);
         m.Author = UpsertAccount(whisperMessage.Username, m.Channel);
         m.MentionsMe = Regex.IsMatch(m.Content?.ToLower(), $"@\\b{selfAccountInProtocol.Username.ToLower()}\\b");
-        Rememberer.RememberMessage(m);
+        r.RememberMessage(m);
         return m;
     }
 

@@ -12,6 +12,7 @@ namespace vassago.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
+    private static Rememberer r = Rememberer.Instance;
 
     public HomeController(ILogger<HomeController> logger)
     {
@@ -20,14 +21,14 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        var allAccounts = Rememberer.AccountsOverview();
-        var allChannels = Rememberer.ChannelsOverview();
+        var allAccounts = r.AccountsOverview();
+        var allChannels = r.ChannelsOverview();
         Console.WriteLine($"accounts: {allAccounts?.Count ?? 0}, channels: {allChannels?.Count ?? 0}");
         var sb = new StringBuilder();
         sb.Append('[');
 
         //UACs
-        var allUACs = Rememberer.UACsOverview();
+        var allUACs = r.UACsOverview();
         var first = true;
         if(allUACs.Any())
         {
@@ -58,13 +59,13 @@ public class HomeController : Controller
         }
 
         //users
-        var users = Rememberer.UsersOverview();
+        var users = r.UsersOverview();
         if(users.Any())
         {
             sb.Append(",{text: \"users\", expanded:true, nodes: [");
             first=true;
             //refresh list; we'll be knocking them out again in serializeUser
-            allAccounts = Rememberer.AccountsOverview();
+            allAccounts = r.AccountsOverview();
             foreach(var user in users)
             {
                 if (first)
@@ -83,7 +84,7 @@ public class HomeController : Controller
         //type error, e is not defined
         //channels
         sb.Append(",{text: \"channels\", expanded:true, nodes: [");
-        var topLevelChannels = Rememberer.ChannelsOverview().Where(x => x.ParentChannel == null).ToList();
+        var topLevelChannels = r.ChannelsOverview().Where(x => x.ParentChannel == null).ToList();
         first = true;
         foreach (var topLevelChannel in topLevelChannels)
         {
