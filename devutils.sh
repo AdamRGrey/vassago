@@ -19,6 +19,14 @@ case "$1" in
         dotnet ef migrations add "$2"
         dotnet ef database update --connection "$connnectionstr"
         ;;
+    "remove-migration")
+        echo "ef migrations will tell you you can use dotnet ef migrations remove."
+        echo ""
+        echo "LIES."
+        echo ""
+        echo "it doesn't have a way to specify the connection string. can't be done."
+        echo "edit the db the hard way."
+        ;;
 
     "dbupdate")
 		dotnet ef database update --connection "$connnectionstr"
