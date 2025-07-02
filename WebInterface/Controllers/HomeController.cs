@@ -27,6 +27,8 @@ public class HomeController : Controller
         var sb = new StringBuilder();
         sb.Append('[');
 
+        sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Index", controller: "Configuration")}\\\">Configuration</a>\"}},");
+
         //UACs
         var allUACs = r.UACsOverview();
         var first = true;
@@ -81,7 +83,6 @@ public class HomeController : Controller
             sb.Append("]}");
         }
 
-        //type error, e is not defined
         //channels
         sb.Append(",{text: \"channels\", expanded:true, nodes: [");
         var topLevelChannels = r.ChannelsOverview().Where(x => x.ParentChannel == null).ToList();

@@ -1,0 +1,65 @@
+﻿@model vassago.Models.Configuration
+@{
+}
+<a href="/">home</a>/configuration
+<table class="table">
+    <tbody>
+    <tr>
+        <th scope="row">Discord</th>
+        <td><div id="discordTree"/></td>
+    </tr>
+    <tr>
+        <th><label class="form-check-label" for="SetupDiscordSlashCommands">Setup Discord Slash Commands</label>
+        <td><input type="checkbox" class="form-control" id="SetupDiscordSlashCommands" checked="@Model.SetupDiscordSlashCommands"/></td>
+    </tr>
+    <tr>
+        <th scope="row">Twitch</th>
+        <td><div id="twitchTree"/></td>
+    </tr>
+    <tr class="form-text">
+        <th><label for="ExchangePairsLocation">Exchange Pairs Location</label></th>
+        <td><input type="text" class="form-control" id="ExchangePairsLocation" value="@Model.ExchangePairsLocation"/></td>
+    </tr>
+    <tr>
+        <th scope="row">Webhooks</th>
+        <td><div id="webhooksTree"/></td>
+    </tr>
+    <tr class="form-text">
+        <th><label for="KafkaBootstrap">Kafka Bootstrap Server</label></th>
+        <td><input type="text" class="form-control" id="KafkaBootstrap" value="@Model.KafkaBootstrap"/></td>
+    </tr>
+    <tr class="form-text">
+        <th><label for="KafkaName">Kafka Name</label></th>
+        <td><input type="text" class="form-control" id="KafkaName" value="@Model.KafkaName"/></td>
+    </tr>
+    <tr class="form-text">
+        <th><label for="reportedApiUrlKafkaName">reportedApiUrl</label></th>
+        <td><input type="text" class="form-control" id="reportedApiUrl" value="@Model.reportedApiUrl"/></td>
+    </tr>
+    </tbody>
+</table>
+
+
+@section Scripts{
+    <script type="text/javascript">
+        var theModel = JSON.parse(@Html.Raw(ViewData["serialized"]));
+        function discordTokenNode(tokenText, id){
+            return "{ \"text\": \"<input type=\\\"text\\\" class=\\\"form-control\\\"" +
+                "id=\\\"discordToken[" + id + "]\\\" +
+                "value=\\\"" + tokenText + "\\\"/>" +
+                "<button class=\\\"btn btn-danger\\\" onclick=\\\"removeDiscordToken(" + id + ")\\\">delete</button>" +
+                "\"},";
+        }
+        function discordTree() {
+            var treeStr = "[";
+            theModel.DiscordTokens.forEach((token, idx) => {
+                treeStr += discordTokenNode(token, idx);
+            });
+
+
+            console.log(tree);
+            return treeStr;
+        }
+        $('#discordTree').bstreeview({ data: discordTree() });
+    </script>
+}

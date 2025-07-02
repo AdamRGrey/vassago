@@ -11,6 +11,7 @@ public class ChattingContext : DbContext
     public DbSet<Message> Messages { get; set; }
     public DbSet<Account> Accounts { get; set; }
     public DbSet<User> Users { get; set; }
+    public DbSet<Configuration> Configurations {get; set;}
 
     public ChattingContext(DbContextOptions<ChattingContext> options) : base(options) { }
     public ChattingContext() : base() { }

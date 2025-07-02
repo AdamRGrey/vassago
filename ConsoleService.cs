@@ -7,30 +7,31 @@ namespace vassago
     using vassago.TwitchInterface;
     using vassago.ProtocolInterfaces.DiscordInterface;
     using System.Runtime.CompilerServices;
+    using Newtonsoft.Json;
 
     internal class ConsoleService : BackgroundService
     {
         public ConsoleService(IConfiguration aspConfig)
         {
             Shared.DBConnectionString = aspConfig["DBConnectionString"];
-            Shared.SetupSlashCommands = aspConfig["SetupSlashCommands"]?.ToLower() == "true";
-            Shared.API_URL = new Uri(aspConfig["API_URL"]);
-            DiscordTokens = aspConfig.GetSection("DiscordTokens").Get<IEnumerable<string>>();
-            TwitchConfigs = aspConfig.GetSection("TwitchConfigs").Get<IEnumerable<TwitchConfig>>();
-            Conversion.Converter.Load(aspConfig["ExchangePairsLocation"]);
-            Telefranz.Configure(aspConfig["KafkaName"], aspConfig["KafkaBootstrap"]);
-            Console.WriteLine($"Telefranz.Configure({aspConfig["KafkaName"]}, {aspConfig["KafkaBootstrap"]});");
-            vassago.Behavior.Webhook.SetupWebhooks(aspConfig.GetSection("Webhooks"));
         }
 
-        IEnumerable<string> DiscordTokens { get; }
-        IEnumerable<TwitchConfig> TwitchConfigs { get; }
+        List<string> DiscordTokens;
+        List<TwitchConfig> TwitchConfigs;
 
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             var initTasks = new List<Task>();
             var dbc = new ChattingContext();
             await dbc.Database.MigrateAsync(cancellationToken);
+
+            var confEntity = dbc.Configurations.FirstOrDefault() ?? new Configuration();
+            if (dbc.Configurations.Count() == 0)
+            {
+                dbc.Configurations.Add(confEntity);
+                dbc.SaveChanges();
+            }
+            dbConfig(ref confEntity);
 
             if (DiscordTokens?.Any() ?? false)
                 foreach (var dt in DiscordTokens)
@@ -47,9 +48,22 @@ namespace vassago
                     initTasks.Add(t.Init(tc));
                     Shared.ProtocolList.Add(t);
                 }
-            
+
             Task.WaitAll(initTasks.ToArray(), cancellationToken);
         }
-
+        private void dbConfig(ref vassago.Models.Configuration confEntity)
+        {
+            Shared.SetupSlashCommands = confEntity.SetupDiscordSlashCommands;
+            Shared.API_URL = new Uri(confEntity.reportedApiUrl);
+            DiscordTokens = confEntity.DiscordTokens;
+            TwitchConfigs = new List<TwitchConfig>();
+            if(confEntity.TwitchConfigs != null) foreach (var twitchConfString in confEntity.TwitchConfigs)
+            {
+                TwitchConfigs.Add(JsonConvert.DeserializeObject<TwitchConfig>(twitchConfString));
+            }
+            Conversion.Converter.Load(confEntity.ExchangePairsLocation);
+            Telefranz.Configure(confEntity.KafkaName, confEntity.KafkaBootstrap);
+            vassago.Behavior.Webhook.SetupWebhooks(confEntity.Webhooks);
+        }
     }
 }

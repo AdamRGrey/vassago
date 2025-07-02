@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using vassago.Models;
+using Newtonsoft.Json;
 
 [StaticPlz]
 public class Webhook : Behavior
@@ -24,18 +25,13 @@ public class Webhook : Behavior
     private ConcurrentDictionary<Guid, WebhookActionOrder> authedCache = new ConcurrentDictionary<Guid, WebhookActionOrder>();
     private HttpClient hc = new HttpClient();
 
-    public static void SetupWebhooks(IConfigurationSection confSection)
+    public static void SetupWebhooks(IEnumerable<string> confSection)
     {
-        configuredWebhooks = confSection.Get<List<vassago.Behavior.WebhookConf>>();
-
-        foreach (var conf in configuredWebhooks)
+        //configuredWebhooks = confSection.Get<List<vassago.Behavior.WebhookConf>>();
+        if(confSection != null) foreach (var confLine in confSection)
         {
+            var conf = JsonConvert.DeserializeObject<WebhookConf>(confLine);
             var confName = $"Webhook: {conf.Trigger}";
-            Console.WriteLine($"confName: {confName}; conf.uri: {conf.Uri}, conf.uacID: {conf.uacID}, conf.Method: {conf.Method}, conf.Headers: {conf.Headers?.Count() ?? 0}, conf.Content: {conf.Content}");
-            foreach (var kvp in conf.Headers)
-            {
-                Console.WriteLine($"{kvp[0]}: {kvp[1]}");
-            }
             var changed = false;
             var myUAC = rememberer.SearchUAC(uac => uac.OwnerId == conf.uacID);
             if (myUAC == null)

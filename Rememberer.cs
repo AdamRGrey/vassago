@@ -347,4 +347,11 @@ public class Rememberer
         if (toRemember.Channels?.Count() > 0)
             cacheChannels();
     }
+    public Configuration Configuration()
+    {
+        dbAccessSemaphore.Wait();
+        var toReturn = db.Configurations.FirstOrDefault();
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
 }
