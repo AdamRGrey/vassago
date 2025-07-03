@@ -1,28 +1,88 @@
 ﻿@model vassago.Models.Configuration
+@using Newtonsoft.Json;
+@using vassago.Behavior;
 @{
 }
 <a href="/">home</a>/configuration
-<table class="table">
+<form action="@Url.Action("submit", "Configuration")" method="post">
+  <table class="table">
     <tbody>
     <tr>
-        <th scope="row">Discord</th>
-        <td><div id="discordTree"/></td>
+        <th colspa="2">Discord</th>
+    </tr>
+    @{
+        if(Model.DiscordTokens != null) for(var i = 0; i < Model.DiscordTokens.Count; i++)
+        {
+            Html.Raw("<tr>");
+                Html.Raw($"<th><label for=\"DiscordTokens[{i}]\"></label></th>");
+                Html.Raw($"<td><input type=\"text\" class=\"form-control\" id=\"DiscordTokens[{i}]\" value=\"{Model.DiscordTokens[i]}\"/></td>");
+            Html.Raw("</tr>");
+        }
+    }
+    <tr>
+        <td></td>
+        <td>
+            <button type="button" onclick="addDiscord.showModal()">add</button>
+        </td>
     </tr>
     <tr>
         <th><label class="form-check-label" for="SetupDiscordSlashCommands">Setup Discord Slash Commands</label>
-        <td><input type="checkbox" class="form-control" id="SetupDiscordSlashCommands" checked="@Model.SetupDiscordSlashCommands"/></td>
+        <td><input type="checkbox" class="form-check-input position-static" id="SetupDiscordSlashCommands" checked="@Model.SetupDiscordSlashCommands"/></td>
     </tr>
     <tr>
-        <th scope="row">Twitch</th>
-        <td><div id="twitchTree"/></td>
+        <th colspan="2">Twitch</th>
+    </tr>
+    @{
+        if(Model.TwitchConfigs != null) for(var i = 0; i < Model.TwitchConfigs.Count; i++)
+        {
+            Html.Raw("<tr>");
+                Html.Raw($"<th><label for=\"TwitchConfigs[{i}]\"></label></th>");
+                Html.Raw("<td>");
+                Html.Raw("<input type=\"text\" class=\"form-control\" id=\"TwitchConfigs[{i}].username\" value=\"{Model.TwitchConfigs[i].username}\"/>");
+                Html.Raw("<input type=\"text\" class=\"form-control\" id=\"TwitchConfigs[{i}].oauth\" value=\"{Model.TwitchConfigs[i].oauth}\"/>");
+                Html.Raw("</td>");
+            Html.Raw("</tr>");
+        }
+    }
+    <tr>
+        <td></td>
+        <td>
+            <button type="button" onclick="addTwitch.showModal()">add</button>
+        </td>
     </tr>
     <tr class="form-text">
         <th><label for="ExchangePairsLocation">Exchange Pairs Location</label></th>
         <td><input type="text" class="form-control" id="ExchangePairsLocation" value="@Model.ExchangePairsLocation"/></td>
     </tr>
     <tr>
-        <th scope="row">Webhooks</th>
-        <td><div id="webhooksTree"/></td>
+        <th colspan="2">Webhooks</th>
+    </tr>
+    @{
+        if(Model.Webhooks != null) for(var i = 0; i< Model.Webhooks.Count; i++)
+        {
+            var wh = JsonConvert.DeserializeObject<WebhookConf>(Model.Webhooks[i]);
+            <tr>
+                <th><label for="Webhooks[@i]">@wh.Trigger</label></th>
+                <td>
+                    <input type="text" class="form-control" id="Webhooks[@i].Trigger" value="@wh.Trigger"/>
+                    <input type="text" class="form-control" id="Webhooks[@i].Uri" value="@wh.Uri"/>
+                    <input type="text" class="form-control" id="Webhooks[@i].Method" value="@wh.Method"/>
+                    <input type="text" class="form-control" id="Webhooks[@i].Headers" value="@wh.Headers"/>
+                    <input type="text" class="form-control" id="Webhooks[@i].Content" value="@wh.Content"/>
+                    <input type="text" class="form-control" id="Webhooks[@i].Description" value="@wh.Description"/>
+                </td>
+            </tr>
+        }
+    }
+    <tr>
+        <td></td>
+        <td>
+            <button type="button" onclick="addWebhook.showModal()">add</button>
+        </td>
+    </tr>
+    <tr class="form-text">
+        <th><label for="KafkaBootstrap">Kafka Bootstrap Server</label></th>
+        <td><input type="text" class="form-control" id="KafkaBootstrap" value="@Model.KafkaBootstrap"/></td>
     </tr>
     <tr class="form-text">
         <th><label for="KafkaBootstrap">Kafka Bootstrap Server</label></th>
@@ -36,30 +96,31 @@
         <th><label for="reportedApiUrlKafkaName">reportedApiUrl</label></th>
         <td><input type="text" class="form-control" id="reportedApiUrl" value="@Model.reportedApiUrl"/></td>
     </tr>
+    <tr class="form-text">
+        <td colspan="2"><button class="btn btn-success" type="submit">save</button></td>
+    </tr>
     </tbody>
 </table>
-
-
-@section Scripts{
-    <script type="text/javascript">
-        var theModel = JSON.parse(@Html.Raw(ViewData["serialized"]));
-        function discordTokenNode(tokenText, id){
-            return "{ \"text\": \"<input type=\\\"text\\\" class=\\\"form-control\\\"" +
-                "id=\\\"discordToken[" + id + "]\\\" +
-                "value=\\\"" + tokenText + "\\\"/>" +
-                "<button class=\\\"btn btn-danger\\\" onclick=\\\"removeDiscordToken(" + id + ")\\\">delete</button>" +
-                "\"},";
-        }
-        function discordTree() {
-            var treeStr = "[";
-            theModel.DiscordTokens.forEach((token, idx) => {
-                treeStr += discordTokenNode(token, idx);
-            });
-
-
-            console.log(tree);
-            return treeStr;
-        }
-        $('#discordTree').bstreeview({ data: discordTree() });
-    </script>
-}
+</form>
+<dialog id="addDiscord">
+    <form action="@Url.Action("AddDiscord", "Configuration")" method="post">
+        <input type="text" class="form-control" name="newToken" />
+        <button class="btn btn-secondary" type="button" onclick="addDiscord.close()">cancel</button>
+        <button class="btn btn-success" type="submit">save</button>
+    </form>
+</dialog>
+<dialog id="addTwitch">
+    <form action="@Url.Action("AddTwitch", "Configuration")" method="post">
+        <input type="text" class="form-control" name="newUsername" />
+        <input type="text" class="form-control" name="newOauth" />
+        <button class="btn btn-secondary" type="button" onclick="addTwitch.close()">cancel</button>
+        <button class="btn btn-success" type="submit">save</button>
+    </form>
+</dialog>
+<dialog id="addWebhook">
+    <form action="@Url.Action("AddWebhook", "Configuration")" method="post">
+        <input type="text" class="form-control" name="newTrigger" />
+        <button class="btn btn-secondary" type="button" onclick="addWebhook.close()">cancel</button>
+        <button class="btn btn-success" type="submit">save</button>
+    </form>
+</dialog>
