@@ -1,22 +1,24 @@
 ﻿@model vassago.Models.Configuration
 @using Newtonsoft.Json;
 @using vassago.Behavior;
-@{
-}
+
 <a href="/">home</a>/configuration
 <form action="@Url.Action("submit", "Configuration")" method="post">
   <table class="table">
     <tbody>
     <tr>
-        <th colspa="2">Discord</th>
+        <th colspan="2">Discord (@(Model?.DiscordTokens?.Count ?? 0) accounts)</th>
     </tr>
     @{
         if(Model.DiscordTokens != null) for(var i = 0; i < Model.DiscordTokens.Count; i++)
         {
-            Html.Raw("<tr>");
-                Html.Raw($"<th><label for=\"DiscordTokens[{i}]\"></label></th>");
-                Html.Raw($"<td><input type=\"text\" class=\"form-control\" id=\"DiscordTokens[{i}]\" value=\"{Model.DiscordTokens[i]}\"/></td>");
-            Html.Raw("</tr>");
+            <tr>
+                <th><label for="DiscordTokens[@i]"></label></th>
+                <td>
+                    <input type="text" class="form-control" name="DiscordTokens[@i]" value="@Model.DiscordTokens[i]"/>
+                    <button type="button" onclick="() => {removeDiscordTarget = @i; removeDiscord.showModal();}" class="btn btn-danger">del</button>
+                </td>
+            </tr>
         }
     }
     <tr>
@@ -30,18 +32,22 @@
         <td><input type="checkbox" class="form-check-input position-static" id="SetupDiscordSlashCommands" checked="@Model.SetupDiscordSlashCommands"/></td>
     </tr>
     <tr>
-        <th colspan="2">Twitch</th>
+        <th colspan="2">Twitch (@(Model?.TwitchConfigs?.Count ?? 0) accounts)</th>
     </tr>
     @{
         if(Model.TwitchConfigs != null) for(var i = 0; i < Model.TwitchConfigs.Count; i++)
         {
-            Html.Raw("<tr>");
-                Html.Raw($"<th><label for=\"TwitchConfigs[{i}]\"></label></th>");
-                Html.Raw("<td>");
-                Html.Raw("<input type=\"text\" class=\"form-control\" id=\"TwitchConfigs[{i}].username\" value=\"{Model.TwitchConfigs[i].username}\"/>");
-                Html.Raw("<input type=\"text\" class=\"form-control\" id=\"TwitchConfigs[{i}].oauth\" value=\"{Model.TwitchConfigs[i].oauth}\"/>");
-                Html.Raw("</td>");
-            Html.Raw("</tr>");
+            var tc = JsonConvert.DeserializeObject<TwitchConfig>(Model.TwitchConfigs[i]);
+
+            <tr>
+                <th><label for="TwitchConfigs[@i]"></label></th>
+                <td>
+                    <input type="hidden" name="TwitchConfigs[@i]" value="@Model.TwitchConfigs[i]" />
+                    <input type="text" class="form-control" value="@tc.username"/><!--//TODO: save me, knockout.js!-->
+                    <input type="text" class="form-control" value="@tc.oauth"/>
+                    <button type="button" onclick="() => {removeTwitchTarget = @i; removeTwitch.showModal();}" class="btn btn-danger">del</button>
+                </td>
+            </tr>
         }
     }
     <tr>
@@ -109,6 +115,14 @@
         <button class="btn btn-success" type="submit">save</button>
     </form>
 </dialog>
+<dialog id="removeDiscord">
+    <form action="@Url.Action("RemoveDiscord", "Configuration")" method="delete">
+        Are you sure?
+        <input type="hidden" name="id" id="removeDiscordTarget" />
+        <button class="btn btn-secondary" type="button" onclick="removeDiscord.close()">cancel</button>
+        <button class="btn btn-danger" type="submit">delete</button>
+    </form>
+</dialog>
 <dialog id="addTwitch">
     <form action="@Url.Action("AddTwitch", "Configuration")" method="post">
         <input type="text" class="form-control" name="newUsername" />
@@ -117,10 +131,26 @@
         <button class="btn btn-success" type="submit">save</button>
     </form>
 </dialog>
+<dialog id="removeTwitch">
+    <form action="@Url.Action("RemoveTwitch", "Configuration")" method="delete">
+        Are you sure?
+        <input type="hidden" name="id" id="removeTwitchTarget" />
+        <button class="btn btn-secondary" type="button" onclick="removeTwitch.close()">cancel</button>
+        <button class="btn btn-danger" type="submit">delete</button>
+    </form>
+</dialog>
 <dialog id="addWebhook">
     <form action="@Url.Action("AddWebhook", "Configuration")" method="post">
         <input type="text" class="form-control" name="newTrigger" />
         <button class="btn btn-secondary" type="button" onclick="addWebhook.close()">cancel</button>
         <button class="btn btn-success" type="submit">save</button>
+    </form>
+</dialog>
+<dialog id="removeWebhook">
+    <form action="@Url.Action("RemoveWebhook", "Configuration")" method="delete">
+        Are you sure?
+        <input type="hidden" name="id" id="removeWebhookTarget" />
+        <button class="btn btn-secondary" type="button" onclick="removeWebhook.close()">cancel</button>
+        <button class="btn btn-danger" type="submit">delete</button>
     </form>
 </dialog>

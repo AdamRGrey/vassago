@@ -37,10 +37,19 @@ namespace vassago
                 foreach (var dt in DiscordTokens)
                 {
                     var d = new DiscordInterface();
-                    initTasks.Add(d.Init(dt));
-                    Shared.ProtocolList.Add(d);
+                    initTasks.Add(Task.Run(() =>
+                    {
+                        try
+                        {
+                            d.Init(dt);
+                            Shared.ProtocolList.Add(d);
+                        }
+                        catch (Exception e){
+                            Console.Error.WriteLine($"couldn't initialize discord interface with token {dt}");
+                            Console.Error.WriteLine(e);
+                        }
+                    }));
                 }
-
             if (TwitchConfigs?.Any() ?? false)
                 foreach (var tc in TwitchConfigs)
                 {
@@ -50,6 +59,7 @@ namespace vassago
                 }
 
             Task.WaitAll(initTasks.ToArray(), cancellationToken);
+            Console.WriteLine("init tasks are done");
         }
         private void dbConfig(ref vassago.Models.Configuration confEntity)
         {
@@ -57,10 +67,10 @@ namespace vassago
             Shared.API_URL = new Uri(confEntity.reportedApiUrl);
             DiscordTokens = confEntity.DiscordTokens;
             TwitchConfigs = new List<TwitchConfig>();
-            if(confEntity.TwitchConfigs != null) foreach (var twitchConfString in confEntity.TwitchConfigs)
-            {
-                TwitchConfigs.Add(JsonConvert.DeserializeObject<TwitchConfig>(twitchConfString));
-            }
+            if (confEntity.TwitchConfigs != null) foreach (var twitchConfString in confEntity.TwitchConfigs)
+                {
+                    TwitchConfigs.Add(JsonConvert.DeserializeObject<TwitchConfig>(twitchConfString));
+                }
             Conversion.Converter.Load(confEntity.ExchangePairsLocation);
             Telefranz.Configure(confEntity.KafkaName, confEntity.KafkaBootstrap);
             vassago.Behavior.Webhook.SetupWebhooks(confEntity.Webhooks);

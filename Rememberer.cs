@@ -354,4 +354,11 @@ public class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
+    public void RememberConfiguration(Configuration conf)
+    {
+        dbAccessSemaphore.Wait();
+        db.Update(conf);
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
+    }
 }

@@ -25,4 +25,15 @@ public class ConfigurationController() : Controller
     {
         return View(new ErrorPageViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
+
+    [HttpPost]
+    public IActionResult AddDiscord(string newToken)
+    {
+        Console.WriteLine($"remembering discord, {newToken}");
+        var conf = r.Configuration();
+        conf.DiscordTokens ??=[];
+        conf.DiscordTokens.Add(newToken);
+        r.RememberConfiguration(conf);
+        return RedirectToAction("Index", "Configuration");
+    }
 }

@@ -33,6 +33,8 @@ public class DiscordInterface : ProtocolInterface
     public async Task Init(string config)
     {
         var token = config;
+        Console.WriteLine($"going to validate token {token}");
+        Discord.TokenUtils.ValidateToken(TokenType.Bot, token);//throws an exception if invalid
         await SetupDiscordChannel();
         client = new DiscordSocketClient(new DiscordSocketConfig() { GatewayIntents = GatewayIntents.All });
 
@@ -41,11 +43,17 @@ public class DiscordInterface : ProtocolInterface
             Console.WriteLine(msg.ToString());
             return Task.CompletedTask;
         };
-        client.Connected += () => Task.Run(SelfConnected);
-        client.Ready += () => Task.Run(ClientReady);
+        client.Connected += this.SelfConnected;
+        client.Disconnected += this.ClientDisconnected;
+        client.Ready += this.ClientReady;
 
         await client.LoginAsync(TokenType.Bot, token);
         await client.StartAsync();
+    }
+    private async Task ClientDisconnected(Exception e)
+    {
+        Console.WriteLine("client disconnected!");
+        Console.WriteLine(e?.Message);
     }
 
     private async Task SetupDiscordChannel()
