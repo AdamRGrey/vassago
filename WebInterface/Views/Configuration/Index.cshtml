@@ -1,9 +1,11 @@
 ﻿@model vassago.Models.Configuration
 @using Newtonsoft.Json;
 @using vassago.Behavior;
+@using vassago.TwitchInterface;
+@using System.Text;
 
 <a href="/">home</a>/configuration
-<form action="@Url.Action("submit", "Configuration")" method="post">
+<form action="@Url.Action("submit", "Configuration")" method="post" id="theForm">
   <table class="table">
     <tbody>
     <tr>
@@ -16,7 +18,7 @@
                 <th><label for="DiscordTokens[@i]"></label></th>
                 <td>
                     <input type="text" class="form-control" name="DiscordTokens[@i]" value="@Model.DiscordTokens[i]"/>
-                    <button type="button" onclick="() => {removeDiscordTarget = @i; removeDiscord.showModal();}" class="btn btn-danger">del</button>
+                    <button type="button" onclick="removeDiscord(@i)" class="btn btn-danger">del</button>
                 </td>
             </tr>
         }
@@ -29,7 +31,7 @@
     </tr>
     <tr>
         <th><label class="form-check-label" for="SetupDiscordSlashCommands">Setup Discord Slash Commands</label>
-        <td><input type="checkbox" class="form-check-input position-static" id="SetupDiscordSlashCommands" checked="@Model.SetupDiscordSlashCommands"/></td>
+        <td><input type="checkbox" class="form-check-input position-static" name="SetupDiscordSlashCommands" checked="@Model.SetupDiscordSlashCommands" value="true"/></td>
     </tr>
     <tr>
         <th colspan="2">Twitch (@(Model?.TwitchConfigs?.Count ?? 0) accounts)</th>
@@ -42,10 +44,10 @@
             <tr>
                 <th><label for="TwitchConfigs[@i]"></label></th>
                 <td>
-                    <input type="hidden" name="TwitchConfigs[@i]" value="@Model.TwitchConfigs[i]" />
-                    <input type="text" class="form-control" value="@tc.username"/><!--//TODO: save me, knockout.js!-->
-                    <input type="text" class="form-control" value="@tc.oauth"/>
-                    <button type="button" onclick="() => {removeTwitchTarget = @i; removeTwitch.showModal();}" class="btn btn-danger">del</button>
+                    <input type="hidden" name="TwitchConfigs[@i]" id="TwitchConfigs_@i" value="@Model.TwitchConfigs[i]" />
+                    <input type="text" class="form-control" data-name="username" value="@tc.username"/>
+                    <input type="text" class="form-control" data-name="oauth" value="@tc.oauth"/>
+                    <button type="button" onclick="removeTwitch(@i);" class="btn btn-danger">del</button>
                 </td>
             </tr>
         }
@@ -58,24 +60,37 @@
     </tr>
     <tr class="form-text">
         <th><label for="ExchangePairsLocation">Exchange Pairs Location</label></th>
-        <td><input type="text" class="form-control" id="ExchangePairsLocation" value="@Model.ExchangePairsLocation"/></td>
+        <td><input type="text" class="form-control" name="ExchangePairsLocation" value="@Model.ExchangePairsLocation"/></td>
     </tr>
     <tr>
         <th colspan="2">Webhooks</th>
     </tr>
     @{
-        if(Model.Webhooks != null) for(var i = 0; i< Model.Webhooks.Count; i++)
+        if(Model.Webhooks != null) for(var i = 0; i < Model.Webhooks.Count; i++)
         {
+            if(Model.Webhooks[i] == null) continue;
+            Console.WriteLine(Model.Webhooks[i]);
             var wh = JsonConvert.DeserializeObject<WebhookConf>(Model.Webhooks[i]);
+            if(wh == null) continue;
+            var sb = new StringBuilder();
+            if(wh.Headers != null) foreach(var header in wh.Headers)
+            {
+                sb.Append($"{header[0]}:");
+                if(header.Count == 2)
+                    sb.Append(header[1]);
+                sb.AppendLine();
+            }
             <tr>
                 <th><label for="Webhooks[@i]">@wh.Trigger</label></th>
                 <td>
-                    <input type="text" class="form-control" id="Webhooks[@i].Trigger" value="@wh.Trigger"/>
-                    <input type="text" class="form-control" id="Webhooks[@i].Uri" value="@wh.Uri"/>
-                    <input type="text" class="form-control" id="Webhooks[@i].Method" value="@wh.Method"/>
-                    <input type="text" class="form-control" id="Webhooks[@i].Headers" value="@wh.Headers"/>
-                    <input type="text" class="form-control" id="Webhooks[@i].Content" value="@wh.Content"/>
-                    <input type="text" class="form-control" id="Webhooks[@i].Description" value="@wh.Description"/>
+                    <input type="hidden" name="Webhooks[@i]" id="Webhooks_@i" value="@Model.Webhooks[i]" />
+                    <input type="text" class="form-control" data-name="Trigger" value="@wh.Trigger"/>
+                    <input type="text" class="form-control" data-name="Uri" value="@wh.Uri"/>
+                    <input type="text" class="form-control" data-name="Method" value="@wh.Method"/>
+                    <input type="textarea" class="form-control" data-name="Headers" value="@sb.ToString()"/>
+                    <input type="text" class="form-control" data-name="Content" value="@wh.Content"/>
+                    <input type="text" class="form-control" data-name="Description" value="@wh.Description"/>
+                    <button type="button" onclick="removeWebhook(@i);" class="btn btn-danger">del</button>
                 </td>
             </tr>
         }
@@ -83,27 +98,23 @@
     <tr>
         <td></td>
         <td>
-            <button type="button" onclick="addWebhook.showModal()">add</button>
+            <button type="button" onclick="addWebhookDialog.showModal()">add</button>
         </td>
     </tr>
     <tr class="form-text">
         <th><label for="KafkaBootstrap">Kafka Bootstrap Server</label></th>
-        <td><input type="text" class="form-control" id="KafkaBootstrap" value="@Model.KafkaBootstrap"/></td>
-    </tr>
-    <tr class="form-text">
-        <th><label for="KafkaBootstrap">Kafka Bootstrap Server</label></th>
-        <td><input type="text" class="form-control" id="KafkaBootstrap" value="@Model.KafkaBootstrap"/></td>
+        <td><input type="text" class="form-control" name="KafkaBootstrap" value="@Model.KafkaBootstrap"/></td>
     </tr>
     <tr class="form-text">
         <th><label for="KafkaName">Kafka Name</label></th>
-        <td><input type="text" class="form-control" id="KafkaName" value="@Model.KafkaName"/></td>
+        <td><input type="text" class="form-control" name="KafkaName" value="@Model.KafkaName"/></td>
     </tr>
     <tr class="form-text">
-        <th><label for="reportedApiUrlKafkaName">reportedApiUrl</label></th>
-        <td><input type="text" class="form-control" id="reportedApiUrl" value="@Model.reportedApiUrl"/></td>
+        <th><label for="reportedApiUrl">reportedApiUrl</label></th>
+        <td><input type="text" class="form-control" name="reportedApiUrl" value="@Model.reportedApiUrl"/></td>
     </tr>
     <tr class="form-text">
-        <td colspan="2"><button class="btn btn-success" type="submit">save</button></td>
+        <td colspan="2"><button class="btn btn-success" type="button" onclick="complexSubmit()">save</button></td>
     </tr>
     </tbody>
 </table>
@@ -115,42 +126,158 @@
         <button class="btn btn-success" type="submit">save</button>
     </form>
 </dialog>
-<dialog id="removeDiscord">
-    <form action="@Url.Action("RemoveDiscord", "Configuration")" method="delete">
+<dialog id="removeDiscordDialog">
+    <form action="@Url.Action("RemoveDiscord", "Configuration")" method="post">
         Are you sure?
-        <input type="hidden" name="id" id="removeDiscordTarget" />
-        <button class="btn btn-secondary" type="button" onclick="removeDiscord.close()">cancel</button>
+        <input type="hidden" name="index" id="removeDiscordTarget" />
+        <button class="btn btn-secondary" type="button" onclick="removeDiscordDialog.close()">cancel</button>
         <button class="btn btn-danger" type="submit">delete</button>
     </form>
 </dialog>
 <dialog id="addTwitch">
     <form action="@Url.Action("AddTwitch", "Configuration")" method="post">
-        <input type="text" class="form-control" name="newUsername" />
-        <input type="text" class="form-control" name="newOauth" />
+        username: <input type="text" class="form-control" name="newUsername" />
+        oauth: <input type="text" class="form-control" name="newOauth" />
         <button class="btn btn-secondary" type="button" onclick="addTwitch.close()">cancel</button>
         <button class="btn btn-success" type="submit">save</button>
     </form>
 </dialog>
-<dialog id="removeTwitch">
-    <form action="@Url.Action("RemoveTwitch", "Configuration")" method="delete">
+<dialog id="removeTwitchDialog">
+    <form action="@Url.Action("RemoveTwitch", "Configuration")" method="post">
         Are you sure?
         <input type="hidden" name="id" id="removeTwitchTarget" />
-        <button class="btn btn-secondary" type="button" onclick="removeTwitch.close()">cancel</button>
+        <button class="btn btn-secondary" type="button" onclick="removeTwitchDialog.close()">cancel</button>
         <button class="btn btn-danger" type="submit">delete</button>
     </form>
 </dialog>
-<dialog id="addWebhook">
+<dialog id="addWebhookDialog">
     <form action="@Url.Action("AddWebhook", "Configuration")" method="post">
-        <input type="text" class="form-control" name="newTrigger" />
-        <button class="btn btn-secondary" type="button" onclick="addWebhook.close()">cancel</button>
-        <button class="btn btn-success" type="submit">save</button>
+        trigger
+        <input type="text" class="form-control" name="Trigger" />
+        Uri
+        <input type="text" class="form-control" name="Uri" />
+        Method
+        <input type="text" class="form-control" name="Method" />
+        Headers
+        <input type="textarea" class="form-control" id="newWebhookHeaders" />
+        <input type="hidden" name="Headers" />
+        Content
+        <input type="text" class="form-control" name="Content" />
+        Description
+        <input type="text" class="form-control" name="Description" />
+        <button class="btn btn-secondary" type="button" onclick="addWebhookDialog.close()">cancel</button>
+        <button class="btn btn-success" type="button" onclick="addWebhookComplexSubmit()">save</button>
     </form>
 </dialog>
-<dialog id="removeWebhook">
-    <form action="@Url.Action("RemoveWebhook", "Configuration")" method="delete">
+<dialog id="removeWebhookDialog">
+    <form action="@Url.Action("RemoveWebhook", "Configuration")" method="post">
         Are you sure?
         <input type="hidden" name="id" id="removeWebhookTarget" />
-        <button class="btn btn-secondary" type="button" onclick="removeWebhook.close()">cancel</button>
+        <button class="btn btn-secondary" type="button" onclick="removeWebhookDialog.close()">cancel</button>
         <button class="btn btn-danger" type="submit">delete</button>
     </form>
 </dialog>
+@section scripts{
+<script type="text/javascript">
+
+function removeDiscord(idx){
+    removeDiscordTarget.Value = idx;
+    console.log("removeDiscordTarget is now " + idx);
+    removeDiscordDialog.showModal();
+}
+function removeTwitch(idx){
+    removeTwitchTarget.value = idx;
+    removeTwitchDialog.showModal();
+}
+function removeWebhook(idx){
+    removeWebhookTarget.value = idx;
+    removeWebhookDialog.showModal();
+}
+function complexSubmit()
+{
+    for (let i = 0; true; i++)
+    {
+        let thisCell = document.querySelector("td>#TwitchConfigs_" + i);
+        if(thisCell !== null)
+        {
+            let usernameElem = thisCell.nextElementSibling;
+            let oauthElem = usernameElem.nextElementSibling;
+            let asObj = {username: usernameElem.value, oauth: oauthElem.value};
+            thisCell.value = JSON.stringify(asObj);
+        }
+        else
+        {
+            break;
+        }
+    }
+    for (let i = 0; true; i++)
+    {
+        let thisCell = document.querySelector("td>#Webhooks_" + i);
+        if(thisCell !== null)
+        {
+            let nextCell = thisCell;
+            let asObj = {};
+            while(true){
+                nextCell = nextCell.nextElementSibling;
+                if(nextCell == null)
+                    break;
+                if(!nextCell.hasAttribute("data-name"))
+                    continue;
+                let dataname = nextCell.attributes["data-name"].value;
+                if(nextCell.value != "")
+                {
+                    if(dataname == "Headers")
+                    {
+                        asObj["Headers"] = [];
+                        let headerArray = nextCell.value.split('\n');
+                        headerArray.forEach((elem) => {
+                            if(elem.indexOf(":") > -1)
+                            {
+                                asObj["Headers"].push(elem.split(":"));
+                            }
+                        });
+                    }
+                    else
+                    {
+                        asObj[dataname] = nextCell.value;
+                    }
+                }
+            }
+            thisCell.value = JSON.stringify(asObj);
+        }
+        else
+        {
+            break;
+        }
+    }
+    theForm.submit();
+}
+function addWebhookComplexSubmit()
+{
+    let headersInput = document.querySelector("#newWebhookHeaders");
+    if(headersInput.value != "")
+    {
+        if(headersInput.value.indexOf("\n") == -1)
+        {
+            headersInput.value += "\n";
+        }
+        let headers = headersInput.value.split("\n");
+        let i = 0;
+        headers.forEach((headerInputLine) => {
+            console.log(headerInputLine);
+            if(headerInputLine.indexOf(":") > -1)
+            {
+                var newElem = document.createElement("input");
+                newElem.setAttribute("type", "hidden");
+                newElem.setAttribute("name", "Headers[" + i + "]");
+                newElem.value = JSON.stringify(headerInputLine.split(":"));
+                headersInput.parentElement.appendChild(newElem);
+            console.log(newElem.value);
+                i++;
+            }
+        });
+    }
+    document.querySelector("#addWebhookDialog form").submit();
+}
+</script>
+}

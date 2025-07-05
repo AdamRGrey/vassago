@@ -186,7 +186,7 @@ public class WebhookConf
     public Uri Uri { get; set; }
     //public HttpMethod Method { get; set; }
     public Enumerations.HttpVerb Method { get; set; }
-    public List<List<string>> Headers { get; set; }
+    public List<string> Headers { get; set; }
     public string Content { get; set; }
     public string Description { get; set; }
 }
