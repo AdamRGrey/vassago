@@ -21,7 +21,6 @@ public class Configuration
     public List<string> TwitchConfigs { get; set; }
     public string ExchangePairsLocation { get; set; } = "assets/exchangepairs.json"; //TODO: have this be "exchange API key", so you can have it continually update.
     public bool SetupDiscordSlashCommands { get; set; } = false; //i'm kind of idealogically opposed to these.
-    public List<string> Webhooks { get; set; }
     public string KafkaBootstrap { get; set; } = "http://localhost:9092";
     public string KafkaName { get; set; } = "vassago";
     public string reportedApiUrl { get; set; } = "http://localhost:5093/api";

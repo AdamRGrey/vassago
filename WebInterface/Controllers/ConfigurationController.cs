@@ -28,7 +28,6 @@ public class ConfigurationController() : Controller
         conf.TwitchConfigs = incoming.TwitchConfigs;
         conf.ExchangePairsLocation = incoming.ExchangePairsLocation;
         conf.SetupDiscordSlashCommands = incoming.SetupDiscordSlashCommands;
-        conf.Webhooks = incoming.Webhooks;
         conf.KafkaBootstrap = incoming.KafkaBootstrap;
         conf.KafkaName = incoming.KafkaName;
         conf.reportedApiUrl = incoming.reportedApiUrl;
@@ -100,30 +99,30 @@ public class ConfigurationController() : Controller
         return RedirectToAction("Index", "Configuration");
     }
 
-    [HttpPost]
-    public IActionResult AddWebhook(WebhookConf newWebhook)
-    {
-        Console.WriteLine($"adding webhook, {newWebhook}");
-        var conf = r.Configuration();
-        conf.Webhooks??= [];
-        conf.Webhooks.Add(JsonConvert.SerializeObject(newWebhook));
-        r.RememberConfiguration(conf);
-        return RedirectToAction("Index", "Configuration");
-    }
+    // [HttpPost]
+    // public IActionResult AddWebhook(WebhookConf newWebhook)
+    // {
+    //     Console.WriteLine($"adding webhook, {newWebhook}");
+    //     var conf = r.Configuration();
+    //     conf.Webhooks??= [];
+    //     conf.Webhooks.Add(JsonConvert.SerializeObject(newWebhook));
+    //     r.RememberConfiguration(conf);
+    //     return RedirectToAction("Index", "Configuration");
+    // }
 
-    [HttpPost]
-    public IActionResult RemoveWebhook(int index)
-    {
-        Console.WriteLine($"removing webhook[{index}]");
-        var conf = r.Configuration();
-        if (conf.Webhooks?.Count <= index)
-        {
-            Console.Error.WriteLine("error removing webhook {index} from configuration, only have {conf.Webhooks?.Count}.");
-            return RedirectToAction("Index", "Configuration");
-        }
+    // [HttpPost]
+    // public IActionResult RemoveWebhook(int index)
+    // {
+    //     Console.WriteLine($"removing webhook[{index}]");
+    //     var conf = r.Configuration();
+    //     if (conf.Webhooks?.Count <= index)
+    //     {
+    //         Console.Error.WriteLine("error removing webhook {index} from configuration, only have {conf.Webhooks?.Count}.");
+    //         return RedirectToAction("Index", "Configuration");
+    //     }
 
-        conf.Webhooks.RemoveAt(index);
-        r.RememberConfiguration(conf);
-        return RedirectToAction("Index", "Configuration");
-    }
+    //     conf.Webhooks.RemoveAt(index);
+    //     r.RememberConfiguration(conf);
+    //     return RedirectToAction("Index", "Configuration");
+    // }
 }

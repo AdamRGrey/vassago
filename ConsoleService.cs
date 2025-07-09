@@ -73,7 +73,6 @@ namespace vassago
                 }
             Conversion.Converter.Load(confEntity.ExchangePairsLocation);
             Telefranz.Configure(confEntity.KafkaName, confEntity.KafkaBootstrap);
-            vassago.Behavior.Webhook.SetupWebhooks(confEntity.Webhooks);
         }
     }
 }

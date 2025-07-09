@@ -28,39 +28,39 @@ public class Webhook : Behavior
     public static void SetupWebhooks(IEnumerable<string> confSection)
     {
         //configuredWebhooks = confSection.Get<List<vassago.Behavior.WebhookConf>>();
-        if(confSection != null) foreach (var confLine in confSection)
-        {
-            var conf = JsonConvert.DeserializeObject<WebhookConf>(confLine);
-            var confName = $"Webhook: {conf.Trigger}";
-            var changed = false;
-            var myUAC = rememberer.SearchUAC(uac => uac.OwnerId == conf.uacID);
-            if (myUAC == null)
+        if (confSection != null) foreach (var confLine in confSection)
             {
-                myUAC = new()
+                var conf = JsonConvert.DeserializeObject<WebhookConf>(confLine);
+                var confName = $"Webhook: {conf.Trigger}";
+                var changed = false;
+                var myUAC = rememberer.SearchUAC(uac => uac.OwnerId == conf.uacID);
+                if (myUAC == null)
                 {
-                    OwnerId = conf.uacID,
-                    DisplayName = confName,
-                    Description = conf.Description
-                };
-                changed = true;
-                rememberer.RememberUAC(myUAC);
-            }
-            else
-            {
-                if (myUAC.DisplayName != confName)
-                {
-                    myUAC.DisplayName = confName;
+                    myUAC = new()
+                    {
+                        OwnerId = conf.uacID,
+                        DisplayName = confName,
+                        Description = conf.Description
+                    };
                     changed = true;
+                    rememberer.RememberUAC(myUAC);
                 }
-                if (myUAC.Description != conf.Description)
+                else
                 {
-                    myUAC.Description = conf.Description;
-                    changed = true;
+                    if (myUAC.DisplayName != confName)
+                    {
+                        myUAC.DisplayName = confName;
+                        changed = true;
+                    }
+                    if (myUAC.Description != conf.Description)
+                    {
+                        myUAC.Description = conf.Description;
+                        changed = true;
+                    }
                 }
+                if (changed)
+                    rememberer.RememberUAC(myUAC);
             }
-            if (changed)
-                rememberer.RememberUAC(myUAC);
-        }
     }
 
     public override bool ShouldAct(Message message, List<UAC> matchedUACs)
@@ -111,10 +111,11 @@ public class Webhook : Behavior
         }
         var msg = translate(actionOrder, message);
         var req = new HttpRequestMessage(new HttpMethod(actionOrder.Conf.Method.ToString()), actionOrder.Conf.Uri);
-        var theContentHeader = actionOrder.Conf.Headers?.FirstOrDefault(h => h[0]?.ToLower() == "content-type");
-        if (theContentHeader != null)
+        var theContentHeader = actionOrder.Conf.Headers?.FirstOrDefault(h => h?.ToLower().StartsWith("content-type:") ?? false);
+        var contentHeaderVal = theContentHeader?.Split(':')?[1]?.ToLower();
+        if (contentHeaderVal != null)
         {
-            switch (theContentHeader[1]?.ToLower())
+            switch (contentHeaderVal)
             {
                 //json content is constructed some other weird way.
                 case "multipart/form-data":
@@ -124,7 +125,7 @@ public class Webhook : Behavior
                     req.Content = new System.Net.Http.StringContent(msg);
                     break;
             }
-            req.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(theContentHeader[1]?.ToLower());
+            req.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentHeaderVal);
         }
         if (req.Content == null)
         {
@@ -133,17 +134,16 @@ public class Webhook : Behavior
         Console.WriteLine($"survived translating string content. request content: {req.Content}");
         if (actionOrder.Conf.Headers?.ToList().Count > 0)
         {
-            Console.WriteLine("will add headers.");
-            foreach (var kvp in actionOrder.Conf.Headers.ToList())
+            foreach (var header in actionOrder.Conf.Headers.ToList())
             {
-                if (kvp[0] == theContentHeader[0])
+                if (header?.ToLower().StartsWith("content-type:") ?? false)
                 {
                     Console.WriteLine("content header; skipping.");
                 }
                 else
                 {
-                    Console.WriteLine($"adding header; {kvp[0]}: {kvp[1]}");
-                    req.Headers.Add(kvp[0], kvp[1]);
+                    Console.WriteLine($"adding header; {header}");
+                    req.Headers.Add(header.Split(':')[0], header.Split(':')[1]);
                     Console.WriteLine("survived.");
                 }
             }
