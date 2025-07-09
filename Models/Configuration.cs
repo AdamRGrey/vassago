@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using vassago.TwitchInterface;
 using vassago.Behavior;
 
-//TODO: it feels gross to have a *table* in a database that's intended to hold 1 **UND EXACTLY ONE** row, ever.
+//it feels gross to have a *table* in a database that's intended to hold 1 **UND EXACTLY ONE** row, ever.
 //but also it feels worse to scatter my configuraiton-y data across external files and the database.
 
 public class Configuration
