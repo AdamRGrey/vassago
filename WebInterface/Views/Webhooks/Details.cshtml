@@ -1,0 +1,100 @@
+﻿@model vassago.Models.Webhook
+@using Newtonsoft.Json;
+@using vassago.Behavior;
+@using vassago.Models;
+@using vassago.TwitchInterface;
+@using System.Text;
+
+<a href="/">home</a>/Webhooks/@Model.Id
+<form action="@Url.Action("Submit", "Webhooks")" method="post" id="theForm">
+    <input type="hidden" name="Id" value="@Model.Id" />
+<table class="table">
+    <tbody>
+    <tr>
+        <th scope="row">Trigger</th>
+        <td><input type="text" value="@Model.Trigger" name="Trigger" /></td>
+    </tr>
+    <tr>
+        <th scope="row">Uri</th>
+        <td><input type="text" value="@Model.Uri" name="Uri" /></td>
+    </tr>
+    <tr>
+        <th scope="row">Content</th>
+        <td><input type="text" value="@Model.Content" name="Content" /></td>
+    </tr>
+    <tr>
+        <th rowspan="@(2 + Model.Headers?.Count())">Headers</th>
+        <td></td>
+    </tr>
+    @for(var i = 0; i < Model.Headers?.Count(); i++)
+    {
+        <tr>
+            <td>
+                <input type="text" value="@Model.Headers[i]" name="Headers[@i]" />
+                <button type="button" class="btn btn-danger" onclick="removeHeader(@i)">delete</button>
+            </td>
+        </tr>
+    }
+    <tr>
+        <td colspan="2">
+            <button type="button" class="btn btn-normal" onclick="addHeader.submit()">add</button>
+        </td>
+    </tr>
+    <tr>
+        <th scope="row">Description</th>
+        <td><input type="text" value="@Model.Description" name="Description" /></td>
+    </tr>
+    <tr>
+        <th scope="row">Method</th>
+        <td>
+            <select name="Method">
+            @foreach(Enumerations.HttpVerb method in Enum.GetValues(typeof(Enumerations.HttpVerb)))
+            {
+                <option value="@method" selected="@(Model.Method == method)">@method</option>
+            }
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <th scope="row">UAC</th>
+        <td><a href="@Url.Action("Details", "UACs", new {Id = Model.Uac?.Id})">uac</a></td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <button type="button" class="btn btn-danger" onclick="deleteDialog.showModal()">delete</button>
+            <button type="submit" class="btn btn-success">save</button>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</form>
+<form action="@Url.Action("Delete", "Webhooks")" method="post" id="delete">
+<input type="hidden" name="Id" value="@Model.Id" />
+    <dialog id="deleteDialog">
+        Are you sure?
+        <button class="btn btn-secondary" type="button" onclick="deleteDialog.close()">cancel</button>
+        <button class="btn btn-danger" type="submit">delete</button>
+    </dialog>
+</form>
+<form action="@Url.Action("AddHeader", "Webhooks")" method="post" id="addHeader">
+<input type="hidden" name="Id" value="@Model.Id" />
+</form>
+<dialog id="removeHeaderDialog">
+    <form action="@Url.Action("RemoveHeader", "Webhooks")" method="post">
+        Are you sure?
+        <input type="hidden" name="Id" value="@Model.Id"/>
+        <input type="hidden" name="index" id="removeHeaderTarget" />
+        <button class="btn btn-secondary" type="button" onclick="removeHeaderDialog.close()">cancel</button>
+        <button class="btn btn-danger" type="submit">delete</button>
+    </form>
+</dialog>
+
+@section scripts{
+<script type="text/javascript">
+function removeHeader(idx){
+    removeHeaderTarget.Value = idx;
+    console.log("removeHeaderTarget is now " + idx);
+    removeHeaderDialog.showModal();
+}
+</script>
+}

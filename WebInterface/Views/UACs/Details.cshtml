@@ -37,14 +37,16 @@
     <tr>
       <th scope="row">Translations (@Model.Translations?.Count)</th>
       <td>
-        next would be iterating over a dictionary. All reference on the internet implies this should work. I'm sick of trying to figure out why it doesn't. razor says to me, so i say to you: go fuck yourself; edit the db manually.
         <table class="table">
             <tbody>
-                     @Html.Raw("<tr>");
-                     @Html.Raw("<td><input type=\"text\" name=\"Model.Translations[{i}].Key\" value=\"{Model.Translations.ElementAt(i).Key}\" /></td>");
-                     @Html.Raw("<td><input type=\"text\" name=\"Model.Translations[{i}].Value\" value=\"{Model.Translations.ElementAt(i).Value}\" /></td>");
-                     @Html.Raw("<td><button type=\"button\" class=\"btn btn-danger\" onclick=\"removeTranslation()\">delete</button></td>");
-                     @Html.Raw("</tr>");
+              @for(var i = 0; i < (Model.Translations?.Count() ?? 0); i++)
+              {
+                  <tr>
+                     <td><input type="text" name="Model.Translations[@i].Key" value="@Model.Translations.ElementAt(i).Key" /></td>
+                     <td><input type="text" name="Model.Translations[@i].Value" value="@Model.Translations.ElementAt(i).Value" /></td>
+                     <td><button type="button" class="btn btn-danger" onclick="removeTranslation(@i)">delete</button></td>
+                  </tr>
+              }
             <tr>
             <td colspan="3">
                 <button type="button" class="btn btn-primary" onclick="addUAC_Translation()">add translation</button>

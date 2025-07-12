@@ -21,46 +21,13 @@ public class Webhook : Behavior
 
     public override string Description => "call a webhook";
 
-    private static List<WebhookConf> configuredWebhooks = new List<WebhookConf>();
+    private static List<vassago.Models.Webhook> configuredWebhooks = new List<vassago.Models.Webhook>();
     private ConcurrentDictionary<Guid, WebhookActionOrder> authedCache = new ConcurrentDictionary<Guid, WebhookActionOrder>();
     private HttpClient hc = new HttpClient();
 
-    public static void SetupWebhooks(IEnumerable<string> confSection)
+    public static void SetupWebhooks()
     {
-        //configuredWebhooks = confSection.Get<List<vassago.Behavior.WebhookConf>>();
-        if (confSection != null) foreach (var confLine in confSection)
-            {
-                var conf = JsonConvert.DeserializeObject<WebhookConf>(confLine);
-                var confName = $"Webhook: {conf.Trigger}";
-                var changed = false;
-                var myUAC = rememberer.SearchUAC(uac => uac.OwnerId == conf.uacID);
-                if (myUAC == null)
-                {
-                    myUAC = new()
-                    {
-                        OwnerId = conf.uacID,
-                        DisplayName = confName,
-                        Description = conf.Description
-                    };
-                    changed = true;
-                    rememberer.RememberUAC(myUAC);
-                }
-                else
-                {
-                    if (myUAC.DisplayName != confName)
-                    {
-                        myUAC.DisplayName = confName;
-                        changed = true;
-                    }
-                    if (myUAC.Description != conf.Description)
-                    {
-                        myUAC.Description = conf.Description;
-                        changed = true;
-                    }
-                }
-                if (changed)
-                    rememberer.RememberUAC(myUAC);
-            }
+        configuredWebhooks = rememberer.Webhooks();
     }
 
     public override bool ShouldAct(Message message, List<UAC> matchedUACs)
@@ -70,9 +37,11 @@ public class Webhook : Behavior
             return false;
         }
 
+        Console.WriteLine($"{configuredWebhooks.Count()} configured webhooks.");
         foreach (var wh in configuredWebhooks)
         {
             var triggerTarget = wh.Trigger;
+            Console.WriteLine(triggerTarget);
             foreach (var uacMatch in matchedUACs)
             {
                 foreach (var substitution in uacMatch.CommandAlterations)
@@ -80,12 +49,12 @@ public class Webhook : Behavior
                     triggerTarget = new Regex(substitution.Key).Replace(triggerTarget, substitution.Value);
                 }
             }
-            if (Regex.IsMatch(message.TranslatedContent, $"\\b{triggerTarget}\\b", RegexOptions.IgnoreCase))
+            Console.WriteLine($"translated, {triggerTarget}");
+            if (Regex.IsMatch(message.TranslatedContent, $"{triggerTarget}\\b", RegexOptions.IgnoreCase))
             {
                 var webhookableMessageContent = message.Content.Substring(message.Content.IndexOf(triggerTarget) + triggerTarget.Length + 1);
                 Console.WriteLine($"webhookable content: {webhookableMessageContent}");
-                var uacConf = rememberer.SearchUAC(uac => uac.OwnerId == wh.uacID);
-                if (uacConf.Users.Contains(message.Author.IsUser) || uacConf.Channels.Contains(message.Channel) || uacConf.AccountInChannels.Contains(message.Author))
+                if (wh.Uac.Users.Contains(message.Author.IsUser) || wh.Uac.Channels.Contains(message.Channel) || wh.Uac.AccountInChannels.Contains(message.Author))
                 {
                     Console.WriteLine("webhook UAC passed, preparing WebhookActionOrder");
                     authedCache.TryAdd(message.Id, new WebhookActionOrder()
@@ -96,6 +65,10 @@ public class Webhook : Behavior
                     Console.WriteLine($"added {message.Id} to authedcache");
                     return true;
                 }
+            }
+            else
+            {
+                Console.WriteLine($"{message.TranslatedContent} didn't match {triggerTarget}");
             }
         }
         return false;
@@ -109,27 +82,40 @@ public class Webhook : Behavior
             Console.Error.WriteLine($"{message.Id} was supposed to act, but authedCache doesn't have it! it has {authedCache?.Count()} other stuff, though.");
             return false;
         }
+        else
+        {
+            Console.WriteLine("acquired actionorder");
+        }
         var msg = translate(actionOrder, message);
         var req = new HttpRequestMessage(new HttpMethod(actionOrder.Conf.Method.ToString()), actionOrder.Conf.Uri);
         var theContentHeader = actionOrder.Conf.Headers?.FirstOrDefault(h => h?.ToLower().StartsWith("content-type:") ?? false);
-        var contentHeaderVal = theContentHeader?.Split(':')?[1]?.ToLower();
+        Console.WriteLine($"found content header: {theContentHeader}");
+        var contentHeaderVal = theContentHeader?.Split(':')?[1]?.ToLower().Trim();
+        Console.WriteLine($"contentHeaderrVal: {contentHeaderVal}");
         if (contentHeaderVal != null)
         {
-            switch (contentHeaderVal)
+            if(contentHeaderVal =="multipart/form-data")
             {
-                //json content is constructed some other weird way.
-                case "multipart/form-data":
-                    req.Content = new System.Net.Http.MultipartFormDataContent(msg);
-                    break;
-                default:
-                    req.Content = new System.Net.Http.StringContent(msg);
-                    break;
+                Console.WriteLine($"wish my errors weren't vanishing. 2");
+                req.Content = new System.Net.Http.MultipartFormDataContent(msg);
             }
-            req.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentHeaderVal);
+            Console.WriteLine($"wish my errors weren't vanishing. 3");
+            try
+            {
+                req.Content = new System.Net.Http.StringContent(msg);
+                req.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentHeaderVal);
+            }
+            catch (Exception e){
+                Console.Error.WriteLine("sorry I have to swallow this exception because something else is somewhere and I have no idea where.");
+                Console.Error.WriteLine(JsonConvert.SerializeObject(e));
+            }
+            Console.WriteLine($"wish my errors weren't vanishing. 4");
         }
-        if (req.Content == null)
+        if(req.Content == null)
         {
+            Console.WriteLine($"wish my errors weren't vanishing. 5");
             req.Content = new System.Net.Http.StringContent(msg);
+            Console.WriteLine($"wish my errors weren't vanishing. 6");
         }
         Console.WriteLine($"survived translating string content. request content: {req.Content}");
         if (actionOrder.Conf.Headers?.ToList().Count > 0)
@@ -143,7 +129,7 @@ public class Webhook : Behavior
                 else
                 {
                     Console.WriteLine($"adding header; {header}");
-                    req.Headers.Add(header.Split(':')[0], header.Split(':')[1]);
+                    req.Headers.Add(header.Split(':')[0], header.Split(':')[0]);
                     Console.WriteLine("survived.");
                 }
             }
@@ -153,7 +139,7 @@ public class Webhook : Behavior
             Console.WriteLine("no headers to add.");
         }
         Console.WriteLine("about to Send.");
-        var response = hc.Send(req);
+        var response = await hc.SendAsync(req);
         Console.WriteLine($"{response.StatusCode} - {response.ReasonPhrase}");
         if (!response.IsSuccessStatusCode)
         {
@@ -179,19 +165,8 @@ public class Webhook : Behavior
     }
 }
 
-public class WebhookConf
-{
-    public Guid uacID { get; set; }
-    public string Trigger { get; set; }
-    public Uri Uri { get; set; }
-    //public HttpMethod Method { get; set; }
-    public Enumerations.HttpVerb Method { get; set; }
-    public List<string> Headers { get; set; }
-    public string Content { get; set; }
-    public string Description { get; set; }
-}
 public class WebhookActionOrder
 {
-    public WebhookConf Conf { get; set; }
+    public vassago.Models.Webhook Conf { get; set; }
     public string webhookContent { get; set; }
 }

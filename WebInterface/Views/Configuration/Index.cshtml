@@ -6,6 +6,7 @@
 
 <a href="/">home</a>/configuration
 <form action="@Url.Action("submit", "Configuration")" method="post" id="theForm">
+    <input type="hidden" name="Id" value="@Model.Id" />
   <table class="table">
     <tbody>
     <tr>

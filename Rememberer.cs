@@ -262,7 +262,7 @@ public class Rememberer
         if (channelCacheDirty)
             Task.Run(() => cacheChannels()).Wait();
         var ch = channels.Find(c => c.Id == Id);
-        if(accounts)
+        if (accounts)
             ch.Users = SearchAccounts(a => a.SeenInChannel == ch);
         if (messages)
             ch.Messages = SearchMessages(m => m.ChannelId == ch.Id);
@@ -358,6 +358,43 @@ public class Rememberer
     {
         dbAccessSemaphore.Wait();
         db.Update(conf);
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
+    }
+    public Webhook Webhook(Guid id)
+    {
+        Webhook toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.Webhooks.Include(wh => wh.Uac).FirstOrDefault(wh => wh.Id == id);
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
+    public List<Webhook> Webhooks()
+    {
+        List<Webhook> toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.Webhooks.Include(wh => wh.Uac).ToList();
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
+    public void RememberWebhook(Webhook wh)
+    {
+        dbAccessSemaphore.Wait();
+        db.Update(wh);
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
+    }
+    public void ForgetWebhook(Guid id)
+    {
+        dbAccessSemaphore.Wait();
+        db.Remove(db.Webhooks.Find(id));
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
+    }
+    public void ForgetWebhook(Webhook wh)
+    {
+        dbAccessSemaphore.Wait();
+        db.Remove(wh);
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }

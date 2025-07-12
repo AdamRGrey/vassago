@@ -23,20 +23,40 @@ public class HomeController : Controller
     {
         var allAccounts = r.AccountsOverview();
         var allChannels = r.ChannelsOverview();
+        var allWebhooks = r.Webhooks();
         Console.WriteLine($"accounts: {allAccounts?.Count ?? 0}, channels: {allChannels?.Count ?? 0}");
         var sb = new StringBuilder();
         sb.Append('[');
 
         sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Index", controller: "Configuration")}\\\">Configuration</a>\"}},");
 
+        var first = true;
+        //webhooks
+        sb.Append("{text: \"Webhooks\", expanded:true, nodes:[");
+        if(allWebhooks.Any())
+        {
+            foreach(var wh in allWebhooks)
+            {
+                var displayedName = wh.Trigger;
+                if (string.IsNullOrWhiteSpace(displayedName))
+                {
+                    displayedName = $"[unnamed - {wh.Id}]";
+                }
+                sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Webhooks", values: new { id = wh.Id })}\\\">{displayedName}</a>\"}},");
+            }
+        }
+        sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "New", controller: "Webhooks")}\\\">add new</a>\"}}");
+
+        sb.Append("]},");
+
         //UACs
         var allUACs = r.UACsOverview();
-        var first = true;
-        if(allUACs.Any())
+        first = true;
+        if (allUACs.Any())
         {
             sb.Append("{text: \"uacs\", expanded:true, nodes: [");
-            first=true;
-            foreach(var uac in allUACs)
+            first = true;
+            foreach (var uac in allUACs)
             {
                 if (first)
                 {
@@ -47,11 +67,11 @@ public class HomeController : Controller
                     sb.Append(',');
                 }
                 var displayedName = uac.DisplayName;
-                if(string.IsNullOrWhiteSpace(displayedName))
+                if (string.IsNullOrWhiteSpace(displayedName))
                 {
                     displayedName = $"[unnamed - {uac.Id}]";
                 }
-                sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "UACs", values: new {id = uac.Id})}\\\">{displayedName}</a>\"}}");
+                sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "UACs", values: new { id = uac.Id })}\\\">{displayedName}</a>\"}}");
             }
             sb.Append("]}");
         }
@@ -62,13 +82,13 @@ public class HomeController : Controller
 
         //users
         var users = r.UsersOverview();
-        if(users.Any())
+        if (users.Any())
         {
             sb.Append(",{text: \"users\", expanded:true, nodes: [");
-            first=true;
+            first = true;
             //refresh list; we'll be knocking them out again in serializeUser
             allAccounts = r.AccountsOverview();
-            foreach(var user in users)
+            foreach (var user in users)
             {
                 if (first)
                 {
@@ -151,7 +171,7 @@ public class HomeController : Controller
     {
         allChannels.Remove(currentChannel);
         //"but adam", you say, "there's an href attribute, why make a link?" because that makes the entire bar a link, and trying to expand the node will probably click the link
-        sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Channels", values: new {id = currentChannel.Id})}\\\">{currentChannel.DisplayName}</a>\"");
+        sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Channels", values: new { id = currentChannel.Id })}\\\">{currentChannel.DisplayName}</a>\"");
         sb.Append(", expanded:true ");
         var theseAccounts = allAccounts.Where(a => a.SeenInChannel?.Id == currentChannel.Id).ToList();
         allAccounts.RemoveAll(a => a.SeenInChannel?.Id == currentChannel.Id);
@@ -159,54 +179,54 @@ public class HomeController : Controller
         if (currentChannel.SubChannels != null || theseAccounts != null)
         {
             sb.Append(", \"nodes\": [");
-        if (currentChannel.SubChannels != null)
-        {
-            foreach (var subChannel in currentChannel.SubChannels)
+            if (currentChannel.SubChannels != null)
             {
-                if (first)
+                foreach (var subChannel in currentChannel.SubChannels)
                 {
-                    first = false;
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        sb.Append(',');
+                    }
+                    serializeChannel(ref sb, ref allChannels, ref allAccounts, subChannel);
                 }
-                else
+                if (theseAccounts != null && !first) //"first" here tells us that we have at least one subchannel
                 {
                     sb.Append(',');
                 }
-                serializeChannel(ref sb, ref allChannels, ref allAccounts, subChannel);
             }
-            if (theseAccounts != null && !first) //"first" here tells us that we have at least one subchannel
+            if (theseAccounts != null)
             {
-                sb.Append(',');
-            }
-        }
-        if (theseAccounts != null)
-        {
-            first = true;
-            sb.Append($"{{\"text\": \"(accounts: {theseAccounts.Count()})\", \"expanded\":true, nodes:[");
-            foreach (var account in theseAccounts)
-            {
-                if (first)
+                first = true;
+                sb.Append($"{{\"text\": \"(accounts: {theseAccounts.Count()})\", \"expanded\":true, nodes:[");
+                foreach (var account in theseAccounts)
                 {
-                    first = false;
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        sb.Append(',');
+                    }
+                    serializeAccount(ref sb, account);
                 }
-                else
-                {
-                    sb.Append(',');
-                }
-                serializeAccount(ref sb, account);
+                sb.Append("]}");
             }
-            sb.Append("]}");
-        }
             sb.Append(']');
         }
         sb.Append('}');
     }
     private void serializeAccount(ref StringBuilder sb, Account currentAccount)
     {
-        sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Accounts", values: new {id = currentAccount.Id})}\\\">{currentAccount.DisplayName}</a>\"}}");
+        sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Accounts", values: new { id = currentAccount.Id })}\\\">{currentAccount.DisplayName}</a>\"}}");
     }
     private void serializeUser(ref StringBuilder sb, ref List<Account> allAccounts, User currentUser)
     {
-        sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Users", values: new {id = currentUser.Id})}\\\">");
+        sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Users", values: new { id = currentUser.Id })}\\\">");
         sb.Append(currentUser.DisplayName);
         sb.Append("</a>\", ");
         var ownedAccounts = allAccounts.Where(a => a.IsUser == currentUser);
@@ -217,7 +237,7 @@ public class HomeController : Controller
             var first = true;
             foreach (var acc in ownedAccounts)
             {
-                if(!first)
+                if (!first)
                     sb.Append(',');
                 serializeAccount(ref sb, acc);
                 first = false;
