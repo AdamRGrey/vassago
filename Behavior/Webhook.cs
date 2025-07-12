@@ -96,10 +96,8 @@ public class Webhook : Behavior
         {
             if(contentHeaderVal =="multipart/form-data")
             {
-                Console.WriteLine($"wish my errors weren't vanishing. 2");
                 req.Content = new System.Net.Http.MultipartFormDataContent(msg);
             }
-            Console.WriteLine($"wish my errors weren't vanishing. 3");
             try
             {
                 req.Content = new System.Net.Http.StringContent(msg);
@@ -109,13 +107,10 @@ public class Webhook : Behavior
                 Console.Error.WriteLine("sorry I have to swallow this exception because something else is somewhere and I have no idea where.");
                 Console.Error.WriteLine(JsonConvert.SerializeObject(e));
             }
-            Console.WriteLine($"wish my errors weren't vanishing. 4");
         }
         if(req.Content == null)
         {
-            Console.WriteLine($"wish my errors weren't vanishing. 5");
             req.Content = new System.Net.Http.StringContent(msg);
-            Console.WriteLine($"wish my errors weren't vanishing. 6");
         }
         Console.WriteLine($"survived translating string content. request content: {req.Content}");
         if (actionOrder.Conf.Headers?.ToList().Count > 0)
