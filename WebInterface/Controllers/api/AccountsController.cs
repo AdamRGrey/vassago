@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using vassago.Models;
-using vassago.ProtocolInterfaces.DiscordInterface;
+using vassago.ProtocolInterfaces;
 
 namespace vassago.Controllers.api;
 

@@ -12,8 +12,9 @@ using Discord.Rest;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Reactive.Linq;
+using Newtonsoft.Json;
 
-namespace vassago.ProtocolInterfaces.DiscordInterface;
+namespace vassago.ProtocolInterfaces;
 
 //data received
 //translate data to internal type
@@ -30,9 +31,13 @@ public class DiscordInterface : ProtocolInterface
     public override Channel SelfChannel { get => protocolAsChannel; }
     private static Rememberer r = Rememberer.Instance;
 
-    public async Task Init(string config)
+    private static ProtocolDiscord confEntity;
+    public override ProtocolConfiguration ConfigurationEntity { get => confEntity; }
+
+    public async Task Init(ProtocolDiscord cfg)
     {
-        var token = config;
+        confEntity = cfg;
+        var token = confEntity.token;
         Console.WriteLine($"going to validate token {token}");
         Discord.TokenUtils.ValidateToken(TokenType.Bot, token);//throws an exception if invalid
         await SetupDiscordChannel();
@@ -49,6 +54,46 @@ public class DiscordInterface : ProtocolInterface
 
         await client.LoginAsync(TokenType.Bot, token);
         await client.StartAsync();
+    }
+    public override async Task<int> Die()
+    {
+        await client.StopAsync();
+        client = null;
+        return 200;
+    }
+    public override async Task<int> UpdateConfiguration(ProtocolConfiguration incomingCfg)
+    {
+        var newConfEntity = incomingCfg as ProtocolDiscord;
+        if (newConfEntity != null)
+        {
+            Console.WriteLine("Discord Interface was able to cast incoming configuration to a discord configuration");
+            if (newConfEntity.token != confEntity.token)
+            {
+                await client.StopAsync();
+                try
+                {
+                    Discord.TokenUtils.ValidateToken(TokenType.Bot, newConfEntity.token);//throws an exception if invalid. and because microsoft, who fucking knows where that goes.
+                }
+                catch(Exception e)
+                {
+                    Console.Error.WriteLine($"Token invalid. {JsonConvert.SerializeObject(e)}");
+                    client = null;
+                    return 400;
+                }
+                confEntity = newConfEntity;
+                await client.LoginAsync(TokenType.Bot, confEntity.token);
+                await client.StartAsync();
+                return 200;
+            }
+            return 200;
+        }
+        else
+        {
+            Console.Error.WriteLine("update configuration for discord interface handling {confEntity.Id} given invalid configuration:");
+            Console.Error.WriteLine(JsonConvert.SerializeObject(incomingCfg));
+            Die();
+            return 422;
+        }
     }
     private async Task ClientDisconnected(Exception e)
     {

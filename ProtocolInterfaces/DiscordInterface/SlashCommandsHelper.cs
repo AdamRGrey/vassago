@@ -7,7 +7,7 @@ using Discord.WebSocket;
 using Discord;
 using Discord.Net;
 
-namespace vassago.ProtocolInterfaces.DiscordInterface
+namespace vassago.ProtocolInterfaces
 {
     public static class SlashCommandsHelper
     {

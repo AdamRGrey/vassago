@@ -3,6 +3,8 @@ namespace vassago.Behavior;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using vassago.Models;
+using vassago.ProtocolInterfaces;
+using franz;
 
 [StaticPlz]
 public class TwitchSummon : Behavior
@@ -28,12 +30,12 @@ public class TwitchSummon : Behavior
         }
         rememberer.RememberUAC(myUAC);
     }
-    internal static TwitchInterface.TwitchInterface getAnyTwitchInterface()
+    internal static TwitchInterface getAnyTwitchInterface()
     {
         return Shared.ProtocolList.FirstOrDefault(ip =>
-                                         ip is TwitchInterface.TwitchInterface)
+                                         ip is TwitchInterface)
             //.FirstOrDefault()
-            as TwitchInterface.TwitchInterface;
+            as TwitchInterface;
     }
 
     public override bool ShouldAct(Message message, List<UAC> matchedUACs)
@@ -72,7 +74,7 @@ public class TwitchDismiss : Behavior
     public override bool ShouldAct(Message message, List<UAC> matchedUACs)
     {
         var ti = TwitchSummon.getAnyTwitchInterface();
-            // Console.WriteLine($"TwitchDismiss checking. menions me? {message.MentionsMe}");
+        // Console.WriteLine($"TwitchDismiss checking. menions me? {message.MentionsMe}");
         if (message.MentionsMe &&
             (Regex.IsMatch(message.Content.ToLower(), "\\bbegone\\b") || Regex.IsMatch(message.Content.ToLower(), "\\bfuck off\\b")))
         {

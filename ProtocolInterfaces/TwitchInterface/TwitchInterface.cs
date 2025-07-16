@@ -11,8 +11,9 @@ using TwitchLib.Communication.Models;
 using vassago.Behavior;
 using vassago.Models;
 using vassago.ProtocolInterfaces;
+using Newtonsoft.Json;
 
-namespace vassago.TwitchInterface;
+namespace vassago.ProtocolInterfaces;
 
 public class TwitchInterface : ProtocolInterface
 {
@@ -23,6 +24,10 @@ public class TwitchInterface : ProtocolInterface
     private Account selfAccountInProtocol;
     private static Rememberer r = Rememberer.Instance;
     TwitchClient client;
+
+    private static ProtocolTwitch confEntity;
+    public override ProtocolConfiguration ConfigurationEntity { get => confEntity; }
+
 
     private async Task SetupTwitchChannel()
     {
@@ -63,8 +68,9 @@ public class TwitchInterface : ProtocolInterface
     }
 
     ///<param name="oauth">https://www.twitchapps.com/tmi/</param>
-    public async Task Init(TwitchConfig tc)
+    public async Task Init(ProtocolTwitch tc)
     {
+        confEntity = tc;
         await SetupTwitchChannel();
 
         WebSocketClient customClient = new WebSocketClient(new ClientOptions
@@ -85,7 +91,34 @@ public class TwitchInterface : ProtocolInterface
         client.Connect();
         Console.WriteLine("twitch client 1 connected");
     }
-
+    public override async Task<int> Die()
+    {
+        client.Disconnect();
+        client = null;
+        return 200;
+    }
+    public override async Task<int> UpdateConfiguration(ProtocolConfiguration incomingCfg)
+    {
+        var newConfEntity = incomingCfg as ProtocolTwitch;
+        if (newConfEntity != null)
+        {
+            Console.WriteLine("Twitch Interface was able to cast incoming configuration to a twitch configuration");
+            if(newConfEntity.username != confEntity.username || newConfEntity.oauth != confEntity.oauth)
+            {
+        client.Disconnect();
+        confEntity = newConfEntity;
+        client.Initialize(new ConnectionCredentials(confEntity.username, confEntity.oauth, capabilities: new Capabilities()));
+            }
+            return 200;
+        }
+        else
+        {
+            Console.Error.WriteLine("update configuration for twitch interface handling {confEntity.Id} given invalid configuration:");
+            Console.Error.WriteLine(JsonConvert.SerializeObject(incomingCfg));
+            Die();
+            return 422;
+        }
+    }
     private async void Client_OnWhisperReceivedAsync(object sender, OnWhisperReceivedArgs e)
     {
         //data received

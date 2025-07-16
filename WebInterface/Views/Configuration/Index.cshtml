@@ -1,7 +1,7 @@
 ﻿@model vassago.Models.Configuration
 @using Newtonsoft.Json;
 @using vassago.Behavior;
-@using vassago.TwitchInterface;
+@using vassago.ProtocolInterfaces;
 @using System.Text;
 
 <a href="/">home</a>/configuration
@@ -9,56 +9,6 @@
     <input type="hidden" name="Id" value="@Model.Id" />
   <table class="table">
     <tbody>
-    <tr>
-        <th colspan="2">Discord (@(Model?.DiscordTokens?.Count ?? 0) accounts)</th>
-    </tr>
-    @{
-        if(Model.DiscordTokens != null) for(var i = 0; i < Model.DiscordTokens.Count; i++)
-        {
-            <tr>
-                <th><label for="DiscordTokens[@i]"></label></th>
-                <td>
-                    <input type="text" class="form-control" name="DiscordTokens[@i]" value="@Model.DiscordTokens[i]"/>
-                    <button type="button" onclick="removeDiscord(@i)" class="btn btn-danger">del</button>
-                </td>
-            </tr>
-        }
-    }
-    <tr>
-        <td></td>
-        <td>
-            <button type="button" onclick="addDiscord.showModal()">add</button>
-        </td>
-    </tr>
-    <tr>
-        <th><label class="form-check-label" for="SetupDiscordSlashCommands">Setup Discord Slash Commands</label>
-        <td><input type="checkbox" class="form-check-input position-static" name="SetupDiscordSlashCommands" checked="@Model.SetupDiscordSlashCommands" value="true"/></td>
-    </tr>
-    <tr>
-        <th colspan="2">Twitch (@(Model?.TwitchConfigs?.Count ?? 0) accounts)</th>
-    </tr>
-    @{
-        if(Model.TwitchConfigs != null) for(var i = 0; i < Model.TwitchConfigs.Count; i++)
-        {
-            var tc = JsonConvert.DeserializeObject<TwitchConfig>(Model.TwitchConfigs[i]);
-
-            <tr>
-                <th><label for="TwitchConfigs[@i]"></label></th>
-                <td>
-                    <input type="hidden" name="TwitchConfigs[@i]" id="TwitchConfigs_@i" value="@Model.TwitchConfigs[i]" />
-                    <input type="text" class="form-control" data-name="username" value="@tc.username"/>
-                    <input type="text" class="form-control" data-name="oauth" value="@tc.oauth"/>
-                    <button type="button" onclick="removeTwitch(@i);" class="btn btn-danger">del</button>
-                </td>
-            </tr>
-        }
-    }
-    <tr>
-        <td></td>
-        <td>
-            <button type="button" onclick="addTwitch.showModal()">add</button>
-        </td>
-    </tr>
     <tr class="form-text">
         <th><label for="ExchangePairsLocation">Exchange Pairs Location</label></th>
         <td><input type="text" class="form-control" name="ExchangePairsLocation" value="@Model.ExchangePairsLocation"/></td>

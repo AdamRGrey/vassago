@@ -10,7 +10,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using vassago.ProtocolInterfaces.DiscordInterface;
 
 public class Behaver
 {
@@ -89,7 +88,6 @@ public class Behaver
     {
         var kafkaesque = new chat_message()
         {
-            Api_Uri = Shared.API_URL,
             MessageId = message.Id,
 
             Content = message.TranslatedContent,

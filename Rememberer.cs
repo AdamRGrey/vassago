@@ -398,4 +398,12 @@ public class Rememberer
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
+    public List<ProtocolConfiguration> ProtocolConfigurations()
+    {
+        List<ProtocolConfiguration> toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.ProtocolConfigurations.ToList();
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
 }
