@@ -398,12 +398,19 @@ public class Rememberer
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
-    public List<ProtocolConfiguration> ProtocolConfigurations()
+    public List<ProtocolConfiguration> ProtocolsOverview()
     {
         List<ProtocolConfiguration> toReturn;
         dbAccessSemaphore.Wait();
         toReturn = db.ProtocolConfigurations.ToList();
         dbAccessSemaphore.Release();
         return toReturn;
+    }
+    public void RememberDiscord(ProtocolDiscord pd)
+    {
+        dbAccessSemaphore.Wait();
+        db.Update(pd);
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
     }
 }

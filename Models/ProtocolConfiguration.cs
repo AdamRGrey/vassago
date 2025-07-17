@@ -12,13 +12,14 @@ public abstract class ProtocolConfiguration
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; set; }
-    public string Protocol { get; }
-    public Channel SelfChannel { get; }
+    public string Protocol { get; set; }
+    public Channel SelfChannel { get; set; }
 }
 public class ProtocolTwitch : ProtocolConfiguration
 {
     public string username {get; set;}
     public string oauth {get; set;}
+    public ProtocolTwitch(){this.Protocol = "twitch";}
 }
 public class ProtocolDiscord : ProtocolConfiguration
 {
@@ -33,4 +34,5 @@ public class ProtocolDiscord : ProtocolConfiguration
     ///shitheels.
     ///</summary>
     public bool SetupSlashCommands { get; set; } = false;
+    public ProtocolDiscord(){this.Protocol = "discord";}
 }

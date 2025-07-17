@@ -21,151 +21,157 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        var allAccounts = r.AccountsOverview();
-        var allChannels = r.ChannelsOverview();
-        var allWebhooks = r.Webhooks();
-        Console.WriteLine($"accounts: {allAccounts?.Count ?? 0}, channels: {allChannels?.Count ?? 0}");
-        var sb = new StringBuilder();
-        sb.Append('[');
-
-        sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Index", controller: "Configuration")}\\\">Configuration</a>\"}},");
-
-        var first = true;
-        //webhooks
-        sb.Append("{text: \"Webhooks\", expanded:true, nodes:[");
-        if(allWebhooks.Any())
+        return View(new OverviewViewModel
         {
-            foreach(var wh in allWebhooks)
-            {
-                var displayedName = wh.Trigger;
-                if (string.IsNullOrWhiteSpace(displayedName))
-                {
-                    displayedName = $"[unnamed - {wh.Id}]";
-                }
-                sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Webhooks", values: new { id = wh.Id })}\\\">{displayedName}</a>\"}},");
-            }
-        }
-        sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "New", controller: "Webhooks")}\\\">add new</a>\"}}");
+            Protocols = r.ProtocolsOverview(),
+            Accounts = r.AccountsOverview(),
+            Channels = r.ChannelsOverview(),
+            Webhooks = r.Webhooks(),
+            UACs = r.UACsOverview(),
+            Users = r.UsersOverview(),
+        });
+        // Console.WriteLine($"accounts: {allAccounts?.Count ?? 0}, channels: {allChannels?.Count ?? 0}");
+        // var sb = new StringBuilder();
+        // sb.Append('[');
 
-        sb.Append("]},");
+        // sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Index", controller: "Configuration")}\\\">Configuration</a>\"}},");
 
-        //UACs
-        var allUACs = r.UACsOverview();
-        first = true;
-        if (allUACs.Any())
-        {
-            sb.Append("{text: \"uacs\", expanded:true, nodes: [");
-            first = true;
-            foreach (var uac in allUACs)
-            {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    sb.Append(',');
-                }
-                var displayedName = uac.DisplayName;
-                if (string.IsNullOrWhiteSpace(displayedName))
-                {
-                    displayedName = $"[unnamed - {uac.Id}]";
-                }
-                sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "UACs", values: new { id = uac.Id })}\\\">{displayedName}</a>\"}}");
-            }
-            sb.Append("]}");
-        }
-        else
-        {
-            sb.Append("{text: \"uacs (0)\", }");
-        }
+        // var first = true;
+        // //webhooks
+        // sb.Append("{text: \"Webhooks\", expanded:true, nodes:[");
+        // if(allWebhooks.Any())
+        // {
+        //     foreach(var wh in allWebhooks)
+        //     {
+        //         var displayedName = wh.Trigger;
+        //         if (string.IsNullOrWhiteSpace(displayedName))
+        //         {
+        //             displayedName = $"[unnamed - {wh.Id}]";
+        //         }
+        //         sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "Webhooks", values: new { id = wh.Id })}\\\">{displayedName}</a>\"}},");
+        //     }
+        // }
+        // sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "New", controller: "Webhooks")}\\\">add new</a>\"}}");
 
-        //users
-        var users = r.UsersOverview();
-        if (users.Any())
-        {
-            sb.Append(",{text: \"users\", expanded:true, nodes: [");
-            first = true;
-            //refresh list; we'll be knocking them out again in serializeUser
-            allAccounts = r.AccountsOverview();
-            foreach (var user in users)
-            {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    sb.Append(',');
-                }
-                serializeUser(ref sb, ref allAccounts, user);
-            }
-            sb.Append("]}");
-        }
+        // sb.Append("]},");
 
-        //channels
-        sb.Append(",{text: \"channels\", expanded:true, nodes: [");
-        var topLevelChannels = r.ChannelsOverview().Where(x => x.ParentChannel == null).ToList();
-        first = true;
-        foreach (var topLevelChannel in topLevelChannels)
-        {
-            if (first)
-            {
-                first = false;
-            }
-            else
-            {
-                sb.Append(',');
-            }
+        // //UACs
+        // var allUACs = r.UACsOverview();
+        // first = true;
+        // if (allUACs.Any())
+        // {
+        //     sb.Append("{text: \"uacs\", expanded:true, nodes: [");
+        //     first = true;
+        //     foreach (var uac in allUACs)
+        //     {
+        //         if (first)
+        //         {
+        //             first = false;
+        //         }
+        //         else
+        //         {
+        //             sb.Append(',');
+        //         }
+        //         var displayedName = uac.DisplayName;
+        //         if (string.IsNullOrWhiteSpace(displayedName))
+        //         {
+        //             displayedName = $"[unnamed - {uac.Id}]";
+        //         }
+        //         sb.Append($"{{\"text\": \"<a href=\\\"{Url.ActionLink(action: "Details", controller: "UACs", values: new { id = uac.Id })}\\\">{displayedName}</a>\"}}");
+        //     }
+        //     sb.Append("]}");
+        // }
+        // else
+        // {
+        //     sb.Append("{text: \"uacs (0)\", }");
+        // }
 
-            serializeChannel(ref sb, ref allChannels, ref allAccounts, topLevelChannel);
-        }
-        sb.Append("]}");
+        // //users
+        // var users = r.UsersOverview();
+        // if (users.Any())
+        // {
+        //     sb.Append(",{text: \"users\", expanded:true, nodes: [");
+        //     first = true;
+        //     //refresh list; we'll be knocking them out again in serializeUser
+        //     allAccounts = r.AccountsOverview();
+        //     foreach (var user in users)
+        //     {
+        //         if (first)
+        //         {
+        //             first = false;
+        //         }
+        //         else
+        //         {
+        //             sb.Append(',');
+        //         }
+        //         serializeUser(ref sb, ref allAccounts, user);
+        //     }
+        //     sb.Append("]}");
+        // }
 
-        if (allChannels.Any())
-        {
-            sb.Append(",{text: \"orphaned channels\", expanded:true, nodes: [");
-            first = true;
-            while (true)
-            {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    sb.Append(',');
-                }
-                serializeChannel(ref sb, ref allChannels, ref allAccounts, allChannels.First());
-                if (!allChannels.Any())
-                {
-                    break;
-                }
-            }
-            sb.Append("]}");
-        }
-        if (allAccounts.Any())
-        {
-            sb.Append(",{text: \"channelless accounts\", expanded:true, nodes: [");
-            first = true;
-            foreach (var acc in allAccounts)
-            {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    sb.Append(',');
-                }
-                serializeAccount(ref sb, acc);
-            }
-            sb.Append("]}");
-        }
+        // //channels
+        // sb.Append(",{text: \"channels\", expanded:true, nodes: [");
+        // var topLevelChannels = r.ChannelsOverview().Where(x => x.ParentChannel == null).ToList();
+        // first = true;
+        // foreach (var topLevelChannel in topLevelChannels)
+        // {
+        //     if (first)
+        //     {
+        //         first = false;
+        //     }
+        //     else
+        //     {
+        //         sb.Append(',');
+        //     }
 
-        sb.Append("]");
-        ViewData.Add("treeString", sb.ToString());
-        return View("Index");
+        //     serializeChannel(ref sb, ref allChannels, ref allAccounts, topLevelChannel);
+        // }
+        // sb.Append("]}");
+
+        // if (allChannels.Any())
+        // {
+        //     sb.Append(",{text: \"orphaned channels\", expanded:true, nodes: [");
+        //     first = true;
+        //     while (true)
+        //     {
+        //         if (first)
+        //         {
+        //             first = false;
+        //         }
+        //         else
+        //         {
+        //             sb.Append(',');
+        //         }
+        //         serializeChannel(ref sb, ref allChannels, ref allAccounts, allChannels.First());
+        //         if (!allChannels.Any())
+        //         {
+        //             break;
+        //         }
+        //     }
+        //     sb.Append("]}");
+        // }
+        // if (allAccounts.Any())
+        // {
+        //     sb.Append(",{text: \"channelless accounts\", expanded:true, nodes: [");
+        //     first = true;
+        //     foreach (var acc in allAccounts)
+        //     {
+        //         if (first)
+        //         {
+        //             first = false;
+        //         }
+        //         else
+        //         {
+        //             sb.Append(',');
+        //         }
+        //         serializeAccount(ref sb, acc);
+        //     }
+        //     sb.Append("]}");
+        // }
+
+        // sb.Append("]");
+        // ViewData.Add("treeString", sb.ToString());
+        // return View("Index");
     }
     private void serializeChannel(ref StringBuilder sb, ref List<Channel> allChannels, ref List<Account> allAccounts, Channel currentChannel)
     {

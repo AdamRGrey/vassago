@@ -39,7 +39,7 @@ namespace vassago
         public static async Task ProtocolInterfaces()
         {
             var initTasks = new List<Task>();
-            var incomingConfigs = r.ProtocolConfigurations();
+            var incomingConfigs = r.ProtocolsOverview();
             var newConfigs = incomingConfigs.ToList();
             var removedConfigs = new List<ProtocolConfiguration>();
             var updatedConfigs = new List<ProtocolConfiguration>();
@@ -99,7 +99,6 @@ namespace vassago
                     protocolInterface.UpdateConfiguration(newCfg);
                     continue;
                 }
-                //TODO: get EFCore to give me the subtype
                 switch (newCfg.Protocol)
                 {
                     case "discord":

@@ -1,17 +1,69 @@
-﻿@{
+﻿@model vassago.WebInterface.Models.OverviewViewModel
+
+@{
     ViewData["Title"] = "Home Page";
 }
-<div id="tree"></div>
+<table class="table">
+    <tbody>
+    <tr class="form-text"><td>
+            <a href="@Url.Action("Index", "Configuration")">Misc overall config</a>
+    </td></tr>
+    <tr class="form-text">
+        <td>
+        <details>
+            <summary>Protocols</summary>
+            <table class="table">
+                <tbody>
+                    @foreach(var proto in Model.Protocols)
+                    {
+                <tr class="form-text"><td>
+                    <a href="@Url.Action("Details", "Protocol", new {Id = proto.Id})">@proto.Protocol</a>
+                </td></tr>
+                    }
+                <tr class="form-text"><td>
+                    <button onclick="addProtocol.showModal()" type="button" class="btn btn-secondary">Add</button>
+                </td></tr>
+                </tbody>
+            </table>
+        </details>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<dialog id="addProtocol">
+    <details>
+        <summary>Discord</summary>
+        <form action="@Url.Action("AddDiscord", "Protocols")" method="post">
+            token:
+            <input type="text" class="form-control" name="token" required="true"/>
+            <button type="submit" class="btn btn-default">add</button>
+        </form>
+    </details>
+    <details>
+        <summary>Twitch</summary>
+        <form action="@Url.Action("AddTwitch", "Protocols")" method="post">
+            <table class="table">
+                <tbody>
+                <tr>
+                    <th><label for="username">Username</label></th>
+                    <td><input type="text" class="form-control" name="username" required/></td>
+                </tr>
+                <tr>
+                    <th><label for="oauth">oauth</label></th>
+                    <td><input type="text" class="form-control" name="oauth" required/></td>
+                </tr>
+                <tr class="form-text">
+                    <td colspan="2">
+                        <button onclick="addProtocol.showModal()">Add</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-default">add</button>
+        </form>
+    </details>
+    <button class="btn btn-secondary" type="button" onclick="addProtocol.close()">cancel</button>
+</dialog>
 
 @section Scripts{
-    <script type="text/javascript">
-        function getTree() {
-            var tree = @Html.Raw(ViewData["treeString"]);
-            console.log('tree');
-            console.log('@ViewData["treeString"]');
-            return tree;
-        }
-
-        $('#tree').bstreeview({ data: getTree() });
-    </script>
 }
