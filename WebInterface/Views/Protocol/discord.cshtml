@@ -1,0 +1,37 @@
+@using vassago.Models;
+@model ProtocolDiscord
+
+<a href="/">home</a>/
+
+ <form action="@Url.Action("SubmitDiscord", "Protocol")" method="post" id="theForm">
+    <input type="hidden" name="Id" value="@Model.Id" />
+  <table class="table">
+    <tbody>
+    <tr class="form-text">
+        <th><label for="token">Token</label></th>
+        <td><input type="text" class="form-control" name="token" value="@Model.token"/></td>
+    </tr>
+    <tr class="form-checkbox">
+        <th><label for="SetupSlashCommands">Setup Slash Commands</label></th>
+        <td>
+            <input type="checkbox" name="SetupSlashCommands" checked="@(Model.SetupSlashCommands == true)" value="true">
+            <!-- "value = true? why?" w3c form guidelines. it's "on" or not present, i.e., null, by default. true vs null works for our purproses. -->
+        </td>
+    </tr>
+    <tr class="form-text">
+        <td colspan="2">
+          <button class="btn btn-danger" type="button" onclick="deleteModal.show()">delete</button>
+          <button class="btn btn-success" type="submit">save</button>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</form>
+<dialog id="deleteModal">
+    <form action="@Url.Action("DeleteDiscord", "Protocol")" method="post">
+        <input type="hidden" name="Id" value="@Model.Id"/>
+        are you suuuuuure?
+        <button class="btn btn-secondary" type="button" onclick="deleteModal.close()">cancel</button>
+        <button class="btn btn-danger" type="submit">delete</button>
+    </form>
+</dialog>

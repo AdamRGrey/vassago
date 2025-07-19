@@ -10,22 +10,116 @@
     </td></tr>
     <tr class="form-text">
         <td>
-        <details>
+        <details open>
             <summary>Protocols</summary>
             <table class="table">
                 <tbody>
                     @foreach(var proto in Model.Protocols)
                     {
-                <tr class="form-text"><td>
-                    <a href="@Url.Action("Details", "Protocol", new {Id = proto.Id})">@proto.Protocol</a>
-                </td></tr>
+                        <tr class="form-text"><td>
+                            <a href="@Url.Action("Details", "Protocol", new {Id = proto.Id})">@proto.Protocol</a>
+                        </td></tr>
                     }
-                <tr class="form-text"><td>
-                    <button onclick="addProtocol.showModal()" type="button" class="btn btn-secondary">Add</button>
-                </td></tr>
+                    <tr class="form-text"><td>
+                        <button onclick="addProtocol.showModal()" type="button" class="btn btn-secondary">Add</button>
+                    </td></tr>
                 </tbody>
             </table>
         </details>
+        </td>
+    </tr>
+    <tr class="form-text">
+        <td>
+        <details open>
+            <summary>Users</summary>
+            <table class="table">
+                <tbody>
+                    @if(Model.Users != null) foreach(var user in Model.Users)
+                    {
+                        <tr class="form-text"><td>
+                            <a href="@Url.Action("Details", "Users", new {Id = user.Id})">@user.DisplayName</a>
+                        </td></tr>
+                    }
+                    </tbody>
+                </table>
+            </details>
+        </td>
+    </tr>
+    <tr class="form-text">
+        <td>
+        <details open>
+            <summary>Accounts</summary>
+            <table class="table">
+                <tbody>
+                    @if(Model.Accounts != null) foreach(var acc in Model.Accounts.OrderBy(a => a.SeenInChannel?.LineageSummary))
+                    {
+                        <tr class="form-text"><td>
+                            @(acc.SeenInChannel?.LineageSummary) /
+                            <a href="@Url.Action("Details", "Accounts", new {Id = acc.Id})">@acc.DisplayName</a>
+                        </td></tr>
+                    }
+                    </tbody>
+                </table>
+            </details>
+        </td>
+    </tr>
+    <tr class="form-text">
+        <td>
+        <details>
+            <summary>Channels</summary>
+            <table class="table">
+                <tbody>
+                    @if(Model.Channels != null) foreach(var ch in Model.Channels.OrderBy(c => c.LineageSummary))
+                    {
+                        <tr class="form-text"><td>
+                            <a href="@Url.Action("Details", "Channels", new {Id = ch.Id})">@ch.LineageSummary</a>
+                        </td></tr>
+                    }
+                    </tbody>
+                </table>
+            </details>
+        </td>
+    </tr>
+    <tr class="form-text">
+        <td>
+        <details open>
+            <summary>UACs</summary>
+            <table class="table">
+                <tbody>
+                    @if(Model.UACs != null) foreach(var uac in Model.UACs)
+                    {
+                        <tr class="form-text"><td>
+                            <a href="@Url.Action("Details", "UACs", new {Id = uac.Id})">@uac.DisplayName</a>
+                        </td></tr>
+                    }
+                    <tr class="form-text"><td>
+                        <form action="@Url.Action("Create", "UACs")" method="post" id="addUAC"></form>
+                        <button onclick="addUAC.submit()" type="button" class="btn btn-secondary">Add</button>
+                    </td></tr>
+                </tbody>
+            </table>
+        </details>
+        </td>
+    </tr>
+    <tr class="form-text">
+        <td>
+        <details open>
+            <summary>Webhooks</summary>
+            <table class="table">
+                <tbody>
+                    @if(Model.Webhooks != null) foreach(var wh in Model.Webhooks)
+                    {
+                        <tr class="form-text"><td>
+                            <a href="@Url.Action("Details", "Webhooks", new {Id = wh.Id})">@wh.Trigger</a>
+                        </td></tr>
+                    }
+                    <tr class="form-text"><td>
+                        <form action="@Url.Action("Create", "Webhook")" method="post" id="addWebhook"></form>
+                        <button onclick="addWebhook.submit()" type="button" class="btn btn-secondary">Add</button>
+                    </td></tr>
+                    </tbody>
+                </table>
+            </details>
         </td>
     </tr>
     </tbody>
@@ -33,15 +127,15 @@
 <dialog id="addProtocol">
     <details>
         <summary>Discord</summary>
-        <form action="@Url.Action("AddDiscord", "Protocols")" method="post">
+        <form action="@Url.Action("AddDiscord", "Protocol")" method="post">
             token:
             <input type="text" class="form-control" name="token" required="true"/>
-            <button type="submit" class="btn btn-default">add</button>
+            <button type="submit" class="btn btn-success">add</button>
         </form>
     </details>
     <details>
         <summary>Twitch</summary>
-        <form action="@Url.Action("AddTwitch", "Protocols")" method="post">
+        <form action="@Url.Action("AddTwitch", "Protocol")" method="post">
             <table class="table">
                 <tbody>
                 <tr>
@@ -52,14 +146,9 @@
                     <th><label for="oauth">oauth</label></th>
                     <td><input type="text" class="form-control" name="oauth" required/></td>
                 </tr>
-                <tr class="form-text">
-                    <td colspan="2">
-                        <button onclick="addProtocol.showModal()">Add</button>
-                    </td>
-                </tr>
                 </tbody>
             </table>
-            <button type="submit" class="btn btn-default">add</button>
+            <button type="submit" class="btn btn-success">add</button>
         </form>
     </details>
     <button class="btn btn-secondary" type="button" onclick="addProtocol.close()">cancel</button>

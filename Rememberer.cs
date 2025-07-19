@@ -413,4 +413,49 @@ public class Rememberer
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
+    public void RememberTwitch(ProtocolTwitch pt)
+    {
+        dbAccessSemaphore.Wait();
+        db.Update(pt);
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
+    }
+    public ProtocolConfiguration SearchProtocolConfig(Guid id)
+    {
+        ProtocolConfiguration toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = (ProtocolConfiguration)db.ProtocolConfigurations.Find(id);
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
+    public ProtocolTwitch SearchProtocolConfigTwitch(Guid id)
+    {
+        ProtocolTwitch toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.ProtocolTwitchs.Find(id);
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
+    public ProtocolDiscord SearchProtocolConfigDiscord(Guid id)
+    {
+        ProtocolDiscord toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.ProtocolDiscords.Find(id);
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
+    public void ForgetDiscord(Guid id)
+    {
+        dbAccessSemaphore.Wait();
+        db.ProtocolDiscords.Remove(db.ProtocolDiscords.Find(id));
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
+    }
+    public void ForgetTwitch(Guid id)
+    {
+        dbAccessSemaphore.Wait();
+        db.ProtocolTwitchs.Remove(db.ProtocolTwitchs.Find(id));
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
+    }
 }

@@ -5,6 +5,8 @@
 
 <a href="/">home</a>/
 @Html.Raw(ViewData["breadcrumbs"])
+<form action="@Url.Action("Submit", "UACs")" method="post" id="theForm">
+    <input type="hidden" name="Id" value="@Model.Id" />
 
 <table class="table">
   <tbody>
@@ -14,74 +16,151 @@
     </tr>
     <tr>
       <th scope="row">Description</th>
-      <td>@Html.Raw(Model.Description)
+      <td><input class="form-control" type="text" value="@Model.Description" id="Description"/></td>
+    </tr>
+
+    <tr>
+      <th scope="row">Users</th>
+      <td>
+      <details open>
+      <summary>Users</summary>
+        <table class="table">
+          <tbody>
+            @if(Model.Users != null) foreach(var ch in Model.Users.OrderBy(c => c.DisplayName))
+            {
+              <tr class="form-text">
+                <td>
+                  <a href="@Url.Action("Details", "Users", new {Id = ch.Id})">@ch.DisplayName</a>
+                </td>
+                <td>
+                  <button type="button" class="btn btn-danger" onclick="unlinkModal(unlinkUAC_User, @ch.Id)">delete</button>
+                </td>
+              </tr>
+            }
+            <tr class="form-text">
+              <td>
+                <button onclick="linkModal(linkUAC_User)" type="button" class="btn btn-secondary">Add</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </details>
+      </td>
+    </tr>
+    <tr>
+      <th scope="row">Accounts</th>
+      <td>
+      <details open>
+      <summary>Accounts</summary>
+        <table class="table">
+          <tbody>
+            @if(Model.AccountInChannels != null) foreach(var ch in Model.AccountInChannels .OrderBy(c => c.DisplayName))
+            {
+              <tr class="form-text">
+                <td>
+                  <a href="@Url.Action("Details", "Accounts", new {Id = ch.Id})">@ch.DisplayName</a>
+                </td>
+                <td>
+                  <button type="button" class="btn btn-danger" onclick="unlinkModal(unlinkUAC_Account, @ch.Id)">delete</button>
+                </td>
+              </tr>
+            }
+            <tr class="form-text">
+              <td>
+                <button onclick="linkModal(linkUAC_Account)" type="button" class="btn btn-secondary">Add</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </details>
+      </td>
     </tr>
     <tr>
       <th scope="row">Channels</th>
       <td>
-          <div id="channelsTree"></div>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Users</th>
-      <td>
-          <div id="usersTree"></div>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">AccountInChannels</th>
-      <td>
-          <div id="accountsTree"></div>
+      <details open>
+      <summary>Channels</summary>
+        <table class="table">
+          <tbody>
+            @if(Model.Channels != null) foreach(var ch in Model.Channels.OrderBy(c => c.LineageSummary))
+            {
+              <tr class="form-text">
+                <td>
+                  <a href="@Url.Action("Details", "Channels", new {Id = ch.Id})">@ch.LineageSummary</a>
+                </td>
+                <td>
+                  <button type="button" class="btn btn-danger" onclick="unlinkModal(unlinkUAC_Channel, @ch.Id)">delete</button>
+                </td>
+              </tr>
+            }
+            <tr class="form-text">
+              <td>
+                <button onclick="linkModal(linkUAC_Channel)" type="button" class="btn btn-secondary">Add</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </details>
       </td>
     </tr>
     <tr>
       <th scope="row">Translations (@Model.Translations?.Count)</th>
       <td>
+      <details open>
+      <summary>Translations</summary>
         <table class="table">
-            <tbody>
-              @for(var i = 0; i < (Model.Translations?.Count() ?? 0); i++)
-              {
-                  <tr>
-                     <td><input type="text" name="Model.Translations[@i].Key" value="@Model.Translations.ElementAt(i).Key" /></td>
-                     <td><input type="text" name="Model.Translations[@i].Value" value="@Model.Translations.ElementAt(i).Value" /></td>
-                     <td><button type="button" class="btn btn-danger" onclick="removeTranslation(@i)">delete</button></td>
-                  </tr>
-              }
-            <tr>
-            <td colspan="3">
-                <button type="button" class="btn btn-primary" onclick="addUAC_Translation()">add translation</button>
-            </td>
+          <tbody>
+            @if(Model.Translations != null) for(var i = 0; i < (Model.Translations?.Count() ?? 0); i++)
+            {
+              <tr class="form-text">
+                  <td><input type="text" name="Model.Translations[@i].Key" value="@Model.Translations.ElementAt(i).Key" /></td>
+                  <td><input type="text" name="Model.Translations[@i].Value" value="@Model.Translations.ElementAt(i).Value" /></td>
+                  <td><button type="button" class="btn btn-danger" onclick="removeTranslation(@i)">delete</button></td>
+              </tr>
+            }
+            <tr class="form-text">
+              <td colspan="3">
+                  <button type="button" class="btn btn-primary" onclick="addUAC_Translation()">add translation</button>
+              </td>
             </tr>
-            </tbody>
+          </tbody>
         </table>
+      </details>
       </td>
     </tr>
     <tr>
       <th scope="row">Command Alterations (@Model.CommandAlterations?.Count)</th>
       <td>
-        <table class="table">
+        <details open>
+          <summary>Translations</summary>
+          <table class="table">
             <tbody>
-                     @Html.Raw("<tr><td colspan=\"3\">o_O</td></tr>");
-                     @Html.Raw("<tr>");
-                     @Html.Raw("<td><input type=\"text\" name=\"Model.CommandAlterations[{j}].Key\" value=\"{Model.CommandAlterations.ElementAt(j).Key}\" /></td>");
-                     @Html.Raw("<td><input type=\"text\" name=\"Model.CommandAlterations[{j}].Value\" value=\"{Model.CommandAlterations.ElementAt(j).Value}\" /></td>");
-                     @Html.Raw("<td><button type=\"button\" class=\"btn btn-danger\" onclick=\"removeCommandAlteration()\">delete</button></td>");
-                     @Html.Raw("</tr>");
-
-            <tr>
-            <td colspan="3">
-                <button type="button" class="btn btn-primary" onclick="addUAC_CommandAlteration()">add alteration</button>
-            </td>
-            </tr>
+              @if(Model.CommandAlterations != null) for(var i = 0; i < (Model.CommandAlterations?.Count() ?? 0); i++)
+              {
+                <tr class="form-text">
+                    <td><input type="text" name="Model.CommandAlterations[@i].Key" value="@Model.CommandAlterations.ElementAt(i).Key" /></td>
+                    <td><input type="text" name="Model.CommandAlterations[@i].Value" value="@Model.CommandAlterations.ElementAt(i).Value" /></td>
+                    <td><button type="button" class="btn btn-danger" onclick="removeTranslation(@i)">delete</button></td>
+                </tr>
+              }
+              <tr class="form-text">
+                <td colspan="3">
+                    <button type="button" class="btn btn-primary" onclick="addUAC_CommandAlteration()">add translation</button>
+                </td>
+              </tr>
             </tbody>
-        </table>
+          </table>
+        </details>
         </td>
     </tr>
     <tr>
-        <td colspan="2"><button class="btn btn-success">asdf</button></td>
+        <td colspan="2">
+          <button class="btn btn-success" type="submit">save</button>
+        </td>
     </tr>
     </tbody>
 </table>
+</form>
 
 "adam", you may say, "why are there both translations and command alterations?"<br />
 translations are like.. if someone says "addicting", you can safely guess that they don't know they should be saying "addictive".<br />
@@ -165,7 +244,6 @@ so let's say, "translations" are "i'll pretend you said", and "command alteratio
     </div>
   </div>
 </div>
-
 @section Scripts{
   <script type="text/javascript">
   function linkModal(submitFn)
@@ -205,25 +283,9 @@ so let's say, "translations" are "i'll pretend you said", and "command alteratio
     submitFn(idx, () => { window.location.reload(); });
     $("#remove-modal").modal("hide");
   }
-  function channelsTree() {
-    @{
-      var sb = new StringBuilder();
-      sb.Append("[{text: \"Channels\", \"expanded\":true, nodes: [");
-
-      sb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"linkModal(linkUAC_Channel)\\\">add channel</button>\"}}");
-      foreach (var acc in Model.Channels?.OrderBy(a => a.DisplayName))
-      {
-        sb.Append(',');
-        sb.Append($"{{text: \"<a href=\\\"/Channels/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn btn-danger\\\" onclick=\\\"unlinkModal(unlinkUAC_Channel, '{acc.Id}')\\\">remove</button>\"}}");
-      }
-      sb.Append("]}]");
-    }
-    var tree = @Html.Raw(sb.ToString());
-    return tree;
-  }
   function usersTree() {
     @{
-      sb = new StringBuilder();
+      var sb = new StringBuilder();
       sb.Append("[{text: \"Users\", \"expanded\":true, nodes: [");
 
       sb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"linkModal(linkUAC_User)\\\">add user</button>\"}}");
@@ -253,10 +315,6 @@ so let's say, "translations" are "i'll pretend you said", and "command alteratio
     var tree = @Html.Raw(sb.ToString());
     return tree;
   }
-
-  $('#channelsTree').bstreeview({ data: channelsTree() });
-  $('#usersTree').bstreeview({ data: usersTree() });
-  $('#accountsTree').bstreeview({ data: accountsTree() });
 
   var components = window.location.pathname.split('/');
   var uacId = components[3];
