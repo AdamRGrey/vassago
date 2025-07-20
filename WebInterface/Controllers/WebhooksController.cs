@@ -44,7 +44,7 @@ public class WebhooksController() : Controller
         r.ForgetWebhook(id);
         return RedirectToAction("Home", "Index");
     }
-    public IActionResult New()
+    public IActionResult Create()
     {
         var wh = new Webhook();
         wh.Uac = new UAC();

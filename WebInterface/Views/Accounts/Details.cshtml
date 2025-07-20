@@ -1,72 +1,67 @@
-@model Account
+@model vassago.Models.Account
 @using Newtonsoft.Json
-@using System.Text
-@{
-    ViewData["Title"] = "Account details";
+
+<a href="/">home</a>/
+@if(Model.IsUser != null)
+{
+    <a href="@Url.Action("Details", "Users", new {Id = @Model.IsUser?.Id})">@Model.IsUser.DisplayName/</a>
 }
-
-<a href="/">home</a>/@Html.Raw(ViewData["breadcrumbs"])
-<table class="table">
-    <tbody>
-        <tr>
-            <th>Id</th>
-            <td>@Model.Id</td>
-        </tr>
-        <tr>
-            <th scope="row">belongs to user</th>
-            <td>@Model.IsUser.DisplayName</td>
-            <td><button onclick="unlinkAccountUser(() => { window.location.reload(); })">separate</button></2td>
-        </tr>
-        <tr>
-            <th scope="row">Seen in channel</th>
-            <td class="account @Model.SeenInChannel.Protocol"><div class="protocol-icon">&nbsp;</div>@Model.SeenInChannel.LineageSummary<a href="/Channels/Details/@Model.SeenInChannel.Id">@Model.SeenInChannel.DisplayName</a></td>
-        </tr>
-        <tr>
-            <th scope="row">UACs tied to account</th>
-            <td>
-                <div id="uacsTree"></div>
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-@section Scripts{
-
-    <script type="text/javascript">
-        @{
-            var accountAsString = JsonConvert.SerializeObject(Model, new JsonSerializerSettings
+else
+{
+    @Html.Raw("[userless?]/");
+}
+<form action="@Url.Action("submit", "Accounts")" method="post" id="theForm">
+    <input type="hidden" name="Id" value="@Model.Id">
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>@Model.Id</td>
+            </tr>
+            <tr>
+                <th scope="row">belongs to user</th>
+                <td>@Model.IsUser.DisplayName</td>
+                <td><button type="button" class="btn btn-danger" onclick="unlinkAccountUser.submit()">separate</button></td>
+            </tr>
+            <tr>
+                <th scope="row">Seen in channel</th>
+                <td class="account @Model.SeenInChannel.Protocol">
+                    <div class="protocol-icon">&nbsp;</div>
+                    <a href="/Channels/Details/@Model.SeenInChannel.Id">@Model.SeenInChannel.LineageSummary</a>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row" rowspan="@((Model.UACs?.Count ?? 0) + 1)">UACs tied to account (@(Model.UACs?.Count ?? 0))</th>
+            </tr>
+            @if(Model.UACs!= null) foreach(var uac in Model.UACs)
             {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-            });
-        }
-          const userOnLoad = @Html.Raw(accountAsString);
-        function jsonifyUser() {
-            var userNow = structuredClone(userOnLoad);
-            userNow.Accounts = null;
-            userNow.DisplayName = document.querySelector("#displayName").value;
-            console.log(userNow);
-            return userNow;
-        }
-
-        function getUacsTree() {
-        @{
-            var sb = new StringBuilder();
-            sb.Append("[{text: \"UACs\", \"expanded\":true, nodes: [");
-            var first = true;
-            for (int i = 0; i < 1; i++)
-            {
-                if (!first)
-                    sb.Append(',');
-                sb.Append($"{{text: \"<input type=\\\"checkbox\\\" > is goated (w/ sauce)</input>\"}}");
-                first = false;
+                <tr class="form-text">
+                    <td>
+                        <a href="@Url.Action("Details", "UACs", new {Id = uac.Id})">@uac.DisplayName</a>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger" onclick="uacUnlink_@(uac.Id.ToString().Replace('-', '_')).submit();">Unlink</button>
+                    </td>
+                </tr>
             }
-            sb.Append("]}]");
-        }
-            console.log(@Html.Raw(sb.ToString()));
-            var tree = @Html.Raw(sb.ToString());
-            return tree;
-        }
-        $('#uacsTree').bstreeview({ data: getUacsTree() });
-        //document.querySelectorAll("input[type=checkbox]").forEach(node => { node.onchange = () => { patchModel(jsonifyUser(), '/api/Users/') } });
-    </script>
+      <tr>
+        <td>
+          <button type="button" class="btn btn-success" onclick="newUAC.submit()">new</button>
+        </td>
+      </tr>
+        </tbody>
+    </table>
+</form>
+<form action="@Url.Action("unlinkAccountUser", "Accounts")" method="post" id="unlinkAccountUser">
+    <input type="hidden" name="Id" value="@Model.Id">
+</form>
+@if(Model.UACs!= null) foreach(var uac in Model.UACs)
+{
+    <form action="@Url.Action("unlinkUAC", "Accounts")" method="post" id="uacUnlink_@uac.Id.ToString().Replace('-', '_')">
+        <input type="hidden" name="AccountId" value="@Model.Id">
+        <input type="hidden" name="UACId" value="@uac.Id">
+    </form>
 }
+<form action="@Url.Action("newUAC", "Accounts")" method="post" id="newUAC">
+    <input type="hidden" name="Id" value="@Model.Id">
+</form>

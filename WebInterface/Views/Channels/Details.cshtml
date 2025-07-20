@@ -11,202 +11,123 @@
 <a href="/">home</a>/
 @Html.Raw(ViewData["breadcrumbs"])
 
-<table class="table">
-  <tbody>
-    <tr>
-      <th scope="row">Display Name</th>
-      <td>@ThisChannel.DisplayName</td>
-    </tr>
-    <tr>
-      <th scope="row">Channel type</th>
-      <td>@(Enumerations.GetDescription(ThisChannel.ChannelType))</td>
-    </tr>
-    <tr>
-      <th scope="row">Lewdness Filter Level</th>
-      <td>
-        <select name="LewdnessFilterLevel" id="LewdnessFilterLevel" onchange="patchModel(jsonifyChannel())">
-          <!option value="" @(ThisChannel.LewdnessFilterLevel == null ? "selected" : "")>⤵ inherited - @Enumerations.GetDescription(IfInheritedLewdnessFilterLevel)</!option>
-          @foreach (Enumerations.LewdnessFilterLevel enumVal in
-          Enum.GetValues(typeof(Enumerations.LewdnessFilterLevel)))
-          {
-            <!option value="@((int)enumVal)" @(ThisChannel.LewdnessFilterLevel == enumVal ? "selected" : "")>
-              @(Enumerations.GetDescription<Enumerations.LewdnessFilterLevel>(enumVal))</!option>
-          }
-        </select>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Links Allowed</th>
-      <td>@(ThisChannel.LinksAllowed?.ToString() ?? "unknown")</td>
-    </tr>
-    <tr>
-      <th scope="row">Lineage summary</th>
-      <td>@ThisChannel.LineageSummary</td>
-    </tr>
-    <tr>
-      <th scope="row">max attachment bytes</th>
-      <td>@ThisChannel.MaxAttachmentBytes (i hear there's "ByteSize")</td>
-    </tr>
-    <tr>
-      <th scope="row">max message length</th>
-      <td>@(ThisChannel.MaxTextChars?.ToString() ?? "inherited")</td>
-    </tr>
-    <tr>
-      <th scope="row">Meanness Filter Level</th>
-      <td>
-        <select name="MeannessFilterLevel" id="MeannessFilterLevel" onchange="patchModel(jsonifyChannel())">
-          <!option value="" @(ThisChannel.MeannessFilterLevel == null ? "selected" : "")>⤵ inherited - @Enumerations.GetDescription(IfInheritedMeannessFilterLevel)</!option>
-          @foreach (Enumerations.MeannessFilterLevel enumVal in
-          Enum.GetValues(typeof(Enumerations.MeannessFilterLevel)))
-          {
-            <!option value="@((int)enumVal)" @(ThisChannel.MeannessFilterLevel == enumVal ? "selected" : "")>
-              @(Enumerations.GetDescription<Enumerations.MeannessFilterLevel>(enumVal))</!option>
-          }
-        </select>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Messages (count)</th>
-      <td>@(ThisChannel.Messages?.Count ?? 0)</td>
-    </tr>
-    <tr>
-      <th scope="row">Protocol</th>
-      <td>@ThisChannel.Protocol</td>
-    </tr>
-    <tr>
-      <th scope="row">Reactions Possible</th>
-      <td>@(ThisChannel.ReactionsPossible?.ToString() ?? "inherited")</td>
-    </tr>
-    <tr>
-      <th scope="row">Sub Channels</th>
-      <td>
-        @if((ThisChannel.SubChannels?.Count ?? 0) > 0)
-        {
-          @Html.Raw("<div id=\"channelsTree\"></div>");
-        }
-        else
-        {
-          @Html.Raw("0")
-        }
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Accounts</th>
-      <td>
-        @if((ThisChannel.Users?.Count ?? 0) > 0)
-        {
-          @Html.Raw("<div id=\"accountsTree\"></div>");
-        }
-        else
-        {
-          @Html.Raw("none")
-        }
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Datamemos</th>
-      <td>
-        <div id="dataMemosTree"></div>
-    </td>
-    </tr>
-    <tr>
-      <td colspan="2">
-        <button onclick="forget()">forget</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-@section Scripts{
-  <script type="text/javascript">
-    @{
-      var modelAsString = JsonConvert.SerializeObject(ThisChannel, new JsonSerializerSettings
-      {
-        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-      });
-    }
-      const channelOnLoad = @Html.Raw(modelAsString);
-    function jsonifyChannel() {
-      var channelNow = structuredClone(channelOnLoad);
-      channelNow.SubChannels = null;
-      channelNow.ParentChannel = null;
-      channelNow.Messages = null;
-      channelNow.Users = null;
-
-      channelNow.LewdnessFilterLevel = document.querySelector("#LewdnessFilterLevel").value;
-      channelNow.MeannessFilterLevel = document.querySelector("#MeannessFilterLevel").value;
-      console.log(channelNow);
-      return channelNow;
-    }
-    function forget(){
-      console.log("here we go");
-      if(window.confirm("delete? really really?") == true){
-        deleteModel(jsonifyChannel().Id, window.history.back);
-      }
-    }
-    function createMemo()
-    {
-        console.log("creating memo for channel..");
-        createMemoFor((newMemoId) => {
-            window.location.href = "/UACs/Details/" + newMemoId;
-        });
-    }
-    
-    function channelsTree() {
-      //TOOD: see how accountsTree does all our HTML-ification over here in HTML land? but this doesn't? we should pick one and stick with it.
-      var tree = @Html.Raw(ViewData["subChannelsTree"]);
-      return tree;
-    }
-    function dataMemosTree(){
-      @{
-            var dmsb = new StringBuilder();
-            dmsb.Append("[{text: \"Data Memos\", \"expanded\":true, nodes: [");
-            var firstMemo = true;
-            if(ThisChannel.UACs != null) foreach(var memo in ThisChannel.UACs)
+<form action="@Url.Action("submit", "Accounts")" method="post" id="theForm">
+  <input type="hidden" name="Id" value="@ThisChannel.Id">
+  <table class="table">
+    <tbody>
+      <tr>
+        <th scope="row">Display Name</th>
+        <td>@ThisChannel.DisplayName</td>
+      </tr>
+      <tr>
+        <th scope="row">Channel type</th>
+        <td>@(Enumerations.GetDescription(ThisChannel.ChannelType))</td>
+      </tr>
+      <tr>
+        <th scope="row">Lewdness Filter Level</th>
+        <td>
+          <select name="LewdnessFilterLevel" id="LewdnessFilterLevel">
+            <!option value="" @(ThisChannel.LewdnessFilterLevel == null ? "selected" : "")>⤵ inherited - @Enumerations.GetDescription(IfInheritedLewdnessFilterLevel)</!option>
+            @foreach (Enumerations.LewdnessFilterLevel enumVal in
+            Enum.GetValues(typeof(Enumerations.LewdnessFilterLevel)))
             {
-                if(!firstMemo)
-                    dmsb.Append(',');
-                var effectiveDisplayName = memo.DisplayName;
-                if(string.IsNullOrWhiteSpace(effectiveDisplayName))
-                {
-                    effectiveDisplayName = $"[nameless] {memo.Id}";
-                }
-                dmsb.Append($"{{text: \"<a href=\\\"/UACs/Details/{memo.Id}\\\">{effectiveDisplayName}</a>\"}}");
-                firstMemo = false;
+              <!option value="@((int)enumVal)" @(ThisChannel.LewdnessFilterLevel == enumVal ? "selected" : "")>
+                @(Enumerations.GetDescription<Enumerations.LewdnessFilterLevel>(enumVal))</!option>
             }
-            if(!firstMemo)
-                dmsb.Append(',');
-            dmsb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"createMemo()\\\">+</button>\"}}");
-            dmsb.Append("]}]");
-        }
-      var tree = @Html.Raw(dmsb.ToString());
-      return tree;
-}
-
-    function accountsTree() {
-      @{
-        var sb = new StringBuilder();
-
-        sb.Append("[{text: \"accounts\", \"expanded\":true, nodes: [");
-        var first = true;
-        Console.WriteLine($"{ThisChannel.DisplayName} has {ThisChannel.Users?.Count ?? 0} users.");
-        foreach (var acc in ThisChannel.Users?.OrderBy(a => a?.SeenInChannel?.LineageSummary ?? " ERROR"))
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">Links Allowed</th>
+        <td>@(ThisChannel.LinksAllowed?.ToString() ?? "unknown")</td>
+      </tr>
+      <tr>
+        <th scope="row">Lineage summary</th>
+        <td>@ThisChannel.LineageSummary</td>
+      </tr>
+      <tr>
+        <th scope="row">max attachment bytes</th>
+        <td>@ThisChannel.MaxAttachmentBytes</td>
+      </tr>
+      <tr>
+        <th scope="row">max message length</th>
+        <td>@(ThisChannel.MaxTextChars?.ToString() ?? "inherited")</td>
+      </tr>
+      <tr>
+        <th scope="row">Meanness Filter Level</th>
+        <td>
+          <select name="MeannessFilterLevel" id="MeannessFilterLevel" onchange="patchThisChannel.jsonifyChannel())">
+            <!option value="" @(ThisChannel.MeannessFilterLevel == null ? "selected" : "")>⤵ inherited - @Enumerations.GetDescription(IfInheritedMeannessFilterLevel)</!option>
+            @foreach (Enumerations.MeannessFilterLevel enumVal in
+            Enum.GetValues(typeof(Enumerations.MeannessFilterLevel)))
+            {
+              <!option value="@((int)enumVal)" @(ThisChannel.MeannessFilterLevel == enumVal ? "selected" : "")>
+                @(Enumerations.GetDescription<Enumerations.MeannessFilterLevel>(enumVal))</!option>
+            }
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">Messages (count)</th>
+        <td>@(ThisChannel.Messages?.Count ?? 0)</td>
+      </tr>
+      <tr>
+        <th scope="row">Protocol</th>
+        <td>@ThisChannel.Protocol</td>
+      </tr>
+      <tr>
+        <th scope="row">Reactions Possible</th>
+        <td>@(ThisChannel.ReactionsPossible?.ToString() ?? "inherited")</td>
+      </tr>
+      <tr>
+        <th rowspan="@((ThisChannel.SubChannels?.Count ?? 0) + 1)" scope="row">Sub Channels - (@(ThisChannel.SubChannels?.Count ??0))</th>
+      </tr>
+        @if(ThisChannel.SubChannels != null) foreach(var ch in ThisChannel.SubChannels.OrderBy(c => c.LineageSummary))
         {
-            if(!first)
-                sb.Append(','); 
-            sb.Append($"{{text: \"<div class=\\\"account {acc.Protocol}\\\"><div class=\\\"protocol-icon\\\">&nbsp;</div>{acc.SeenInChannel.LineageSummary}/<a href=\\\"/Accounts/Details/{acc.Id}\\\">{acc.DisplayName}</a>\"}}");
-            first=false;
+          <tr>
+            <td>
+              <a href="@Url.Action("Details", "Channels", new {Id = ch.Id})">@ch.LineageSummary</a>
+            </td>
+          </tr>
         }
-        sb.Append("]}]");
-
+      <tr>
+        <th rowspan="@((ThisChannel.Users?.Count ?? 0) + 1)" scope="row">Accounts</th>
+      </tr>
+      @if(ThisChannel.Users!= null) foreach(var usr in ThisChannel.Users.OrderBy(u => u.DisplayName))
+      {
+        <tr>
+          <td>
+            <a href="@Url.Action("Details", "Users", new {Id = usr.Id})">@usr.DisplayName</a>
+          </td>
+        </tr>
       }
-      //console.log(@Html.Raw(sb.ToString()));
-      var tree = @Html.Raw(sb.ToString());
-      return tree;
-    }
-    $('#channelsTree').bstreeview({ data: channelsTree() });
-    $('#accountsTree').bstreeview({ data: accountsTree() });
-    $('#dataMemosTree').bstreeview({ data: dataMemosTree() });
-
-  </script>
+      <tr>
+        <th rowspan="@((ThisChannel.UACs?.Count ?? 0) + 2)" scope="row">UACs</th>
+      </tr>
+      @if(ThisChannel.UACs!= null) foreach(var uac in ThisChannel.UACs.OrderBy(c => c.DisplayName))
+      {
+        <tr>
+          <td>
+            <a href="@Url.Action("Details", "UACs", new {Id = uac.Id})">@uac.DisplayName</a>
+            <button type="button" class="btn btn-danger" onclick="uacUnlink_@(uac.Id.ToString().Replace('-', '_')).submit();">Unlink</button>
+          </td>
+        </tr>
+      }
+      <tr>
+        <td>
+          <button type="button" class="btn btn-success" onclick="newUAC.submit()">new</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</form>
+@if(ThisChannel.UACs!= null) foreach(var uac in ThisChannel.UACs)
+{
+    <form action="@Url.Action("unlinkUAC", "Channels")" method="post" id="uacUnlink_@(uac.Id.ToString().Replace('-', '_'))">
+        <input type="hidden" name="ChannelId" value="@ThisChannel.Id">
+        <input type="hidden" name="UACId" value="@uac.Id">
+    </form>
 }
+<form action="@Url.Action("newUAC", "Accounts")" method="post" id="newUAC">
+    <input type="hidden" name="Id" value="@ThisChannel.Id">
+</form>

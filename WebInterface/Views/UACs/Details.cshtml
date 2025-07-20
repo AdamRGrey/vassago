@@ -4,7 +4,7 @@
 @model UAC
 
 <a href="/">home</a>/
-@Html.Raw(ViewData["breadcrumbs"])
+
 <form action="@Url.Action("Submit", "UACs")" method="post" id="theForm">
     <input type="hidden" name="Id" value="@Model.Id" />
 
@@ -12,312 +12,194 @@
   <tbody>
     <tr>
       <th scope="row">Display Name</th>
-      <td><input class="form-control" type="text" value="@Model.DisplayName" id="displayName"/></td>
+      <td colspan="4"><input class="form-control" type="text" value="@Model.DisplayName" id="displayName"/></td>
     </tr>
     <tr>
       <th scope="row">Description</th>
-      <td><input class="form-control" type="text" value="@Model.Description" id="Description"/></td>
+      <td colspan="4"><input class="form-control" type="text" value="@Model.Description" id="Description"/></td>
     </tr>
-
     <tr>
-      <th scope="row">Users</th>
+      <th scope="row" rowspan="@((Model.Users?.Count ?? 0) + 1)">Users (@(Model.Users?.Count ?? 0))</th>
+        <td colspan="3"></td>
       <td>
-      <details open>
-      <summary>Users</summary>
-        <table class="table">
-          <tbody>
-            @if(Model.Users != null) foreach(var ch in Model.Users.OrderBy(c => c.DisplayName))
-            {
-              <tr class="form-text">
-                <td>
-                  <a href="@Url.Action("Details", "Users", new {Id = ch.Id})">@ch.DisplayName</a>
-                </td>
-                <td>
-                  <button type="button" class="btn btn-danger" onclick="unlinkModal(unlinkUAC_User, @ch.Id)">delete</button>
-                </td>
-              </tr>
-            }
-            <tr class="form-text">
-              <td>
-                <button onclick="linkModal(linkUAC_User)" type="button" class="btn btn-secondary">Add</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </details>
+        <button onclick="linkUserDialog.showModal()" type="button" class="btn btn-success"><span class="fa fa-plus"></span></button>
       </td>
     </tr>
-    <tr>
-      <th scope="row">Accounts</th>
-      <td>
-      <details open>
-      <summary>Accounts</summary>
-        <table class="table">
-          <tbody>
-            @if(Model.AccountInChannels != null) foreach(var ch in Model.AccountInChannels .OrderBy(c => c.DisplayName))
-            {
-              <tr class="form-text">
-                <td>
-                  <a href="@Url.Action("Details", "Accounts", new {Id = ch.Id})">@ch.DisplayName</a>
-                </td>
-                <td>
-                  <button type="button" class="btn btn-danger" onclick="unlinkModal(unlinkUAC_Account, @ch.Id)">delete</button>
-                </td>
-              </tr>
-            }
-            <tr class="form-text">
-              <td>
-                <button onclick="linkModal(linkUAC_Account)" type="button" class="btn btn-secondary">Add</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </details>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Channels</th>
-      <td>
-      <details open>
-      <summary>Channels</summary>
-        <table class="table">
-          <tbody>
-            @if(Model.Channels != null) foreach(var ch in Model.Channels.OrderBy(c => c.LineageSummary))
-            {
-              <tr class="form-text">
-                <td>
-                  <a href="@Url.Action("Details", "Channels", new {Id = ch.Id})">@ch.LineageSummary</a>
-                </td>
-                <td>
-                  <button type="button" class="btn btn-danger" onclick="unlinkModal(unlinkUAC_Channel, @ch.Id)">delete</button>
-                </td>
-              </tr>
-            }
-            <tr class="form-text">
-              <td>
-                <button onclick="linkModal(linkUAC_Channel)" type="button" class="btn btn-secondary">Add</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </details>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Translations (@Model.Translations?.Count)</th>
-      <td>
-      <details open>
-      <summary>Translations</summary>
-        <table class="table">
-          <tbody>
-            @if(Model.Translations != null) for(var i = 0; i < (Model.Translations?.Count() ?? 0); i++)
-            {
-              <tr class="form-text">
-                  <td><input type="text" name="Model.Translations[@i].Key" value="@Model.Translations.ElementAt(i).Key" /></td>
-                  <td><input type="text" name="Model.Translations[@i].Value" value="@Model.Translations.ElementAt(i).Value" /></td>
-                  <td><button type="button" class="btn btn-danger" onclick="removeTranslation(@i)">delete</button></td>
-              </tr>
-            }
-            <tr class="form-text">
-              <td colspan="3">
-                  <button type="button" class="btn btn-primary" onclick="addUAC_Translation()">add translation</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </details>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">Command Alterations (@Model.CommandAlterations?.Count)</th>
-      <td>
-        <details open>
-          <summary>Translations</summary>
-          <table class="table">
-            <tbody>
-              @if(Model.CommandAlterations != null) for(var i = 0; i < (Model.CommandAlterations?.Count() ?? 0); i++)
-              {
-                <tr class="form-text">
-                    <td><input type="text" name="Model.CommandAlterations[@i].Key" value="@Model.CommandAlterations.ElementAt(i).Key" /></td>
-                    <td><input type="text" name="Model.CommandAlterations[@i].Value" value="@Model.CommandAlterations.ElementAt(i).Value" /></td>
-                    <td><button type="button" class="btn btn-danger" onclick="removeTranslation(@i)">delete</button></td>
-                </tr>
-              }
-              <tr class="form-text">
-                <td colspan="3">
-                    <button type="button" class="btn btn-primary" onclick="addUAC_CommandAlteration()">add translation</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </details>
+    @if(Model.Users != null) foreach(var ch in Model.Users.OrderBy(c => c.DisplayName))
+    {
+      <tr class="form-text">
+        <td colspan="3">
+          <a href="@Url.Action("Details", "Users", new {Id = ch.Id})">@ch.DisplayName</a>
         </td>
-    </tr>
+        <td>
+          <button type="button" class="btn btn-danger" onclick="unlinkUser_@(ch.Id.ToString().Replace('-', '_')).submit()"><span class="fa fa-trash"></span></button>
+        </td>
+      </tr>
+    }
     <tr>
-        <td colspan="2">
+      <th scope="row" rowspan="@((Model.AccountInChannels?.Count ?? 0) + 1)">Accounts (@(Model.AccountInChannels?.Count ?? 0))</th>
+      <td colspan="3"></td>
+      <td><button onclick="linkAccountDialog.showModal()" type="button" class="btn btn-success"><span class="fa fa-plus"></span></button></td>
+    </tr>
+    @if(Model.AccountInChannels != null) foreach(var ch in Model.AccountInChannels .OrderBy(c => c.DisplayName))
+    {
+      <tr class="form-text">
+        <td colspan="3">
+          <a href="@Url.Action("Details", "Accounts", new {Id = ch.Id})">@ch.DisplayName</a>
+        </td>
+        <td>
+          <button type="button" class="btn btn-danger" onclick="unlinkAccount_@(ch.Id.ToString().Replace('-', '_')).submit()"><span class="fa fa-trash"></span></button>
+        </td>
+      </tr>
+    }
+    <tr>
+      <th rowspan="@((Model.Channels?.Count ?? 0) + 1)" scope="row">Channels (@(Model.Channels?.Count ?? 0))</th>
+     <td colspan="3"></td>
+      <td><button onclick="linkChannelDialog.showModal()" type="button" class="btn btn-success"><span class="fa fa-plus"></span></button></td>
+    </tr>
+    @if(Model.Channels != null) foreach(var ch in Model.Channels.OrderBy(c => c.LineageSummary))
+    {
+      <tr class="form-text">
+        <td colspan="3">
+          <a href="@Url.Action("Details", "Channels", new {Id = ch.Id})">@ch.LineageSummary</a>
+        </td>
+        <td>
+          <button type="button" class="btn btn-danger" onclick="unlinkChannel_@(ch.Id.ToString().Replace('-', '_')).submit()"><span class="fa fa-trash"></span></button>
+        </td>
+      </tr>
+    }
+    <tr>
+      <th rowspan="@((Model.Translations?.Count ?? 0) + 1)" scope="row">Translations (@(Model.Translations?.Count ?? 0))</th>
+      <td colspan="3"></td>
+      <td>
+        <button type="button" class="btn btn-success" onclick="addUAC_Translation.submit()">
+         <span class="fa fa-plus"></span>
+        </button>
+      </td>
+    </tr>
+    @if(Model.Translations != null) for(var i = 0; i < (Model.Translations?.Count() ?? 0); i++)
+    {
+      <tr class="form-text">
+          <td><input type="text" class="form-control" name="Model.Translations[@i].Key" value="@Model.Translations.ElementAt(i).Key" /></td>
+          <td><span class="fa fa-arrow-right"></td>
+          <td><input type="text" class="form-control" name="Model.Translations[@i].Value" value="@Model.Translations.ElementAt(i).Value" /></td>
+          <td><button type="button" class="btn btn-danger" onclick="removeTranslation(@i)"><span class="fa fa-trash"></span></button></td>
+      </tr>
+    }
+    <tr>
+      <th rowspan="@((Model.CommandAlterations?.Count ?? 0) + 1)" scope="row">Command Alterations (@(Model.CommandAlterations?.Count ?? 0))</th>
+     <td colspan="3"></td>
+      <td><button type="button" class="btn btn-success" onclick="addUAC_CommandAlteration.submit()"><span class="fa fa-plus"></span></button></td>
+    </tr>
+    @if(Model.CommandAlterations != null) for(var i = 0; i < (Model.CommandAlterations?.Count() ?? 0); i++)
+    {
+      <tr class="form-text">
+          <td><input type="text" class="form-control" name="Model.CommandAlterations[@i].Key" value="@Model.CommandAlterations.ElementAt(i).Key" /></td>
+          <td><span class="fa fa-arrow-right"></td>
+          <td><input type="text" class="form-control" name="Model.CommandAlterations[@i].Value" value="@Model.CommandAlterations.ElementAt(i).Value" /></td>
+          <td><button type="button" class="btn btn-danger" onclick="removeCommandAlteration(@i)"><span class="fa fa-trash"></span></button></td>
+      </tr>
+    }
+    <tr>
+        <td colspan="5" align="center">
+          <button class="btn btn-danger" type="button" onclick="deleteDialog.showModal()">delete</button>
           <button class="btn btn-success" type="submit">save</button>
         </td>
     </tr>
     </tbody>
-</table>
+  </table>
 </form>
 
-"adam", you may say, "why are there both translations and command alterations?"<br />
-translations are like.. if someone says "addicting", you can safely guess that they don't know they should be saying "addictive".<br />
-so if you say "this game is addicting", that comes in, we just pretend you said "this game is addictive".<br />
-Command alterations, I have to acknowledge that you *did* say !freedomunits, but I'm changing my behavior and not converting. <br />
-I guess theoretically you could "translate" freedomunits to nothing, then freeerdumberunits to freedomunits? but if we're doing that it becomes necessary to care about order, and get that right.<br />
-so let's say, "translations" are "i'll pretend you said", and "command alterations" are "i'll pretend I expected".
+<p>
+  "adam", you may say, "why are there both translations and command alterations?"<br />
+  translations are like.. if someone says "addicting", you can safely guess that they don't know they should be saying "addictive".<br />
+  so if you say "this game is addicting", that comes in, we just pretend you said "this game is addictive".<br />
+  Command alterations, I have to acknowledge that you *did* say !freedomunits, but I'm changing my behavior and not converting. <br />
+  I guess theoretically you could "translate" freedomunits to nothing, then freeerdumberunits to freedomunits? but if we're doing that it becomes necessary to care about order, and get that right.<br />
+  so let's say, "translations" are "i'll pretend you said", and "command alterations" are "i'll pretend I expected".
+</p>
+<form action="@Url.Action("delete", "UACs")" method="post" id="deleteForm">
+  <dialog id="deleteDialog">
+    <p>are you suuuuure?</p>
+      <input type="hidden" name="Id" value="@Model.Id" />
+    <button class="btn btn-secondary" type="button" onclick="deleteDialog.close()">cancel</button>
+    <button class="btn btn-danger" type="submit">delete</button>
+  </dialog>
+</form>
 
-<div id="link-modal" class="modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Insert GUID</h5>
-        <button type="button" class="btn btn-close" data-dismiss="link-modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p>
-            <ul>
-              <li>//TODO: search</li>
-            </ul>
-        </p>
-        <p>
-          <input id="addmodaltext" type="text" />
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button id="modalsubmit" type="button" class="btn btn-primary">Save changes</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="link-modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
+<form action="@Url.Action("LinkUser", "UACs")" method="post" id="linkUserForm">
+  <dialog id="linkUserDialog">
+    <input type="hidden" name="Id" value="@Model.Id" />
+    <p>user GUID //TODO: search</p>
+    <input type="text" class="form-control" name="userId" required />
+    <button class="btn btn-secondary" type="button" onclick="linkUserDialog.close()">cancel</button>
+    <button class="btn btn-success" type="submit">delete</button>
+  </dialog>
+</form>
+<form action="@Url.Action("LinkAccount", "UACs")" method="post" id="linkAccountForm">
+  <dialog id="linkAccountDialog">
+    <input type="hidden" name="Id" value="@Model.Id" />
+    <p>Account GUID //TODO: search</p>
+    <input type="text" class="form-control" name="AccountId" required />
+    <button class="btn btn-secondary" type="button" onclick="linkAccountDialog.close()">cancel</button>
+    <button class="btn btn-success" type="submit">delete</button>
+  </dialog>
+</form>
+<form action="@Url.Action("LinkChannel", "UACs")" method="post" id="linkChannelForm">
+  <dialog id="linkChannelDialog">
+    <input type="hidden" name="Id" value="@Model.Id" />
+    <p>channel GUID //TODO: search</p>
+    <input type="text" class="form-control" name="channelId" required />
+    <button class="btn btn-secondary" type="button" onclick="linkChannelDialog.close()">cancel</button>
+    <button class="btn btn-success" type="submit">delete</button>
+  </dialog>
+</form>
+@if(Model.Users != null) foreach(var usr in Model.Users)
+{
+  <form action="@Url.Action("UnlinkUser", "UACs")" method="post" id="unlinkUser_@(usr.Id.ToString().Replace('-', '_'))">
+      <input type="hidden" name="Id" value="@Model.Id" />
+      <input type="hidden" name="UserId" value="@usr.Id" />
+  </form>
+}
+@if(Model.AccountInChannels != null) foreach(var acc in Model.AccountInChannels)
+{
+  <form action="@Url.Action("UnlinkAccount", "UACs")" method="post" id="unlinkAccount_@(acc.Id.ToString().Replace('-', '_'))">
+      <input type="hidden" name="Id" value="@Model.Id" />
+      <input type="hidden" name="AccountId" value="@acc.Id" />
+  </form>
+}
+@if(Model.Channels != null) foreach(var ch in Model.Channels)
+{
+  <form action="@Url.Action("UnlinkChannel", "UACs")" method="post" id="unlinkChannel_@(ch.Id.ToString().Replace('-', '_'))">
+      <input type="hidden" name="Id" value="@Model.Id" />
+      <input type="hidden" name="ChannelId" value="@ch.Id" />
+  </form>
+}
+<form action="@Url.Action("addCommandAlteration", "UACs")" method="post" id="addUAC_CommandAlteration">
+    <input type="hidden" name="Id" value="@Model.Id" />
+</form>
+<form action="@Url.Action("addTranslation", "UACs")" method="post" id="addUAC_Translation">
+    <input type="hidden" name="Id" value="@Model.Id" />
+</form>
+<form action="@Url.Action("RemoveCommandAlteration", "UACs")" method="post" id="removeCommandAlterationForm">
+  <input type="hidden" name="Id" value="@Model.Id" />
+  <input type="hidden" name="idx" id="removeCommandAlterationIdx" />
+</form>
+<form action="@Url.Action("RemoveTranslation", "UACs")" method="post" id="removeTranslationForm">
+    <input type="hidden" name="Id" value="@Model.Id" />
+    <input type="hidden" name="idx" id="removeTranslationIdx" />
+</form>
 
-<div id="unlink-modal" class="modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Confirm</h5>
-        <button type="button" class="btn-close" data-dismiss="unlink-modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p>
-            are you sure you want to unlink
-            <input id="unlinkModalText" enabled="false" type="text" />
-        </p>
-        <p>
-            to be clear; this is going to "unlink", not like.. delete.
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button id="modalsubmit" type="button" class="btn btn-danger">unlink</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="unlink-modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="remove-modal" class="modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Confirm</h5>
-        <button type="button" class="btn-close" data-dismiss="remove-modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p>
-            are you sure you want to delete
-            <input id="removeModalText" enabled="false" type="text" />
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button id="modalsubmit" type="button" class="btn btn-danger">delete</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="remove-modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-@section Scripts{
-  <script type="text/javascript">
-  function linkModal(submitFn)
-  {
-      let modalbutton = document.querySelector("#link-modal button#modalsubmit");
-      modalbutton.onclick = () => { linkSubmitModal(submitFn); };
-      $("#link-modal").modal("show");
+@section scripts
+{
+<script type="text/javascript">
+  function removeCommandAlteration(i){
+    removeCommandAlterationIdx.value = i;
+    removeCommandAlterationForm.submit();
   }
-  function linkSubmitModal(submitFn)
-  {
-    let guid = document.querySelector("#link-modal #addmodaltext").value;
-    submitFn(guid, () => { window.location.reload(); });
-    $("#link-modal").modal("hide");
-    console.log(submitFn + "(guid)");
+  function removeTranslation(i){
+    removeTranslationIdx.value = i;
+    removeTranslationForm.submit();
   }
-  function unlinkModal(submitFn, target)
-  {
-    document.querySelector("#unlink-modal #removeModalText").value = target;
-    let modalbutton = document.querySelector("#unlink-modal button#modalsubmit");
-    modalbutton.onclick = () => { unlinkModalSubmit(submitFn, target); };
-    $("#remove-modal").modal("show");
-  }
-  function unlinkModalSubmit(submitFn, target)
-  {
-    submitFn(target, () => { window.location.reload(); });
-    $("#unlink-modal").modal("hide");
-  }
-  function removeModal(submitFn, idx)
-  {
-    document.querySelector("#remove-modal #removeModalText").value = target;
-    let modalbutton = document.querySelector("#remove-modal button#modalsubmit");
-    modalbutton.onclick = () => { removeModalSubmit(submitFn, idx); };
-    $("#remove-modal").modal("show");
-  }
-  function removeModalSubmit(submitFn, idx)
-  {
-    submitFn(idx, () => { window.location.reload(); });
-    $("#remove-modal").modal("hide");
-  }
-  function usersTree() {
-    @{
-      var sb = new StringBuilder();
-      sb.Append("[{text: \"Users\", \"expanded\":true, nodes: [");
-
-      sb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"linkModal(linkUAC_User)\\\">add user</button>\"}}");
-      foreach (var acc in Model.Users?.OrderBy(a => a.DisplayName))
-      {
-        sb.Append(',');
-        sb.Append($"{{text: \"<a href=\\\"/Users/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn btn-danger\\\" onclick=\\\"unlinkModal(unlinkUAC_User, '{acc.Id}')\\\">remove</button>\"}}");
-      }
-      sb.Append("]}]");
-    }
-    var tree = @Html.Raw(sb.ToString());
-    return tree;
-  }
-  function accountsTree() {
-    @{
-      sb = new StringBuilder();
-      sb.Append("[{text: \"Accounts\", \"expanded\":true, nodes: [");
-
-      sb.Append($"{{text: \"<button type=\\\"button\\\" class=\\\"btn btn-primary\\\" onclick=\\\"linkModal(linkUAC_Account)\\\">add account</button>\"}}");
-      foreach (var acc in Model.AccountInChannels?.OrderBy(a => a.DisplayName))
-      {
-        sb.Append(',');
-        sb.Append($"{{text: \"<a href=\\\"/Accounts/Details/{acc.Id}\\\">{acc.DisplayName}</a> - <button type=\\\"button\\\" class=\\\"btn btn-danger\\\" onclick=\\\"unlinkModal(unlinkUAC_Acocunt, '{acc.Id}')\\\">remove</button>\"}}");
-      }
-      sb.Append("]}]");
-    }
-    var tree = @Html.Raw(sb.ToString());
-    return tree;
-  }
-
-  var components = window.location.pathname.split('/');
-  var uacId = components[3];
-
-  </script>
+</script>
 }

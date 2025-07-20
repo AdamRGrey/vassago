@@ -26,72 +26,8 @@
         <td><input type="text" class="form-control" name="reportedApiUrl" value="@Model.reportedApiUrl"/></td>
     </tr>
     <tr class="form-text">
-        <td colspan="2"><button class="btn btn-success" type="button" onclick="complexSubmit()">save</button></td>
+        <td colspan="2"><button class="btn btn-success" type="submit" >save</button></td>
     </tr>
     </tbody>
 </table>
 </form>
-<dialog id="addDiscord">
-    <form action="@Url.Action("AddDiscord", "Configuration")" method="post">
-        <input type="text" class="form-control" name="newToken" />
-        <button class="btn btn-secondary" type="button" onclick="addDiscord.close()">cancel</button>
-        <button class="btn btn-success" type="submit">save</button>
-    </form>
-</dialog>
-<dialog id="removeDiscordDialog">
-    <form action="@Url.Action("RemoveDiscord", "Configuration")" method="post">
-        Are you sure?
-        <input type="hidden" name="index" id="removeDiscordTarget" />
-        <button class="btn btn-secondary" type="button" onclick="removeDiscordDialog.close()">cancel</button>
-        <button class="btn btn-danger" type="submit">delete</button>
-    </form>
-</dialog>
-<dialog id="addTwitch">
-    <form action="@Url.Action("AddTwitch", "Configuration")" method="post">
-        username: <input type="text" class="form-control" name="newUsername" />
-        oauth: <input type="text" class="form-control" name="newOauth" />
-        <button class="btn btn-secondary" type="button" onclick="addTwitch.close()">cancel</button>
-        <button class="btn btn-success" type="submit">save</button>
-    </form>
-</dialog>
-<dialog id="removeTwitchDialog">
-    <form action="@Url.Action("RemoveTwitch", "Configuration")" method="post">
-        Are you sure?
-        <input type="hidden" name="id" id="removeTwitchTarget" />
-        <button class="btn btn-secondary" type="button" onclick="removeTwitchDialog.close()">cancel</button>
-        <button class="btn btn-danger" type="submit">delete</button>
-    </form>
-</dialog>
-@section scripts{
-<script type="text/javascript">
-
-function removeDiscord(idx){
-    removeDiscordTarget.Value = idx;
-    console.log("removeDiscordTarget is now " + idx);
-    removeDiscordDialog.showModal();
-}
-function removeTwitch(idx){
-    removeTwitchTarget.value = idx;
-    removeTwitchDialog.showModal();
-}
-function complexSubmit()
-{
-    for (let i = 0; true; i++)
-    {
-        let thisCell = document.querySelector("td>#TwitchConfigs_" + i);
-        if(thisCell !== null)
-        {
-            let usernameElem = thisCell.nextElementSibling;
-            let oauthElem = usernameElem.nextElementSibling;
-            let asObj = {username: usernameElem.value, oauth: oauthElem.value};
-            thisCell.value = JSON.stringify(asObj);
-        }
-        else
-        {
-            break;
-        }
-    }
-    theForm.submit();
-}
-</script>
-}

@@ -18,7 +18,8 @@ public class ChannelsController() : Controller
         {
             return Problem($"couldn't find channle {id}");
         }
-        else {
+        else
+        {
             Console.WriteLine($"details.cshtml will have a channel; {channel}.");
         }
         var walker = channel;
@@ -52,7 +53,13 @@ public class ChannelsController() : Controller
                 channel, channel.EffectivePermissions.LewdnessFilterLevel, channel.EffectivePermissions.MeannessFilterLevel
             ));
     }
-
+    [HttpPost]
+    public IActionResult newUAC(Guid Id)
+    {
+        //TODO:newUAC
+        throw new NotImplementedException();
+        return View();
+    }
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

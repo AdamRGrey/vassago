@@ -6,31 +6,40 @@ using vassago.WebInterface.Models;
 
 namespace vassago.WebInterface.Controllers;
 
-public class UsersController(ChattingContext db) : Controller
+public class UsersController() : Controller
 {
-    private ChattingContext Database => db;
+    Rememberer r = Rememberer.Instance;
 
-    public async Task<IActionResult> Index()
-    {
-        return Database.Users != null ?
-            View(await Database.Users.Include(u => u.Accounts).ToListAsync()) :
-            Problem("Entity set '_db.Users' is null.");
-    }
     public async Task<IActionResult> Details(Guid id)
     {
-        var user = await Database.Users
-                .Include(u => u.Accounts)
-                .FirstAsync(u => u.Id == id);
-        var allTheChannels = await Database.Channels.ToListAsync();
-        foreach(var acc in user.Accounts)
-        {
-            acc.SeenInChannel = allTheChannels.FirstOrDefault(c => c.Id == acc.SeenInChannel.Id);
-        }
-        return Database.Users != null ?
-            View(user) :
-            Problem("Entity set '_db.Users' is null.");
+        var user = r.UserDetail(id);
+        if (user.Accounts != null) foreach (var acc in user.Accounts)
+            {
+                acc.SeenInChannel = r.SearchChannel(c => c.Id == acc.SeenInChannel.Id);
+            }
+        return View(user);
     }
-
+    [HttpPost]
+    public IActionResult SeparateAccount(Guid UserId, Guid AccountId)
+    {
+        //TODO: separate account, webinterface
+        throw new NotImplementedException();
+        return View();
+    }
+    [HttpPost]
+    public IActionResult UnlinkUAC(Guid UserId, Guid UACid)
+    {
+        //TODO: unlink UAC from User webinterface
+        throw new NotImplementedException();
+        return View();
+    }
+    [HttpPost]
+    public IActionResult newUAC(Guid Id)
+    {
+        //TODO:newUAC
+        throw new NotImplementedException();
+        return View();
+    }
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

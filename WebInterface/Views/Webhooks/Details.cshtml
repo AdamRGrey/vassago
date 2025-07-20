@@ -37,7 +37,7 @@
     }
     <tr>
         <td colspan="2">
-            <button type="button" class="btn btn-normal" onclick="addHeader.submit()">add</button>
+            <button type="button" class="btn btn-success" onclick="addHeader.submit()">add</button>
         </td>
     </tr>
     <tr>
@@ -57,7 +57,7 @@
     </tr>
     <tr>
         <th scope="row">UAC</th>
-        <td><a href="@Url.Action("Details", "UACs", new {Id = Model.Uac?.Id})">uac</a></td>
+        <td><a href="@Url.Action("Details", "UACs", new {Id = Model.Uac?.Id})">@(Model.Uac?.DisplayName ?? "no uac?!")</a></td>
     </tr>
     <tr>
         <td colspan="2">

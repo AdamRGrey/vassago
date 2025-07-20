@@ -113,10 +113,12 @@
                             <a href="@Url.Action("Details", "Webhooks", new {Id = wh.Id})">@wh.Trigger</a>
                         </td></tr>
                     }
-                    <tr class="form-text"><td>
-                        <form action="@Url.Action("Create", "Webhook")" method="post" id="addWebhook"></form>
-                        <button onclick="addWebhook.submit()" type="button" class="btn btn-secondary">Add</button>
-                    </td></tr>
+                    <tr class="form-text">
+                        <td>
+                            <form action="@Url.Action("Create", "Webhooks")" method="post" id="addWebhook"></form>
+                            <button onclick="addWebhook.submit()" type="button" class="btn btn-secondary">Add</button>
+                        </td>
+                    </tr>
                     </tbody>
                 </table>
             </details>
@@ -153,6 +155,3 @@
     </details>
     <button class="btn btn-secondary" type="button" onclick="addProtocol.close()">cancel</button>
 </dialog>
-
-@section Scripts{
-}

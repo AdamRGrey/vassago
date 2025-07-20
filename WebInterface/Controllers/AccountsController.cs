@@ -6,25 +6,38 @@ using vassago.WebInterface.Models;
 
 namespace vassago.WebInterface.Controllers;
 
-public class AccountsController(ChattingContext db) : Controller
+public class AccountsController() : Controller
 {
-    private ChattingContext Database => db;
+    private Rememberer r = Rememberer.Instance;
 
-    public async Task<IActionResult> Index()
+    public IActionResult Details(Guid id)
     {
-        return Database.Accounts != null ?
-            View(await Database.Accounts.ToListAsync()) :
-            Problem("Entity set '_db.Accounts' is null.");
+        var acc = r.AccountDetail(id);
+        Console.WriteLine(acc);
+        Console.WriteLine("is null?");
+        Console.WriteLine(acc == null);
+        return View(acc);
     }
-    public async Task<IActionResult> Details(Guid id)
+    [HttpPost]
+    public IActionResult unlinkAccountUser(Guid Id)
     {
-        var account = await Database.Accounts
-            .Include(a => a.IsUser)
-            .Include(a => a.SeenInChannel)
-            .FirstAsync(a => a.Id == id);
-        return Database.Accounts != null ?
-            View(account) :
-            Problem("Entity set '_db.Accounts' is null.");
+        //TODO:unlinkAccountUser
+        throw new NotImplementedException();
+        return View();
+    }
+    [HttpPost]
+    public IActionResult newUAC(Guid Id)
+    {
+        //TODO:newUAC
+        throw new NotImplementedException();
+        return View();
+    }
+    [HttpPost]
+    public IActionResult unlinkUAC(Guid Id)
+    {
+        //TODO:unlinkUAC
+        throw new NotImplementedException();
+        return View();
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
