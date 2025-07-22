@@ -14,31 +14,40 @@ public class UsersController() : Controller
     {
         var user = r.UserDetail(id);
         if (user.Accounts != null) foreach (var acc in user.Accounts)
-            {
-                acc.SeenInChannel = r.SearchChannel(c => c.Id == acc.SeenInChannel.Id);
-            }
+        {
+            acc.SeenInChannel = r.SearchChannel(c => c.Id == acc.SeenInChannel.Id);
+        }
         return View(user);
     }
     [HttpPost]
-    public IActionResult SeparateAccount(Guid UserId, Guid AccountId)
+    public IActionResult SeparateAccount(Guid Id)
     {
-        //TODO: separate account, webinterface
-        throw new NotImplementedException();
-        return View();
+        var acc = r.AccountDetail(Id);
+        var thisUserId = acc.IsUser.Id;
+        r.CarveoutAccount(Id);
+        return RedirectToAction("Details", "Users", new { Id = thisUserId });
     }
     [HttpPost]
     public IActionResult UnlinkUAC(Guid UserId, Guid UACid)
     {
-        //TODO: unlink UAC from User webinterface
-        throw new NotImplementedException();
-        return View();
+        var user = r.UserDetail(UserId);
+        var oldUAC = r.UACDetail(UACid);
+        oldUAC.Users.Remove(user);
+        r.RememberUAC(oldUAC);
+        return RedirectToAction("Details", "Users", new { Id = UserId});
     }
     [HttpPost]
-    public IActionResult newUAC(Guid Id)
+    public IActionResult NewUAC(Guid Id)
     {
-        //TODO:newUAC
-        throw new NotImplementedException();
-        return View();
+        Console.WriteLine($"new uac for user {Id}");
+        var user = r.UserDetail(Id);
+        Console.WriteLine($"user null: {user == null}");
+        var newUAC = new UAC(){
+            DisplayName = $"uac for {user.DisplayName}",
+            Users = new List<User>() {user}
+        };
+        r.RememberUAC(newUAC);
+        return RedirectToAction("Details", "Users", new { Id = Id});
     }
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()

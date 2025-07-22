@@ -49,16 +49,43 @@ public class ChannelsController() : Controller
 
         ViewData.Add("subChannelsTree", sb.ToString());
         return View(
-            new Tuple<Channel, Enumerations.LewdnessFilterLevel, Enumerations.MeannessFilterLevel>(
-                channel, channel.EffectivePermissions.LewdnessFilterLevel, channel.EffectivePermissions.MeannessFilterLevel
+            new Tuple<Channel, Enumerations.LewdnessFilterLevel?, Enumerations.MeannessFilterLevel?>(
+                channel,
+                channel.ParentChannel?.EffectivePermissions.LewdnessFilterLevel,
+                channel.ParentChannel?.EffectivePermissions.MeannessFilterLevel
             ));
     }
+
     [HttpPost]
-    public IActionResult newUAC(Guid Id)
+    public IActionResult Submit(Channel channel)
     {
-        //TODO:newUAC
-        throw new NotImplementedException();
-        return View();
+        var fromDb = r.ChannelDetail(channel.Id);
+        fromDb.LewdnessFilterLevel = channel.LewdnessFilterLevel;
+        fromDb.MeannessFilterLevel = channel.MeannessFilterLevel;
+        r.RememberChannel(fromDb);
+        return RedirectToAction("Details", "Channels", new { Id = fromDb.Id});
+    }
+    [HttpPost]
+    public IActionResult UnlinkUAC(Guid ChannelId, Guid UACid)
+    {
+        var chan = r.ChannelDetail(ChannelId);
+        var oldUAC = r.UACDetail(UACid);
+        oldUAC.Channels.Remove(chan);
+        r.RememberUAC(oldUAC);
+        return RedirectToAction("Details", "Channels", new { Id = ChannelId});
+    }
+    [HttpPost]
+    public IActionResult NewUAC(Guid Id)
+    {
+        Console.WriteLine($"new uac for channel {Id}");
+        var chan = r.ChannelDetail(Id);
+        Console.WriteLine($"channel null: {chan== null}");
+        var newUAC = new UAC(){
+            DisplayName = $"uac for {chan.DisplayName}",
+            Channels = new List<Channel>() {chan}
+        };
+        r.RememberUAC(newUAC);
+        return RedirectToAction("Details", "Channels", new { Id = Id});
     }
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()

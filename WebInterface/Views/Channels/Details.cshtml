@@ -1,17 +1,17 @@
 @using System.ComponentModel
 @using Newtonsoft.Json
 @using System.Text; 
-@model Tuple<Channel, Enumerations.LewdnessFilterLevel, Enumerations.MeannessFilterLevel>
+@model Tuple<Channel, Enumerations.LewdnessFilterLevel?, Enumerations.MeannessFilterLevel?>
 @{
   var ThisChannel = Model.Item1;
-  var IfInheritedLewdnessFilterLevel = Model.Item2;
-  var IfInheritedMeannessFilterLevel = Model.Item3;
+  var IfInheritedLewdnessFilterLevel = Model.Item2 ?? ThisChannel.LewdnessFilterLevel ?? Enumerations.LewdnessFilterLevel.Strict;
+  var IfInheritedMeannessFilterLevel = Model.Item3 ?? ThisChannel.MeannessFilterLevel ?? Enumerations.MeannessFilterLevel.Strict;
 }
 
 <a href="/">home</a>/
 @Html.Raw(ViewData["breadcrumbs"])
 
-<form action="@Url.Action("submit", "Accounts")" method="post" id="theForm">
+<form action="@Url.Action("submit", "Channels")" method="post" id="theForm">
   <input type="hidden" name="Id" value="@ThisChannel.Id">
   <table class="table">
     <tbody>
@@ -102,7 +102,10 @@
         </tr>
       }
       <tr>
-        <th rowspan="@((ThisChannel.UACs?.Count ?? 0) + 2)" scope="row">UACs</th>
+        <th rowspan="@((ThisChannel.UACs?.Count ?? 0) + 1)" scope="row">UACs</th>
+        <td>
+          <button type="button" class="btn btn-success" onclick="newUAC.submit()">new</button>
+        </td>
       </tr>
       @if(ThisChannel.UACs!= null) foreach(var uac in ThisChannel.UACs.OrderBy(c => c.DisplayName))
       {
@@ -114,8 +117,8 @@
         </tr>
       }
       <tr>
-        <td>
-          <button type="button" class="btn btn-success" onclick="newUAC.submit()">new</button>
+        <td colspan="2" align="center">
+          <button type="submit" class="btn btn-success">save</button>
         </td>
       </tr>
     </tbody>
@@ -123,11 +126,11 @@
 </form>
 @if(ThisChannel.UACs!= null) foreach(var uac in ThisChannel.UACs)
 {
-    <form action="@Url.Action("unlinkUAC", "Channels")" method="post" id="uacUnlink_@(uac.Id.ToString().Replace('-', '_'))">
+    <form action="@Url.Action("UnlinkUAC", "Channels")" method="post" id="uacUnlink_@(uac.Id.ToString().Replace('-', '_'))">
         <input type="hidden" name="ChannelId" value="@ThisChannel.Id">
         <input type="hidden" name="UACId" value="@uac.Id">
     </form>
 }
-<form action="@Url.Action("newUAC", "Accounts")" method="post" id="newUAC">
+<form action="@Url.Action("NewUAC", "Channels")" method="post" id="newUAC">
     <input type="hidden" name="Id" value="@ThisChannel.Id">
 </form>

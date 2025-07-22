@@ -34,9 +34,8 @@
                     <a href="@Url.Action("Details", "Accounts", new {Id = acc.Id})">@acc.DisplayName</a>
                 </td>
                 <td>
-                    <form action="@Url.Action("SeparateAccount", "Users")">
-                        <input type="hidden" name="UserId" value="@Model.Id" />
-                        <input type="hidden" name="AccountId" value="@acc.Id" />
+                    <form action="@Url.Action("SeparateAccount", "Users")" method="post">
+                        <input type="hidden" name="Id" value="@acc.Id" />
                         <button type="submit" class="btn btn-danger">separate</button>
                     </form>
                 </td>
@@ -52,7 +51,7 @@
                     <a href="@Url.Action("Details", "UACs", new {Id = uac.Id})">@uac.DisplayName</a>
                 </td>
                 <td>
-                    <form action="@Url.Action("UnlinkUAC", "Users")">
+                    <form action="@Url.Action("UnlinkUAC", "Users")" method="post">
                         <input type="hidden" name="UserId" value="@Model.Id" />
                         <input type="hidden" name="UACid" value="@uac.Id" />
                         <button type="submit" class="btn btn-danger">Unlink</button>
@@ -67,6 +66,6 @@
         </tr>
     </tbody>
 </table>
-<form action="@Url.Action("newUAC", "Accounts")" method="post" id="newUAC">
+<form action="@Url.Action("NewUAC", "Users")" method="post" id="newUAC">
     <input type="hidden" name="Id" value="@Model.Id">
 </form>

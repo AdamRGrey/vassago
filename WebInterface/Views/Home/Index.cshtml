@@ -89,7 +89,16 @@
                     @if(Model.UACs != null) foreach(var uac in Model.UACs)
                     {
                         <tr class="form-text"><td>
-                            <a href="@Url.Action("Details", "UACs", new {Id = uac.Id})">@uac.DisplayName</a>
+                            <a href="@Url.Action("Details", "UACs", new {Id = uac.Id})">
+                                @if(String.IsNullOrWhiteSpace(uac.DisplayName))
+                                {
+                                    @Html.Raw("nameless uac")
+                                }
+                                else
+                                {
+                                    @uac.DisplayName
+                                }
+                            </a>
                         </td></tr>
                     }
                     <tr class="form-text"><td>

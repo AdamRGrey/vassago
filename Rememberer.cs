@@ -458,4 +458,16 @@ public class Rememberer
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
+    public void CarveoutAccount(Guid id)
+    {
+        dbAccessSemaphore.Wait();
+        var acc = db.Accounts.Find(id);
+        if(acc.IsUser.Accounts.Count > 1)
+        {
+            acc.IsUser.Accounts.Remove(acc);
+            acc.IsUser = new User(){ Accounts = [acc]};
+            db.SaveChanges();
+        }
+        dbAccessSemaphore.Release();
+    }
 }

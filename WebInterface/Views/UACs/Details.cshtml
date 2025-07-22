@@ -12,11 +12,11 @@
   <tbody>
     <tr>
       <th scope="row">Display Name</th>
-      <td colspan="4"><input class="form-control" type="text" value="@Model.DisplayName" id="displayName"/></td>
+      <td colspan="4"><input class="form-control" type="text" value="@Model.DisplayName" name="DisplayName"/></td>
     </tr>
     <tr>
       <th scope="row">Description</th>
-      <td colspan="4"><input class="form-control" type="text" value="@Model.Description" id="Description"/></td>
+      <td colspan="4"><input class="form-control" type="text" value="@Model.Description" name="Description"/></td>
     </tr>
     <tr>
       <th scope="row" rowspan="@((Model.Users?.Count ?? 0) + 1)">Users (@(Model.Users?.Count ?? 0))</th>
@@ -80,10 +80,10 @@
     @if(Model.Translations != null) for(var i = 0; i < (Model.Translations?.Count() ?? 0); i++)
     {
       <tr class="form-text">
-          <td><input type="text" class="form-control" name="Model.Translations[@i].Key" value="@Model.Translations.ElementAt(i).Key" /></td>
+          <td><input type="text" class="form-control" name="Translations[@i].Key" value="@Model.Translations.ElementAt(i).Key" /></td>
           <td><span class="fa fa-arrow-right"></td>
-          <td><input type="text" class="form-control" name="Model.Translations[@i].Value" value="@Model.Translations.ElementAt(i).Value" /></td>
-          <td><button type="button" class="btn btn-danger" onclick="removeTranslation(@i)"><span class="fa fa-trash"></span></button></td>
+          <td><input type="text" class="form-control" name="Translations[@i].Value" value="@Model.Translations.ElementAt(i).Value" /></td>
+          <td><button type="button" class="btn btn-danger" onclick="removeTranslation_@(i).submit()"><span class="fa fa-trash"></span></button></td>
       </tr>
     }
     <tr>
@@ -94,10 +94,10 @@
     @if(Model.CommandAlterations != null) for(var i = 0; i < (Model.CommandAlterations?.Count() ?? 0); i++)
     {
       <tr class="form-text">
-          <td><input type="text" class="form-control" name="Model.CommandAlterations[@i].Key" value="@Model.CommandAlterations.ElementAt(i).Key" /></td>
+          <td><input type="text" class="form-control" name="CommandAlterations[@i].Key" value="@Model.CommandAlterations.ElementAt(i).Key" /></td>
           <td><span class="fa fa-arrow-right"></td>
-          <td><input type="text" class="form-control" name="Model.CommandAlterations[@i].Value" value="@Model.CommandAlterations.ElementAt(i).Value" /></td>
-          <td><button type="button" class="btn btn-danger" onclick="removeCommandAlteration(@i)"><span class="fa fa-trash"></span></button></td>
+          <td><input type="text" class="form-control" name="CommandAlterations[@i].Value" value="@Model.CommandAlterations.ElementAt(i).Value" /></td>
+          <td><button type="button" class="btn btn-danger" onclick="removeCommandAlteration_@(i).submit()"><span class="fa fa-trash"></span></button></td>
       </tr>
     }
     <tr>
@@ -111,12 +111,8 @@
 </form>
 
 <p>
-  "adam", you may say, "why are there both translations and command alterations?"<br />
-  translations are like.. if someone says "addicting", you can safely guess that they don't know they should be saying "addictive".<br />
-  so if you say "this game is addicting", that comes in, we just pretend you said "this game is addictive".<br />
-  Command alterations, I have to acknowledge that you *did* say !freedomunits, but I'm changing my behavior and not converting. <br />
-  I guess theoretically you could "translate" freedomunits to nothing, then freeerdumberunits to freedomunits? but if we're doing that it becomes necessary to care about order, and get that right.<br />
-  so let's say, "translations" are "i'll pretend you said", and "command alterations" are "i'll pretend I expected".
+  command alteration: e.g., twitchist has her own !freedomunits, so our !freedomunits needs to instead be !freerdumberunits. <br />
+  translation: on twitch, there is no lol, only LUL. so incoming and outgoing, we *pretend* it's LUL.
 </p>
 <form action="@Url.Action("delete", "UACs")" method="post" id="deleteForm">
   <dialog id="deleteDialog">
@@ -129,49 +125,49 @@
 
 <form action="@Url.Action("LinkUser", "UACs")" method="post" id="linkUserForm">
   <dialog id="linkUserDialog">
-    <input type="hidden" name="Id" value="@Model.Id" />
+    <input type="hidden" name="UACId" value="@Model.Id" />
     <p>user GUID //TODO: search</p>
     <input type="text" class="form-control" name="userId" required />
     <button class="btn btn-secondary" type="button" onclick="linkUserDialog.close()">cancel</button>
-    <button class="btn btn-success" type="submit">delete</button>
+    <button class="btn btn-success" type="submit">add</button>
   </dialog>
 </form>
 <form action="@Url.Action("LinkAccount", "UACs")" method="post" id="linkAccountForm">
   <dialog id="linkAccountDialog">
-    <input type="hidden" name="Id" value="@Model.Id" />
+    <input type="hidden" name="UACId" value="@Model.Id" />
     <p>Account GUID //TODO: search</p>
     <input type="text" class="form-control" name="AccountId" required />
     <button class="btn btn-secondary" type="button" onclick="linkAccountDialog.close()">cancel</button>
-    <button class="btn btn-success" type="submit">delete</button>
+    <button class="btn btn-success" type="submit">add</button>
   </dialog>
 </form>
 <form action="@Url.Action("LinkChannel", "UACs")" method="post" id="linkChannelForm">
   <dialog id="linkChannelDialog">
-    <input type="hidden" name="Id" value="@Model.Id" />
+    <input type="hidden" name="UACId" value="@Model.Id" />
     <p>channel GUID //TODO: search</p>
     <input type="text" class="form-control" name="channelId" required />
     <button class="btn btn-secondary" type="button" onclick="linkChannelDialog.close()">cancel</button>
-    <button class="btn btn-success" type="submit">delete</button>
+    <button class="btn btn-success" type="submit">add</button>
   </dialog>
 </form>
 @if(Model.Users != null) foreach(var usr in Model.Users)
 {
   <form action="@Url.Action("UnlinkUser", "UACs")" method="post" id="unlinkUser_@(usr.Id.ToString().Replace('-', '_'))">
-      <input type="hidden" name="Id" value="@Model.Id" />
+      <input type="hidden" name="UACId" value="@Model.Id" />
       <input type="hidden" name="UserId" value="@usr.Id" />
   </form>
 }
 @if(Model.AccountInChannels != null) foreach(var acc in Model.AccountInChannels)
 {
   <form action="@Url.Action("UnlinkAccount", "UACs")" method="post" id="unlinkAccount_@(acc.Id.ToString().Replace('-', '_'))">
-      <input type="hidden" name="Id" value="@Model.Id" />
+      <input type="hidden" name="UACId" value="@Model.Id" />
       <input type="hidden" name="AccountId" value="@acc.Id" />
   </form>
 }
 @if(Model.Channels != null) foreach(var ch in Model.Channels)
 {
   <form action="@Url.Action("UnlinkChannel", "UACs")" method="post" id="unlinkChannel_@(ch.Id.ToString().Replace('-', '_'))">
-      <input type="hidden" name="Id" value="@Model.Id" />
+      <input type="hidden" name="UACId" value="@Model.Id" />
       <input type="hidden" name="ChannelId" value="@ch.Id" />
   </form>
 }
@@ -181,24 +177,30 @@
 <form action="@Url.Action("addTranslation", "UACs")" method="post" id="addUAC_Translation">
     <input type="hidden" name="Id" value="@Model.Id" />
 </form>
-<form action="@Url.Action("RemoveCommandAlteration", "UACs")" method="post" id="removeCommandAlterationForm">
-  <input type="hidden" name="Id" value="@Model.Id" />
-  <input type="hidden" name="idx" id="removeCommandAlterationIdx" />
-</form>
-<form action="@Url.Action("RemoveTranslation", "UACs")" method="post" id="removeTranslationForm">
-    <input type="hidden" name="Id" value="@Model.Id" />
-    <input type="hidden" name="idx" id="removeTranslationIdx" />
-</form>
+@if(Model.CommandAlterations != null) for(var i = 0; i < Model.CommandAlterations.Count; i++)
+{
+  <form action="@Url.Action("RemoveCommandAlteration", "UACs")" method="post" id="removeCommandAlteration_@i">
+      <input type="hidden" name="Id" value="@Model.Id" />
+      <input type="hidden" name="Key" value="@Model.CommandAlterations.ElementAt(i).Key" />
+  </form>
+}
+@if(Model.Translations != null) for(var i = 0; i < Model.Translations.Count; i++)
+{
+  <form action="@Url.Action("RemoveTranslation", "UACs")" method="post" id="removeTranslation_@i">
+      <input type="hidden" name="Id" value="@Model.Id" />
+      <input type="hidden" name="Key" value="@Model.Translations.ElementAt(i).Key" />
+  </form>
+}
 
 @section scripts
 {
 <script type="text/javascript">
   function removeCommandAlteration(i){
-    removeCommandAlterationIdx.value = i;
+    removeCommandAlterationKey.value = i;
     removeCommandAlterationForm.submit();
   }
   function removeTranslation(i){
-    removeTranslationIdx.value = i;
+    removeTranslationKey.value = i;
     removeTranslationForm.submit();
   }
 </script>

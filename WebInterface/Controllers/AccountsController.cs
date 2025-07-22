@@ -19,25 +19,32 @@ public class AccountsController() : Controller
         return View(acc);
     }
     [HttpPost]
-    public IActionResult unlinkAccountUser(Guid Id)
+    public IActionResult UnlinkAccountUser(Guid Id)
     {
-        //TODO:unlinkAccountUser
-        throw new NotImplementedException();
-        return View();
+        r.CarveoutAccount(Id);
+        return RedirectToAction("Details", "Accounts", new { Id = Id });
     }
     [HttpPost]
-    public IActionResult newUAC(Guid Id)
+    public IActionResult UnlinkUAC(Guid AccountId, Guid UACid)
     {
-        //TODO:newUAC
-        throw new NotImplementedException();
-        return View();
+        var acc = r.AccountDetail(AccountId);
+        var oldUAC = r.UACDetail(UACid);
+        oldUAC.AccountInChannels.Remove(acc);
+        r.RememberUAC(oldUAC);
+        return RedirectToAction("Details", "Accounts", new { Id = AccountId });
     }
     [HttpPost]
-    public IActionResult unlinkUAC(Guid Id)
+    public IActionResult NewUAC(Guid Id)
     {
-        //TODO:unlinkUAC
-        throw new NotImplementedException();
-        return View();
+        Console.WriteLine($"new uac for account {Id}");
+        var acc = r.AccountDetail(Id);
+        Console.WriteLine($"account null: {acc == null}");
+        var newUAC = new UAC(){
+            DisplayName = $"uac for {acc.DisplayName}",
+            AccountInChannels = new List<Account>() {acc}
+        };
+        r.RememberUAC(newUAC);
+        return RedirectToAction("Details", "Accounts", new { Id = Id});
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

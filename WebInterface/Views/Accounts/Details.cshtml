@@ -20,7 +20,7 @@ else
             </tr>
             <tr>
                 <th scope="row">belongs to user</th>
-                <td>@Model.IsUser.DisplayName</td>
+                <td><a href="@Url.Action("Details", "Users", new {Id = @Model.IsUser?.Id})">@Model.IsUser.DisplayName/</a></td>
                 <td><button type="button" class="btn btn-danger" onclick="unlinkAccountUser.submit()">separate</button></td>
             </tr>
             <tr>
@@ -52,16 +52,16 @@ else
         </tbody>
     </table>
 </form>
-<form action="@Url.Action("unlinkAccountUser", "Accounts")" method="post" id="unlinkAccountUser">
+<form action="@Url.Action("UnlinkAccountUser", "Accounts")" method="post" id="unlinkAccountUser">
     <input type="hidden" name="Id" value="@Model.Id">
 </form>
 @if(Model.UACs!= null) foreach(var uac in Model.UACs)
 {
-    <form action="@Url.Action("unlinkUAC", "Accounts")" method="post" id="uacUnlink_@uac.Id.ToString().Replace('-', '_')">
+    <form action="@Url.Action("UnlinkUAC", "Accounts")" method="post" id="uacUnlink_@uac.Id.ToString().Replace('-', '_')">
         <input type="hidden" name="AccountId" value="@Model.Id">
         <input type="hidden" name="UACId" value="@uac.Id">
     </form>
 }
-<form action="@Url.Action("newUAC", "Accounts")" method="post" id="newUAC">
+<form action="@Url.Action("NewUAC", "Accounts")" method="post" id="newUAC">
     <input type="hidden" name="Id" value="@Model.Id">
 </form>
