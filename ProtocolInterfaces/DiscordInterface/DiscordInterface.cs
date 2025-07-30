@@ -1,4 +1,6 @@
 //https://discord.com/oauth2/authorize?client_id=913003037348491264&permissions=274877942784&scope=bot%20messages.read
+namespace vassago.ProtocolInterfaces;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +15,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Reactive.Linq;
 using Newtonsoft.Json;
+using static vassago.Models.Enumerations;
 
-namespace vassago.ProtocolInterfaces;
 
 //data received
 //translate data to internal type
@@ -29,7 +31,6 @@ public class DiscordInterface : ProtocolInterface
     private static readonly SemaphoreSlim discordChannelSetup = new(1, 1);
     private Channel protocolAsChannel;
     public override Channel SelfChannel { get => protocolAsChannel; }
-    private static Rememberer r = Rememberer.Instance;
 
     private static ProtocolDiscord confEntity;
     public override ProtocolConfiguration ConfigurationEntity { get => confEntity; }
@@ -74,7 +75,7 @@ public class DiscordInterface : ProtocolInterface
                 {
                     Discord.TokenUtils.ValidateToken(TokenType.Bot, newConfEntity.token);//throws an exception if invalid. and because microsoft, who fucking knows where that goes.
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Console.Error.WriteLine($"Token invalid. {JsonConvert.SerializeObject(e)}");
                     client = null;
@@ -123,6 +124,7 @@ public class DiscordInterface : ProtocolInterface
                     Protocol = Protocol,
                     SubChannels = []
                 };
+                base.basedot_ChannelJoined(protocolAsChannel);
             }
             else
             {
@@ -145,7 +147,7 @@ public class DiscordInterface : ProtocolInterface
             eventsSignedUp = true;
             Console.WriteLine($"Bot is connected ({client.CurrentUser.Username}; {client.CurrentUser.Mention})! going to sign up for message received and user joined in client ready");
 
-            client.MessageReceived += MessageReceived;
+            client.MessageReceived += DiscordMessageReceived;
             // _client.MessageUpdated +=
             client.UserJoined += UserJoined;
             client.SlashCommandExecuted += SlashCommandHandler;
@@ -186,7 +188,7 @@ public class DiscordInterface : ProtocolInterface
         }
     }
 
-    private async Task MessageReceived(SocketMessage messageParam)
+    private async Task DiscordMessageReceived(SocketMessage messageParam)
     {
         if (messageParam is not SocketUserMessage)
         {
@@ -199,51 +201,25 @@ public class DiscordInterface : ProtocolInterface
 
         var m = UpsertMessage(suMessage);
 
-        if (suMessage.MentionedUsers?.FirstOrDefault(muid => muid.Id == client.CurrentUser.Id) != null)
-        {
-            var mentionOfMe = "<@" + client.CurrentUser.Id + ">";
-            m.MentionsMe = true;
-        }
         await Behaver.Instance.ActOn(m);
         m.ActedOn = true; // for its own ruposess it might act on it later, but either way, fuck it, we checked.
                           // ...but we don't save?
+                          // TODO: do we actually need this?
+
+        base.basedot_MessageReceived(m);
     }
 
-    private Task UserJoined(SocketGuildUser arg)
+    private async Task UserJoined(SocketGuildUser arg)
     {
+        Console.WriteLine($"discord interface sees a user has joined a guild.");
         var guild = UpsertChannel(arg.Guild);
         var defaultChannel = UpsertChannel(arg.Guild.DefaultChannel);
         defaultChannel.ParentChannel = guild;
         var u = UpsertAccount(arg, guild);
         u.DisplayName = arg.DisplayName;
-        return null;
+        base.basedot_AccountMet(u);
     }
-    internal static async Task SlashCommandHandler(SocketSlashCommand command)
-    {
-        switch (command.CommandName)
-        {
-            case "freedomunits":
-                try
-                {
-                    var amt = (double)(command.Data.Options.First(o => o.Name == "amount").Value);
-                    var src = (string)command.Data.Options.First(o => o.Name == "src-unit").Value;
-                    var dest = (string)command.Data.Options.First(o => o.Name == "dest-unit").Value;
-                    var conversionResult = Conversion.Converter.Convert(amt, src, dest);
 
-                    await command.RespondAsync($"> {amt} {src} -> {dest}\n{conversionResult}");
-                }
-                catch (Exception e)
-                {
-                    await command.RespondAsync($"error: {e.Message}. aaadam!");
-                }
-                break;
-            default:
-                await command.RespondAsync($"\\*smiles and nods*\n");
-                await command.Channel.SendFileAsync($"assets/loud sweating.gif");
-                Console.Error.WriteLine($"can't understand command name: {command.CommandName}");
-                break;
-        }
-    }
     internal static vassago.Models.Attachment UpsertAttachment(IAttachment dAttachment)
     {
         var a = r.SearchAttachment(ai => ai.ExternalId == dAttachment.Id)
@@ -265,6 +241,11 @@ public class DiscordInterface : ProtocolInterface
                 Protocol = Protocol
             };
 
+        if ((dMessage as SocketMessage)?.MentionedUsers?.FirstOrDefault(muid => muid.Id == client.CurrentUser.Id) != null)
+        {
+            var mentionOfMe = "<@" + client.CurrentUser.Id + ">";
+            m.MentionsMe = true;
+        }
         if (dMessage.Attachments?.Count > 0)
         {
             m.Attachments = [];
@@ -291,9 +272,11 @@ public class DiscordInterface : ProtocolInterface
     }
     internal Channel UpsertChannel(IMessageChannel channel)
     {
+        var channelDirtiness = DataDirtiness.Untouched;
         Channel c = r.SearchChannel(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == Protocol);
         if (c == null)
         {
+            channelDirtiness = DataDirtiness.New;
             Console.WriteLine($"couldn't find channel under protocol {Protocol} with externalId {channel.Id.ToString()}");
             c = new Channel()
             {
@@ -301,7 +284,9 @@ public class DiscordInterface : ProtocolInterface
             };
         }
 
+        if (channelDirtiness == DataDirtiness.Untouched && c.ExternalId != channel.Id.ToString()) channelDirtiness = DataDirtiness.Dirty;
         c.ExternalId = channel.Id.ToString();
+        if (channelDirtiness == DataDirtiness.Untouched && c.ChannelType != ((channel is IPrivateChannel) ? vassago.Models.Enumerations.ChannelType.DM : vassago.Models.Enumerations.ChannelType.Normal)) channelDirtiness = DataDirtiness.Dirty;
         c.ChannelType = (channel is IPrivateChannel) ? vassago.Models.Enumerations.ChannelType.DM : vassago.Models.Enumerations.ChannelType.Normal;
         c.Messages ??= [];
         c.Protocol = Protocol;
@@ -337,6 +322,7 @@ public class DiscordInterface : ProtocolInterface
                 }
                 break;
             default:
+                if (channelDirtiness == DataDirtiness.Untouched && c.DisplayName != channel.Name) channelDirtiness = DataDirtiness.Dirty;
                 c.DisplayName = channel.Name;
                 break;
         }
@@ -367,24 +353,34 @@ public class DiscordInterface : ProtocolInterface
 
         c = r.RememberChannel(c);
 
-        //Console.WriteLine($"no one knows how to make good tooling. c.users.first, which needs client currentuser id tostring. c: {c}, c.Users {c.Users}, client: {client}, client.CurrentUser: {client.CurrentUser}, client.currentUser.Id: {client.CurrentUser.Id}");
         var selfAccountInChannel = c.Users?.FirstOrDefault(a => a.ExternalId == client.CurrentUser.Id.ToString());
         if (selfAccountInChannel == null)
         {
             selfAccountInChannel = UpsertAccount(client.CurrentUser, c);
+        }
+        switch (channelDirtiness) {
+            case DataDirtiness.Dirty:
+                base.basedot_ChannelUpdated(c);
+                break;
+            case DataDirtiness.New:
+                base.basedot_ChannelJoined(c);
+                break;
         }
 
         return c;
     }
     internal Channel UpsertChannel(IGuild channel)
     {
+        var channelDirtiness = DataDirtiness.Untouched;
         Channel c = r.SearchChannel(ci => ci.ExternalId == channel.Id.ToString() && ci.Protocol == Protocol);
         if (c == null)
         {
             Console.WriteLine($"couldn't find channel under protocol {Protocol} with externalId {channel.Id.ToString()}");
             c = new Channel();
+            channelDirtiness = DataDirtiness.New;
         }
 
+        if (channelDirtiness == DataDirtiness.Untouched && c.DisplayName != channel.Name) channelDirtiness = DataDirtiness.Dirty;
         c.DisplayName = channel.Name;
         c.ExternalId = channel.Id.ToString();
         c.ChannelType = vassago.Models.Enumerations.ChannelType.OU;
@@ -393,23 +389,36 @@ public class DiscordInterface : ProtocolInterface
         c.ParentChannel = protocolAsChannel;
         c.SubChannels ??= [];
         c.MaxAttachmentBytes = channel.MaxUploadLimit;
-
+        switch (channelDirtiness) {
+            case DataDirtiness.Dirty:
+                base.basedot_ChannelUpdated(c);
+                break;
+            case DataDirtiness.New:
+                base.basedot_ChannelJoined(c);
+                break;
+        }
         return r.RememberChannel(c);
     }
-    internal static Account UpsertAccount(IUser discordUser, Channel inChannel)
+    internal Account UpsertAccount(IUser discordUser, Channel inChannel)
     {
+        var accountDirtiness = DataDirtiness.Untouched;
         var acc = r.SearchAccount(ui => ui.ExternalId == discordUser.Id.ToString() && ui.SeenInChannel.Id == inChannel.Id);
         Console.WriteLine($"upserting account, retrieved {acc?.Id}.");
         if (acc != null)
         {
             Console.WriteLine($"acc's user: {acc.IsUser?.Id}");
         }
-        acc ??= new Account()
+        else
         {
-            IsUser = r.SearchUser(u => u.Accounts.Any(a => a.ExternalId == discordUser.Id.ToString() && a.Protocol == Protocol))
+            acc = new Account()
+            {
+                IsUser = r.SearchUser(u => u.Accounts.Any(a => a.ExternalId == discordUser.Id.ToString() && a.Protocol == Protocol))
                 ?? new User()
-        };
+            };
+            accountDirtiness = DataDirtiness.New;
+        }
 
+        if (accountDirtiness == DataDirtiness.Untouched && acc.Username != discordUser.Username) accountDirtiness= DataDirtiness.Dirty;
         acc.Username = discordUser.Username;
         acc.ExternalId = discordUser.Id.ToString();
         acc.IsBot = discordUser.IsBot || discordUser.IsWebhook;
@@ -432,6 +441,14 @@ public class DiscordInterface : ProtocolInterface
         {
             inChannel.Users.Add(acc);
             r.RememberChannel(inChannel);
+        }
+        switch (accountDirtiness) {
+            case DataDirtiness.Dirty:
+                base.basedot_AccountUpdated(acc);
+                break;
+            case DataDirtiness.New:
+                base.basedot_AccountMet(acc);
+                break;
         }
         return acc;
     }
@@ -546,6 +563,32 @@ public class DiscordInterface : ProtocolInterface
         else
         {
             return 503;
+        }
+    }
+    internal static async Task SlashCommandHandler(SocketSlashCommand command)
+    {
+        switch (command.CommandName)
+        {
+            case "freedomunits":
+                try
+                {
+                    var amt = (double)(command.Data.Options.First(o => o.Name == "amount").Value);
+                    var src = (string)command.Data.Options.First(o => o.Name == "src-unit").Value;
+                    var dest = (string)command.Data.Options.First(o => o.Name == "dest-unit").Value;
+                    var conversionResult = Conversion.Converter.Convert(amt, src, dest);
+
+                    await command.RespondAsync($"> {amt} {src} -> {dest}\n{conversionResult}");
+                }
+                catch (Exception e)
+                {
+                    await command.RespondAsync($"error: {e.Message}. aaadam!");
+                }
+                break;
+            default:
+                await command.RespondAsync($"\\*smiles and nods*\n");
+                await command.Channel.SendFileAsync($"assets/loud sweating.gif");
+                Console.Error.WriteLine($"can't understand command name: {command.CommandName}");
+                break;
         }
     }
 }

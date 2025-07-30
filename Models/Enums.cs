@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Reflection;
+using static vassago.Models.Enumerations;
 
 namespace vassago.Models;
 
@@ -38,6 +39,10 @@ public static class Enumerations
         [Description("organizational psuedo-channel")]
         OU
     }
+    public enum DataDirtiness
+    {
+        Untouched, Dirty, New, Deleted
+    }
     ///<summary>
     ///bro. don't even get me started. tl;dr: hashtag microsoft.
     ///</summary>
@@ -51,8 +56,32 @@ public static class Enumerations
         Patch,
         Options
     }
+    public enum ExternalProtocolStyle
+    {
+        [Description("Restful")]
+        Restful,
+        // [Description("Webhooks")]
+        // Webhooks,//TODO
+        // [Description("Websocket")]
+        // Websocket//TODO
+        // [Description("Kafka")]
+        // Kafka//TODO
+    }
 
+    public enum ExternalCommandType
+    {
+        [Description("Send a messsage")]
+        SendMessage,
+        [Description("Send a file in a channnel")]
+        SendFile,
+        [Description("Kill yourself")]
+        Die,
+        [Description("React to a message")]
+        React,
+        [Description("Reply to a message")]
+        Reply
 
+    }
     public static string GetDescription<T>(this T enumerationValue)
     where T : struct
     {

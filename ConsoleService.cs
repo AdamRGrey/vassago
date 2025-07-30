@@ -26,33 +26,6 @@ namespace vassago
             }
             Console.WriteLine("passing off othe configurator"); //but adam, don't you hate do-nothing classes?
             await Reconfigurator.Initialize(cancellationToken);//yes but this is how I get .net to let me use appsettings.json
-
-            // if (DiscordTokens?.Any() ?? false)
-            //     foreach (var dt in DiscordTokens)
-            //     {
-            //         var d = new DiscordInterface();
-            //         initTasks.Add(Task.Run(() =>
-            //         {
-            //             try
-            //             {
-            //                 d.Init(dt);
-            //                 Shared.ProtocolList.Add(d);
-            //             }
-            //             catch (Exception e)
-            //             {
-            //                 Console.Error.WriteLine($"couldn't initialize discord interface with token {dt}");
-            //                 Console.Error.WriteLine(e);
-            //             }
-            //         }));
-            //     }
-            // if (TwitchConfigs?.Any() ?? false)
-            //     foreach (var tc in TwitchConfigs)
-            //     {
-            //         var t = new TwitchInterface.TwitchInterface();
-            //         initTasks.Add(t.Init(tc));
-            //         Shared.ProtocolList.Add(t);
-            //     }
-
         }
     }
 }

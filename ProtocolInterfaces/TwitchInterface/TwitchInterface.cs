@@ -22,7 +22,6 @@ public class TwitchInterface : ProtocolInterface
     private Channel protocolAsChannel;
     public override Channel SelfChannel { get => protocolAsChannel;}
     private Account selfAccountInProtocol;
-    private static Rememberer r = Rememberer.Instance;
     TwitchClient client;
 
     private static ProtocolTwitch confEntity;

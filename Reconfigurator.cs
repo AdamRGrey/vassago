@@ -4,6 +4,7 @@ namespace vassago
     using vassago.ProtocolInterfaces;
     using Newtonsoft.Json;
     using franz;
+    using static vassago.Models.Enumerations;
 
     public static class Reconfigurator
     {
@@ -44,78 +45,93 @@ namespace vassago
             var removedConfigs = new List<ProtocolConfiguration>();
             var updatedConfigs = new List<ProtocolConfiguration>();
             // var untouchedConfigs = new List<ProtocolConfiguration>();
-            if(protocolConfigs != null) foreach (var oldCfg in protocolConfigs)
-            {
-                var notActuallyNew = newConfigs.FirstOrDefault(cfg => cfg.Id == oldCfg.Id);
-                if (notActuallyNew != null)
-                    newConfigs.Remove(notActuallyNew);
+            if (protocolConfigs != null) foreach (var oldCfg in protocolConfigs)
+                {
+                    var notActuallyNew = newConfigs.FirstOrDefault(cfg => cfg.Id == oldCfg.Id);
+                    if (notActuallyNew != null)
+                        newConfigs.Remove(notActuallyNew);
 
-                var match = incomingConfigs.FirstOrDefault(cfg => cfg.Id == oldCfg.Id);
-                if (match == null)
-                {
-                    removedConfigs.Add(oldCfg);
-                }
-                else
-                {
-                    if (JsonConvert.SerializeObject(oldCfg) == JsonConvert.SerializeObject(match))
+                    var match = incomingConfigs.FirstOrDefault(cfg => cfg.Id == oldCfg.Id);
+                    if (match == null)
                     {
-                        // untouchedConfigs.Add(oldCfg);
+                        removedConfigs.Add(oldCfg);
                     }
                     else
                     {
-                        updatedConfigs.Add(match);
+                        if (JsonConvert.SerializeObject(oldCfg) == JsonConvert.SerializeObject(match))
+                        {
+                            // untouchedConfigs.Add(oldCfg);
+                        }
+                        else
+                        {
+                            updatedConfigs.Add(match);
+                        }
                     }
                 }
-            }
 
             if (removedConfigs != null) foreach (var removedCfg in removedConfigs)
-            {
-                var protocolInterface = Shared.ProtocolList.FirstOrDefault(pi => pi.ConfigurationEntity.Id == removedCfg.Id);
-                if (protocolInterface == null)
                 {
-                    Console.Error.WriteLine($"attempting to remove interface for {removedCfg.Id}, but not found as set-up entity!");
-                    continue;
+                    var protocolInterface = Shared.ProtocolList.FirstOrDefault(pi => pi.ConfigurationEntity.Id == removedCfg.Id);
+                    if (protocolInterface == null)
+                    {
+                        Console.Error.WriteLine($"attempting to remove interface for {removedCfg.Id}, but not found as set-up entity!");
+                        continue;
+                    }
+                    protocolInterface.Die();
+                    Shared.ProtocolList.Remove(protocolInterface);
                 }
-                protocolInterface.Die();
-                Shared.ProtocolList.Remove(protocolInterface);
-            }
 
-            if(updatedConfigs != null) foreach (var updatedCfg in updatedConfigs)
-            {
-                var protocolInterface = Shared.ProtocolList.FirstOrDefault(pi => pi.ConfigurationEntity.Id == updatedCfg.Id);
-                if (protocolInterface == null)
+            if (updatedConfigs != null) foreach (var updatedCfg in updatedConfigs)
                 {
-                    Console.Error.WriteLine($"attempting to update interface for {updatedCfg.Id}, but not found as set-up entity!");
-                    continue;
+                    var protocolInterface = Shared.ProtocolList.FirstOrDefault(pi => pi.ConfigurationEntity.Id == updatedCfg.Id);
+                    if (protocolInterface == null)
+                    {
+                        Console.Error.WriteLine($"attempting to update interface for {updatedCfg.Id}, but not found as set-up entity!");
+                        continue;
+                    }
+                    protocolInterface.UpdateConfiguration(updatedCfg);
                 }
-                protocolInterface.UpdateConfiguration(updatedCfg);
-            }
-            if(newConfigs != null) foreach (var newCfg in newConfigs)
-            {
-                var protocolInterface = Shared.ProtocolList.FirstOrDefault(pi => pi.ConfigurationEntity.Id == newCfg.Id);
-                if (protocolInterface != null)
+            if (newConfigs != null) foreach (var newCfg in newConfigs)
                 {
-                    Console.Error.WriteLine($"attempting to create interface for {newCfg.Id}, but already found as set-up entity!");
-                    protocolInterface.UpdateConfiguration(newCfg);
-                    continue;
+                    var protocolInterface = Shared.ProtocolList.FirstOrDefault(pi => pi.ConfigurationEntity.Id == newCfg.Id);
+                    if (protocolInterface != null)
+                    {
+                        Console.Error.WriteLine($"attempting to create interface for {newCfg.Id}, but already found as set-up entity!");
+                        protocolInterface.UpdateConfiguration(newCfg);
+                        continue;
+                    }
+                    switch (newCfg.Protocol)
+                    {
+                        case "discord":
+                            var d = new DiscordInterface();
+                            initTasks.Add(d.Init(newCfg as ProtocolDiscord));
+                            Shared.ProtocolList.Add(d);
+                            break;
+                        case "twitch":
+                            var t = new TwitchInterface();
+                            initTasks.Add(t.Init(newCfg as ProtocolTwitch));
+                            Shared.ProtocolList.Add(t);
+                            break;
+                        case "external":
+                            var peCFG = newCfg as ProtocolExternal;
+                            switch (peCFG.Style)
+                            {
+                                case ExternalProtocolStyle.Restful:
+                                    var e = new ExternalRestful();
+                                    initTasks.Add(e.Init(peCFG));
+                                    Shared.ProtocolList.Add(e);
+                                    break;
+                                //TODO: external-webhook, external-websocket, external-kafka
+                                default:
+                                    Console.Error.WriteLine($"attempting to create interface for {newCfg.Id}, but can't figure out what to do with {peCFG.Style}!");
+                                    break;
+                            }
+                            break;
+                        default:
+                            Console.Error.WriteLine($"attempting to create interface for {newCfg.Id}, but can't figure out what to do with {newCfg.Protocol}!");
+                            break;
+                    }
                 }
-                switch (newCfg.Protocol)
-                {
-                    case "discord":
-                        var d = new DiscordInterface();
-                        initTasks.Add(d.Init(newCfg as ProtocolDiscord));
-                        Shared.ProtocolList.Add(d);
-                        break;
-                    case "twitch":
-                        var t = new TwitchInterface();
-                        initTasks.Add(t.Init(newCfg as ProtocolTwitch));
-                        Shared.ProtocolList.Add(t);
-                        break;
-                    default:
-                        Console.Error.WriteLine($"attempting to create interface for {newCfg.Id}, but can't figure out what to do with {newCfg.Protocol}!");
-                        break;
-                }
-            }
             protocolConfigs = incomingConfigs;
             Task.WaitAll(initTasks.ToArray());
         }
