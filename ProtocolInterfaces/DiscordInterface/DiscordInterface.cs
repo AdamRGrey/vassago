@@ -164,7 +164,8 @@ public class DiscordInterface : ProtocolInterface
             // _client.GuildUpdated +=
             // _client.LeftGuild +=
 
-            await SlashCommandsHelper.Register(client);
+            if(confEntity.SetupSlashCommands)
+                await SlashCommandsHelper.Register(client);
         }
         else
         {
@@ -201,10 +202,10 @@ public class DiscordInterface : ProtocolInterface
 
         var m = UpsertMessage(suMessage);
 
-        await Behaver.Instance.ActOn(m);
-        m.ActedOn = true; // for its own ruposess it might act on it later, but either way, fuck it, we checked.
-                          // ...but we don't save?
-                          // TODO: do we actually need this?
+        // await Behaver.Instance.ActOn(m);
+        // m.ActedOn = true; // for its own ruposess it might act on it later, but either way, fuck it, we checked.
+        //                   // ...but we don't save?
+        //                   // TODO: do we actually need this?
 
         base.basedot_MessageReceived(m);
     }

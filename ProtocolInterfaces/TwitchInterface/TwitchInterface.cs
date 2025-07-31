@@ -128,10 +128,7 @@ public class TwitchInterface : ProtocolInterface
         //can't send whispers without giving up cellphone number.
         //m.Reply = (t) => { return Task.Run(() => { client.SendWhisper(e.WhisperMessage.Username, t); }); };
         m.Channel.ChannelType = vassago.Models.Enumerations.ChannelType.DM;
-        //act on
-        await Behaver.Instance.ActOn(m);
-        m.ActedOn = true;
-        //TODO: remember it again?
+        base.basedot_MessageReceived(m);
     }
 
     private async void Client_OnMessageReceivedAsync(object sender, OnMessageReceivedArgs e)
@@ -143,9 +140,7 @@ public class TwitchInterface : ProtocolInterface
         var m = UpsertMessage(e.ChatMessage);
         m.Channel.ChannelType = vassago.Models.Enumerations.ChannelType.Normal;
         //act on
-        await Behaver.Instance.ActOn(m);
-        m.ActedOn = true;
-        //TODO: remember again?
+        base.basedot_MessageReceived(m);
     }
 
     private void Client_OnConnected(object sender, OnConnectedArgs e)

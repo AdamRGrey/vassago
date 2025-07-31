@@ -22,20 +22,17 @@ namespace vassago.ProtocolInterfaces
         };
         public static async Task Register(DiscordSocketClient client)
         {
-            if(Shared.SetupSlashCommands)
+            var commandsInContext = await client.GetGlobalApplicationCommandsAsync();
+            await Register(client, commandsInContext, null);
+            foreach (var guild in client.Guilds)
             {
-                var commandsInContext = await client.GetGlobalApplicationCommandsAsync();
-                await Register(client, commandsInContext, null);
-                foreach (var guild in client.Guilds)
+                try
                 {
-                    try
-                    {
-                        await Register(client, await guild.GetApplicationCommandsAsync(), guild);
-                    }
-                    catch (HttpException ex)
-                    {
-                        Console.Error.WriteLine($"error registering slash commands for guild {guild.Name} (id {guild.Id}) - {ex.Message}");
-                    }
+                    await Register(client, await guild.GetApplicationCommandsAsync(), guild);
+                }
+                catch (HttpException ex)
+                {
+                    Console.Error.WriteLine($"error registering slash commands for guild {guild.Name} (id {guild.Id}) - {ex.Message}");
                 }
             }
         }
