@@ -1,10 +1,9 @@
-using System.Diagnostics;
+namespace vassago.Controllers.api;
+
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using vassago.Models;
 using vassago.ProtocolInterfaces;
-
-namespace vassago.Controllers.api;
+using Newtonsoft.Json;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -23,6 +22,7 @@ public class ExternalProtocolController : ControllerBase
      * //TOOD: if you absolutely cannot hanlde it... we trash it.
      */
     private readonly ILogger<ExternalProtocolController> _logger;
+    private Rememberer r = Rememberer.Instance;
 
     public ExternalProtocolController(ILogger<ExternalProtocolController> logger)
     {
@@ -37,7 +37,7 @@ public class ExternalProtocolController : ControllerBase
     {
         var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
             as ExternalRestful;
-        if(extproto == null)
+        if (extproto == null)
             return NotFound();
 
         var toReturn = extproto.CommandQueue;
@@ -45,109 +45,167 @@ public class ExternalProtocolController : ControllerBase
         return Ok(toReturn);
     }
 
-    ///<summary>and/or reconnect</summary>
+    ///<summary>for the first time. reconnecting, you're on your own... until I do the Webhook and other style.</summary>
     [HttpPost]
     [Route("Connect")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProtocolExternal>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult Connect(ProtocolExternal conf)
+    public async Task<IActionResult> Connect(ProtocolExternal incoming)
     {
-        if(String.IsNullOrWhiteSpace(conf?.ExternalId))
+        if (String.IsNullOrWhiteSpace(incoming?.ExternalId))
         {
-            ModelState.AddModelError(nameof(conf.ExternalId), "ExternalId is required.");
+            ModelState.AddModelError(nameof(incoming.ExternalId), "ExternalId is required.");
             return BadRequest(ModelState);
         }
-        var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == conf.ExternalId)
+        var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == incoming.ExternalId)
             as ExternalRestful;
+        var confEntity = r.SearchProtocolConfigExternal(incoming.ExternalId);
 
-        if(extproto == null)
+        if (extproto == null)
         {
-            //extproto = new
-         throw new NotImplementedException();
+            confEntity.Style = incoming.Style;
+            r.RememberExternal(confEntity);
+            try
+            {
+                await Reconfigurator.ProtocolInterfaces();
+                return Ok(extproto);
+            }
+            catch (Exception e)
+            {
+                r.ForgetExternal(incoming.Id);
+                await Reconfigurator.ProtocolInterfaces();
+                return BadRequest(e);
+            }
         }
         else
         {
-         throw new NotImplementedException();
+            var oldConf = JsonConvert.DeserializeObject<ProtocolExternal>(JsonConvert.SerializeObject(confEntity));
+            if (confEntity.Style != incoming.Style)
+            {
+                confEntity.Style = incoming.Style;
+                r.RememberExternal(confEntity);
+                try
+                {
+                    await Reconfigurator.ProtocolInterfaces();
+                    return Ok(extproto);
+                }
+                catch (Exception e)
+                {
+                    r.ForgetExternal(incoming.Id);
+                    r.RememberExternal(oldConf);
+                    await Reconfigurator.ProtocolInterfaces();
+                    return BadRequest(e);
+                }
+            }
+            //no changes. "status code two hundred ellipsis question mark: ok...?"
+            return Ok(extproto);
         }
-
-         throw new NotImplementedException();
-        // return StatusCode(Behaver.Instance.SendMessage(channelId, messageText).Result);
     }
 
-    ///<summary>you intend to reconnect later</summary>
+    ///<summary>if you do not intend to reconnect. when (read: if ever) i do webhook style, i'll want a temporary disconnect notification</summary>
     [HttpPost]
     [Route("Disconnect")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult Disconnect(string protocolExternalId)
+    public async Task<IActionResult> Die(string protocolExternalId)
     {
         var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
             as ExternalRestful;
-        if(extproto == null)
+        if (extproto == null)
             return NotFound();
 
-         throw new NotImplementedException();
-        // return StatusCode(Behaver.Instance.SendMessage(channelId, messageText).Result);
-    }
+        r.ForgetExternal(extproto.ConfigurationEntity.Id);
+        Reconfigurator.ProtocolInterfaces();
 
-    ///<summary>you do not intend to reconnect</summary>
-    [HttpPost]
-    [Route("Disconnect")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult Die(string protocolExternalId)
-    {
-        var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
-            as ExternalRestful;
-        if(extproto == null)
-            return NotFound();
-
-         throw new NotImplementedException();
-        // return StatusCode(Behaver.Instance.SendMessage(channelId, messageText).Result);
+        return Ok();
     }
     [HttpPost]
     [Route("MessageReceived")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult MessageReceived(string protocolExternalId, Message message)
+    public async Task<IActionResult> MessageReceived((string protocolExternalId, Message message, string authorExternalId, string channelExternalId) parameters)
     {
-        var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
+        var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == parameters.protocolExternalId)
             as ExternalRestful;
-        if(extproto == null)
+        if (extproto == null)
             return NotFound();
 
-         throw new NotImplementedException();
-        // return StatusCode(Behaver.Instance.SendMessage(channelId, messageText).Result);
+        return StatusCode(await extproto.ExternalMessageReceive(parameters.message, parameters.authorExternalId, parameters.channelExternalId));
     }
+    [HttpPost]
+    [Route("MessageUpdated")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> MessageUpdated((string protocolExternalId, Message message, string authorExternalId, string channelExternalId) parameters)
+    {
+        var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == parameters.protocolExternalId)
+            as ExternalRestful;
+        if (extproto == null)
+            return NotFound();
 
+        return StatusCode(await extproto.ExternalMessageUpdate(parameters.message, parameters.authorExternalId, parameters.channelExternalId));
+    }
     ///<summary>"created" as far as our bookkeeping is concerned. "first spotted" would be valid. etc.</summary>
     [HttpPost]
     [Route("AccountCreated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult AccountCreated(string protocolExternalId)
+    public async Task<IActionResult> AccountCreated(string protocolExternalId, Account account, string channelExternalId)
     {
         var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
             as ExternalRestful;
-        if(extproto == null)
+        if (extproto == null)
             return NotFound();
 
-         throw new NotImplementedException();
-        // return StatusCode(Behaver.Instance.SendMessage(channelId, messageText).Result);
+        return StatusCode(await extproto.ExternalAccountCreate(account, channelExternalId));
+    }
+    [HttpPost]
+    [Route("AccountUpdated")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AccountUpdated(string protocolExternalId, Account account, string channelExternalId)
+    {
+        var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
+            as ExternalRestful;
+        if (extproto == null)
+            return NotFound();
+
+        return StatusCode(await extproto.ExternalAccountUpdate(account, channelExternalId));
     }
     ///<summary>"created" as far as our bookkeeping is concerned. "first spotted" would be valid. etc.</summary>
     [HttpPost]
     [Route("ChannelCreated")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult ChannelCreated(string protocolExternalId)
+    // public async Task<IActionResult> ChannelCreated(string protocolExternalId, Channel channel, List<string> channelLineage)
+    public async Task<IActionResult> ChannelCreated(Tuple<string, Channel, List<string>> parameters)
     {
+        string protocolExternalId = parameters.Item1;
+        Channel channel = parameters.Item2;
+        List<string> channelLineage = parameters.Item3;
         var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
             as ExternalRestful;
-        if(extproto == null)
+        if (extproto == null)
             return NotFound();
 
-         throw new NotImplementedException();
-        // return StatusCode(Behaver.Instance.SendMessage(channelId, messageText).Result);
+        return StatusCode(await extproto.ExternalChannelJoin(channel, channelLineage));
+    }
+
+    [HttpPost]
+    [Route("ChannelUpdated")]
+    [Produces("application/json")]
+    // public async Task<IActionResult> ChannelUpdated(string protocolExternalId, Channel channel, List<string> channelLineage) //s2g sometimes that works and sometimes it doesn't
+    public async Task<IActionResult> ChannelUpdated(Tuple<string, Channel, List<string>> parameters)
+    {
+        string protocolExternalId = parameters.Item1;
+        Channel channel = parameters.Item2;
+        List<string> channelLineage = parameters.Item3;
+
+        var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
+            as ExternalRestful;
+        if (extproto == null)
+            return NotFound();
+
+        return StatusCode(await extproto.ExternalChannelUpdate(channel, channelLineage));
     }
 }

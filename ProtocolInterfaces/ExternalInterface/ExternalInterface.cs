@@ -1,1 +1,0 @@
-namespace vassago.ProtocolInterfaces;

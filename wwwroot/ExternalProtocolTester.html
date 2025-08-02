@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style type="text/css">
+         #account-template{
+             display:none;
+         }
+        </style>
+        <script type="text/javascript">
+            function connect(){
+            //TODO:
+            }
+            function createChannel(){
+            //TODO:
+            }
+            function newmessage(){
+            //TODO:
+            }
+            function disconnect(){
+            //TODO:
+            }
+            function spawnNewAccount(){
+            //TODO:
+            }
+            function copyInAccount(){
+            //TODO:
+            }
+            function modifyChannel(){
+            //TODO:
+            }
+            function createChannel(){
+            //TODO:
+            }
+            function modifyAccount(){
+            //TODO:
+            }
+            function receiveMessageFrom(){
+            //TODO:
+            }
+        </script>
+    </head>
+    <body>
+        <textarea disabled id="output">page loading.</textarea>
+        <div id="state-disconnected">
+            <button type="button" onclick="connect">connect</button>
+        </div>
+        <div id="state-connected">
+            <div class="externalid">external id</div>
+            <div id="channels">
+                <button type="button" onclick="createChannel">create channel</button>
+            </div>
+            <button type="button" onclick="newmessage"></button><br />
+            <button type="button" onclick="disconnect">disconnect</button><br />
+        </div>
+
+        <div id="channel-template">
+            <div class="externalid">external id</div>
+            <div class="accounts">
+                accounts:<br />
+                <button type="button" onclick="spawnNewAccount">spawn new account</button><br />
+                <button type="button" onclick="copyInAccount">remeet account</button> (one we know from elsewhere)
+            </div>
+            <div class="subchannel">
+               subchannels:<br />
+                <button type="button" onclick="createChannel">create channel</button>
+            </div>
+            <button type="button" onclick="modifyChannel">modify</button>
+        </div>
+
+        <div id="account-template">
+            <div class="externalid">external id</div>
+            <button type="button" onclick="modifyAccount">modify</button>
+            <button type="button" onclick="receiveMessageFrom">receive message from</button>
+        </div>
+    </body>
+</html>

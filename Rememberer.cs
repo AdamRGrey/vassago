@@ -420,6 +420,13 @@ public class Rememberer
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
+    public void RememberExternal(ProtocolExternal pe)
+    {
+        dbAccessSemaphore.Wait();
+        db.Update(pe);
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
+    }
     public ProtocolConfiguration SearchProtocolConfig(Guid id)
     {
         ProtocolConfiguration toReturn;
@@ -444,6 +451,14 @@ public class Rememberer
         dbAccessSemaphore.Release();
         return toReturn;
     }
+    public ProtocolExternal SearchProtocolConfigExternal(string ExternalId)
+    {
+        ProtocolExternal toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.ProtocolExternals.FirstOrDefault(pe => pe.ExternalId == ExternalId);
+        dbAccessSemaphore.Release();
+        return toReturn;
+    }
     public void ForgetDiscord(Guid id)
     {
         dbAccessSemaphore.Wait();
@@ -455,6 +470,13 @@ public class Rememberer
     {
         dbAccessSemaphore.Wait();
         db.ProtocolTwitchs.Remove(db.ProtocolTwitchs.Find(id));
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
+    }
+    public void ForgetExternal(Guid id)
+    {
+        dbAccessSemaphore.Wait();
+        db.ProtocolExternals.Remove(db.ProtocolExternals.Find(id));
         db.SaveChanges();
         dbAccessSemaphore.Release();
     }
