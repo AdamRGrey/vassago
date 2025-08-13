@@ -2,6 +2,7 @@ namespace vassago.ProtocolInterfaces;
 using vassago.Models;
 using vassago.ProtocolInterfaces;
 using static vassago.Models.Enumerations;
+using System.Linq;
 
 /* ok so. internal interfaces are started and stopped.
  * external interfaces *may* not be running. we connect and disconnect. They may also permanently die.
@@ -31,7 +32,12 @@ public class ExternalRestful : ProtocolInterface
                 ExternalId = cfg.ExternalId,
                 Protocol = ExternalRestful.Protocol
             };
+            Console.WriteLine("[ExternalRestful.Init] creating new channel");
             protocolAsChannel = r.RememberChannel(protocolAsChannel);
+        }
+        else
+        {
+            Console.WriteLine("[ExternalRestful.Init] found old channel");
         }
     }
     public override async Task<int> SendMessage(Channel channel, string text)
@@ -144,38 +150,48 @@ public class ExternalRestful : ProtocolInterface
     ///</summary>
     public async Task<int> ExternalChannelJoin(Channel channel, List<string> channelLineage)
     {
+        Console.WriteLine($"[externalrestful.ExternalChannelJoin] for {channel?.ExternalId}");
         if (String.IsNullOrWhiteSpace(channel?.ExternalId)) return 400;
 
         var found = getMyChannel(channel.ExternalId, channelLineage);
-        if(found.Item1 != null) return 409;
+        Console.WriteLine($"[externalrestful.ExternalChannelJoin] my channel found? {found != null}");
+        if (found.Item1 != null) return 409;
 
         var immediateParent = found.Item2.Last();
         immediateParent.SubChannels ??= [];
         immediateParent.SubChannels.Add(channel);
         channel.ParentChannel = immediateParent;
         r.RememberChannel(channel);
-        Console.WriteLine($"joined channel {channel.DisplayName}/{channel.ExternalId} - {channel.Id}");
+        Console.WriteLine($"[externalrestful.ExternalChannelJoin] joined channel {channel.DisplayName}/{channel.ExternalId} - {channel.Id}");
 
         base.basedot_ChannelJoined(channel);
         return 201;
     }
     public async Task<int> ExternalChannelUpdate(Channel updatedChannel, List<string> channelLineage)
     {
+        Console.WriteLine("[ExternalChannelUpdate]");
         var otherTasks = new List<Task>();
-        if ((protocolAsChannel.SubChannels?.Count ?? 0) == 0) return 404;
+        protocolAsChannel = r.SearchChannel(c => c.Id == protocolAsChannel.Id);
         var found = getMyChannel(updatedChannel.ExternalId, channelLineage);
         var dbChannel = found.Item1;
+        Console.WriteLine($"[ExternalChannelUpdate] - dbChannel? {dbChannel != null}");
         if (dbChannel == null) return 404;
 
-        if (String.Join('/', found.Item2) != String.Join('/', channelLineage))
+        var foundChannelLineage = String.Join('/', found.Item2);
+        var specifiedChannelLineage = String.Join('/', channelLineage);
+        if (foundChannelLineage != specifiedChannelLineage)
         {
+            Console.WriteLine($"[ExternalChannelUpdate] - reorganizing, {specifiedChannelLineage} --> {foundChannelLineage}");
             var immediateParent = found.Item2.Last();
             var formerParent = dbChannel.ParentChannel;
-            formerParent.SubChannels.Remove(dbChannel);
+            if (formerParent != null)
+            {
+                formerParent.SubChannels.Remove(dbChannel);
+                otherTasks.Add(Task.Run(() => r.RememberChannel(formerParent)));
+            }
             dbChannel.ParentChannel = immediateParent;
             immediateParent.SubChannels ??= [];
             immediateParent.SubChannels.Add(dbChannel);
-            otherTasks.Add(Task.Run(() => r.RememberChannel(formerParent)));
             otherTasks.Add(Task.Run(() => r.RememberChannel(immediateParent)));
         }
 
@@ -201,26 +217,28 @@ public class ExternalRestful : ProtocolInterface
         if (dbChannel == null) return 404;
 
         var already = dbChannel.Users?.FirstOrDefault(a => a.ExternalId == account.ExternalId);
-        if(already != null)
+        if (already != null)
             return 409;
 
-        dbChannel.Users ??=[];
+        dbChannel.Users ??= [];
         dbChannel.Users.Add(account);
         var channelTask = Task.Run(() => r.RememberChannel(dbChannel));
 
-        if(account.IsUser == null)
+        if (account.IsUser == null)
         {
             account.IsUser = protocolAsChannel.Users?.FirstOrDefault(acc => acc.ExternalId == account.ExternalId)?.IsUser;
-            if(account.IsUser == null)
+            if (account.IsUser == null)
             {
-                account.IsUser = new (){
+                account.IsUser = new()
+                {
                     Accounts = [account]
                 };
             }
         }
-        else{
+        else
+        {
             account.IsUser.Accounts ??= [];
-            if(!account.IsUser.Accounts.Contains(account))
+            if (!account.IsUser.Accounts.Contains(account))
                 account.IsUser.Accounts.Add(account);
         }
         await channelTask;
@@ -235,7 +253,7 @@ public class ExternalRestful : ProtocolInterface
         if (dbChannel == null) return 404;
 
         var already = dbChannel.Users?.FirstOrDefault(a => a.ExternalId == account.ExternalId);
-        if(already == null)
+        if (already == null)
             return 404; //if you need to add an account to a channel... *create* it in that channel.
 
         already.DisplayName = account.DisplayName;
@@ -246,59 +264,76 @@ public class ExternalRestful : ProtocolInterface
         base.basedot_AccountUpdated(already);
         return 200;
     }
-    private Tuple<Channel, List<Channel>> getMyChannel(string channelExternalId, List<string> lineageHint)
+    private Tuple<Channel, List<Channel>> getMyChannel(string channelExternalId, List<string> lineage)
     {
-        var pathDown = new List<Channel>() { protocolAsChannel };
-        if (lineageHint?.Count > 0) foreach (var externalId in lineageHint)
+        Console.WriteLine($"[getMyChannel]({channelExternalId}, {string.Join('/', lineage)})");
+        lineage ??= [];
+        if(lineage.Count == 0 || lineage[0] !=protocolAsChannel.ExternalId)
         {
-            var child = pathDown.Last().SubChannels?.FirstOrDefault(c => c.ExternalId == externalId);
-            if (child == null)
-            {
-                return new Tuple<Channel, List<Channel>>(null, pathDown);
-            }
-            else
-            {
-                pathDown.Add(child);
-            }
+            lineage.Insert(0, protocolAsChannel.ExternalId);
         }
+        var pathDown = new List<Channel>() { protocolAsChannel };
+        if (lineage?.Count > 0) foreach (var externalId in lineage)
+            {
+                var child = pathDown.Last().SubChannels?.FirstOrDefault(c => c.ExternalId == externalId);
+                if (child == null)
+                {
+                    Console.WriteLine($"[getMyChannel] the path you gave me doesn't lead to the channel. (presently: {string.Join('/', from c in pathDown select c.ExternalId)})");
+                    return new Tuple<Channel, List<Channel>>(null, pathDown);
+                }
+                else
+                {
+                    pathDown.Add(child);
+                }
+            }
         var immediateParent = pathDown.Last();
 
         var dbChannel = immediateParent.SubChannels.FirstOrDefault(c => c.ExternalId == channelExternalId);
         if (dbChannel == null)
         {
+            Console.WriteLine($"[getMyChannel] path is valid, but couldn't find that channel.");
             return getMyChannel(channelExternalId);
         }
         else
         {
-            //this is the happy path  - found channel, exactly provided path
+            Console.WriteLine($"[getMyChannel] the happy path  - found channel, on exactly provided path");
             return new Tuple<Channel, List<Channel>>(dbChannel, pathDown);
         }
     }
     private Tuple<Channel, List<Channel>> getMyChannel(string channelExternalId)
     {
-        //we've determined that the channel lineage is not what we expect. is this even a channel we know about?
         var dbChannel = r.SearchChannel(c => c.ExternalId == channelExternalId);
-        //nope. /shrug
+        Console.WriteLine($"[getMyChannel]({channelExternalId}) - found channel? {dbChannel != null}");
         if (dbChannel == null) return new Tuple<Channel, List<Channel>>(null, null);
 
         //ok it is *a* channel... but is it *our* channel?
-        var walkUp = dbChannel.ParentChannel;
+        Console.WriteLine($"[getMyChannel] - the goal is to find {protocolAsChannel.ExternalId} (interally known as {protocolAsChannel.Id}");
+        var walkUp = dbChannel;
         var loopCheckBreadcrumbs = new List<Channel>();
-        while (walkUp != protocolAsChannel && walkUp != null && !loopCheckBreadcrumbs.Contains(walkUp))
+        while (!loopCheckBreadcrumbs.Contains(walkUp))
         {
             loopCheckBreadcrumbs.Add(walkUp);
+            if (walkUp == null)
+            {
+                Console.WriteLine($"[getMyChannel] passed the top (couldn't find channel)");
+                return new Tuple<Channel, List<Channel>>(null, null);
+            }
+            if (walkUp.Id == protocolAsChannel.Id)
+            {
+                protocolAsChannel = walkUp;
+                Console.WriteLine($"[getMyChannel] - walking up, did we hit the top? {walkUp.Id == protocolAsChannel.Id} did we *pass* the top? {walkUp == null}");
+                loopCheckBreadcrumbs.Reverse();
+                var lineage = from c in loopCheckBreadcrumbs select c.ExternalId;
+                Console.WriteLine($"[getMyChannel] found channel along {string.Join('/', lineage)}");
+                return new Tuple<Channel, List<Channel>>(dbChannel, loopCheckBreadcrumbs);
+            }
+
+            Console.WriteLine($"[getMyChannel] - walking up, stepping from {walkUp.ExternalId} (internally known as {walkUp.Id}) to its parent...");
             walkUp = walkUp.ParentChannel;
         }
-        if (walkUp == protocolAsChannel)
-        {
-            loopCheckBreadcrumbs.Reverse();
-            //we've determined this is a channel. it's our channel. probably reorganization / channel lineage change.
-            return new Tuple<Channel, List<Channel>>(null, loopCheckBreadcrumbs);
-        }
-        else
-        {
-            return new Tuple<Channel, List<Channel>>(null, null);
-        }
+
+        Console.WriteLine($"[getMyChannel] failed to find channel, probably found a loop");
+        return new Tuple<Channel, List<Channel>>(null, null);
     }
     // public User UserFor(Account account)
     // {

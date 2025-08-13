@@ -2,75 +2,587 @@
 <html>
     <head>
         <style type="text/css">
+         body{
+             background-color: #232627;
+             padding: 0;
+         }
          #account-template{
              display:none;
          }
+         #channel-template{
+             display:none;
+         }
+        #controls{
+             color: #DEDEDE;
+             border: 3px solid #DEDEDE ;
+             border-radius: 15px;
+             position:absolute;
+             left: 0.5em;
+             top: 0.5em;
+             overflow: scroll;
+             height: 95%;
+             width: 95%;
+         }
+         .channel{
+             border: 1px solid #DEDEDE ;
+             border-radius: 5px;
+             margin: 0.5em;
+         }
         </style>
         <script type="text/javascript">
-            function connect(){
-            //TODO:
+            var apiBase = "/api/ExternalProtocol/";
+            var externalId = null;
+            var extProto = null;
+            var channels=[];
+         /*misc utilities*/
+            function generateexternalid(){
+                externalid_overall.value=crypto.randomUUID();
+                externalId = externalid_overall.value;
             }
-            function createChannel(){
-            //TODO:
+            function redrawState()
+            {
+                console.log("[redrawState] - " + channels.length);
+                let highestIdx = 0;
+                channels.forEach((elem, idx) => {
+                    let channelNode = document.querySelector("#channel_"+idx);
+                    if(channelNode !== null){
+                        channelNode.remove();
+                    }
+                    channelNode = document.querySelector("#channel-template").cloneNode(true);
+                    channelNode.id = "channel_"+idx;
+
+                    channelNode = document.querySelector("#channels").appendChild(channelNode);
+                    document.querySelector("#channels").lastChild.scrollIntoView();
+
+                    let displaynode = channelNode.querySelector(".externalid");
+                    displaynode.innerText = "external id: " + elem.externalId;
+                    displaynode.id = elem.eexternalId; //for linking
+
+                    displaynode = channelNode.querySelector(".internalid");
+                    displaynode.innerText = "internal id: " + elem.id;
+
+                    displaynode = channelNode.querySelector(".uacs");
+                    displaynode.innerText = elem.uaCs;
+
+                    let valuenode = channelNode.querySelector("#maxattachmentbytes_channel");
+                    valuenode.id = valuenode.id +idx;
+                    valuenode.value = elem.maxAttachmentBytes;
+                    valuenode.previousElementSibling.id += "" + idx;
+
+                    valuenode = channelNode.querySelector("#maxtextchars_channel");
+                    valuenode.id += "" + idx;
+                    valuenode.previousElementSibling.id += "" + idx;
+                    valuenode.value = elem.maxTextChars;
+
+                    valuenode = channelNode.querySelector("#linksallowed_channel");
+                    valuenode.id += "" + idx;
+                    valuenode.previousElementSibling.attributes["for"] += idx;
+                    valuenode.checked = elem.linksAllowed;
+
+                    valuenode = channelNode.querySelector("#reactionspossible_channel");
+                    valuenode.id += "" + idx;
+                    valuenode.previousElementSibling.attributes["for"] += "" + idx;
+                    valuenode.checked = elem.linksAllowed;
+
+                    valuenode = channelNode.querySelector("#channelmeanness");
+                    valuenode.id += "" + idx;
+                    valuenode.previousElementSibling.attributes["for"] += "" + idx;
+                    valuenode.checked = elem.meannessFilterLevel;
+
+                    valuenode = channelNode.querySelector("#channellewdness");
+                    valuenode.id += "" + idx;
+                    valuenode.previousElementSibling.attributes["for"] += "" + idx;
+                    valuenode.checked = elem.lewdnessFilterLevel;
+
+                    let accountsNode = channelNode.querySelector(".accounts");
+                    accountsNode.innerText = "";
+                    if(elem.users != null){
+                        elem.users.forEach((acc) => {
+                            let link = document.createElement("a");
+                            link.href = "#" + acc.externalId;
+                            link.innerText = acc.externalId;
+                            accountsNode.appendChild(link);
+                            accountsNode.innerHtml += ", ";
+                        });
+                    }
+                    let subchannelsNode = channelNode.querySelector(".subchannels");
+                    subchannelsNode.innerText = "";
+                    if(elem.subChannels != null){
+                        elem.subChannels.forEach((subch) => {
+                            let link = document.createElement("a");
+                            link.href = "#" + subch.externalId;
+                            link.innerText = subch.externalId;
+                            subchannelsNode.appendChild(link);
+                            subchannelsNode.innerHtml += ", ";
+                        });
+                    }
+                    highestIdx++;
+                });
+                while (true){
+                    let excess = document.querySelector("#channel_"+highestIdx);
+                    if(excess == null || highestIdx > 9999)
+                        break;
+                    excess.remove();
+                    highestIdx++;
+                }
             }
-            function newmessage(){
-            //TODO:
+         /*overall, api calls*/
+            async function connect(){
+                console.log("[connect] with: ");
+                externalId = externalid_overall.value;
+                let postData = {};
+                postData.ExternalId = externalId;
+                console.log(JSON.stringify(postData));
+
+                try {
+                    const response = await fetch(apiBase + "Connect", {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        method: "POST",
+                        body: JSON.stringify(postData),
+                    });
+                    if (!response.ok)
+                    {
+                        throw new Error(`Response status: ${response.status}`);
+                    }
+                    else
+                    {
+                        extProto = await response.json();
+                        console.log("received data back with ok status.");
+                        console.log(JSON.stringify(extProto, null, 2));
+                        flattenChannels(extProto);
+                        redrawState();
+                        state_disconnected.style="display:none";
+                        state_connected.style=null;
+                    }
+
+                }
+                catch (error)
+                {
+                    console.log(error.message);
+                }
             }
-            function disconnect(){
-            //TODO:
+            async function disconnect(){
+                state_disconnected.style=null;
+                state_connected.style="display:none";
+
+                console.log("[disconnect]");
+                externalId = externalid_overall.value;
+                let postData = {
+                    "item1": externalId
+                };
+                console.log(JSON.stringify(postData));
+
+                try {
+                    const response = await fetch(apiBase + "Disconnect", {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        method: "POST",
+                        body: JSON.stringify(postData),
+                    });
+                    if (!response.ok)
+                    {
+                        console.log("response not ok.");
+                        throw new Error(`Response status: ${response.status}`);
+                    }
+                    else
+                    {
+                        console.log("received data back with ok status.");
+                        channels=[];
+                        state_connected.style="display:none";
+                        state_disconnected.style=null;
+                    }
+                }
+                catch (error)
+                {
+                    console.log("error trying to Fetch");
+                    console.error(error);
+                }
             }
-            function spawnNewAccount(){
-            //TODO:
+         /*messages, api calls*/
+            async function newmessage(){
+                //TODO: api check, new message received
+                let postData = {};
+                postData.ExternalId = externalId;
+                console.log(JSON.stringify(postData));
+                try {
+                    const response = await fetch(apiBase + "MessageReceived", {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        method: "POST",
+                        body: JSON.stringify(postData),
+                    });
+                    if (!response.ok)
+                    {
+                        throw new Error(`Response status: ${response.status}`);
+                    }
+                    else
+                    {
+                        extProto = await response.json();
+                        console.log("received data back with ok status.");
+                        console.log(JSON.stringify(extProto, null, 2));
+                        flattenChannels(extProto);
+                        redrawState();
+                        state_disconnected.style="display:none";
+                        state_connected.style=null;
+                    }
+
+                }
+                catch (error)
+                {
+                    console.log(error.message);
+                }
             }
-            function copyInAccount(){
-            //TODO:
+            async function modifymessage(){
+                //TODO: api check, message updated
+                let postData = {};
+                postData.ExternalId = externalId;
+                console.log(JSON.stringify(postData));
+                try {
+                    const response = await fetch(apiBase + "MessageUpdated", {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        method: "POST",
+                        body: JSON.stringify(postData),
+                    });
+                    if (!response.ok)
+                    {
+                        throw new Error(`Response status: ${response.status}`);
+                    }
+                    else
+                    {
+                        extProto = await response.json();
+                        console.log("received data back with ok status.");
+                        console.log(JSON.stringify(extProto, null, 2));
+                        flattenChannels(extProto);
+                        redrawState();
+                        state_disconnected.style="display:none";
+                        state_connected.style=null;
+                    }
+
+                }
+                catch (error)
+                {
+                    console.log(error.message);
+                }
             }
-            function modifyChannel(){
-            //TODO:
+
+         /*channels, utilities*/
+            async function validateChannel(ch){
+                //microsoft: "we can't have you post *multiple* *parameters*, wrap them in an object
+                //newtonsoft: "listen, microsoft tells me that's 1 object. I'd happily tell you about in-object errors, but your stupid wrapper object just looks like 1 thing to me."
+                //me: so.... where's the fuckin problem on this one object?
+                //and here we are. server side type validation.
+                let response = await fetch(apiBase + "ValidateChannel", {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    method: "POST",
+                    body: JSON.stringify(ch)
+                });
+                if (!response.ok)
+                {
+                    console.log("[ValidateChannel] - response not ok. " + response.status);
+                    return false;
+                }
+                else
+                {
+                    var answer = await response.json();
+                    console.log("[ValidateChannel] - response ok. answer: " + answer);
+                    return answer;
+                }
             }
-            function createChannel(){
-            //TODO:
+            async function refreshChannelList(){
+                console.log("[refreshChannelList]");
+                const response = await fetch(apiBase + "GetChannel", {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    method: "POST",
+                    body: externalId
+                });
+                if (!response.ok)
+                {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+                else
+                {
+                    console.log("[refreshChannelList] - response ok." + response.json());
+                    let channelGraph = response.json();
+                    flattenChannels(channelGraph);
+                    redrawState();
+                }
             }
-            function modifyAccount(){
-            //TODO:
+            function flattenChannels(channelGraph){
+                channels=[];
+                let depthFirst = (ch, parentId) =>{
+                    if(channels.indexOf(ch) > -1)
+                        return;
+                    channels.push(ch);
+
+                    ch.parentChannelId = parentId;
+
+                    if(ch.subChannels !== null && ch.subChannels.length > 0){
+                        ch.subChannels.forEach((subCh) => {
+                            depthFirst(subCh, ch.externalId);
+                        });
+                    }
+                };
+                depthFirst(channelGraph, null);
             }
-            function receiveMessageFrom(){
-            //TODO:
+            function createRandomChannel(){
+                console.log("[createRandomChannel]");
+                lineage = [];
+                parentChannel = channels[Math.floor(Math.random() * channels.length)];
+                thisChannel = parentChannel;
+                lineage.push(thisChannel.externalId);
+                while(thisChannel.parentChannelId != null){
+                    thisChannel = channels.find((ch) => ch.externalId == thisChannel.parentChannelId);
+                    lineage.push(thisChannel.externalId);
+                }
+                lineage = lineage.reverse();
+
+                let submissionChannel ={};
+                submissionChannel.ExternalId = crypto.randomUUID();
+                submissionChannel.DisplayName = "random channel " + submissionChannel.ExternalId.substring(0, 8);
+                submissionChannel.Protocol = "external"
+                submissionChannel.Users = [];
+                submissionChannel.Messages = [];
+                submissionChannel.SubChannels = [];
+                submissionChannel.UACs = [];
+                submissionChannel.ChannelType = 0;
+                createChannel(submissionChannel, lineage);
+            }
+         /*channels, api testing*/
+            async function modifyChannel(ch, channelLineage){
+                console.log("[modifyChannel]");
+                if(!validateChannel(ch)){
+                    console.log("apparently your channel isn't channel-y enough, good luck. /shrug");
+                    return;
+                }
+                let response = await fetch(apiBase + "ChannelUpdated", {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    method: "POST",
+                    body: JSON.stringify({
+                        "item1": externalId,
+                        "item2": ch,
+                        "item3": channelLineage
+                    })
+                });
+                if (!response.ok)
+                {
+                    console.log("[modifyChannel] - response not ok. " + response.status);
+                    throw new Error(`Response status: ${response.status}`);
+                }
+                else
+                {
+                    console.log("[modifyChannel] - response ok." + response.json());
+                }
+            }
+            async function createChannel(ch, channelLineage){
+                //TODO: api check, ChannelCreated
+                console.log("[createChannel(ch, channelLineage)]");
+                let response = await fetch(apiBase + "ChannelCreated", {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    method: "POST",
+                    body: JSON.stringify({
+                        "item1": externalId,
+                        "item2": ch,
+                        "item3": channelLineage
+                    })
+                });
+                if (!response.ok)
+                {
+                    console.log("[createChannel(ch, channelLineage)] - response error " + response.status);
+                    throw new Error(`Response status: ${response.status}`);
+                }
+                else
+                {
+                    redrawState();
+                    console.log("[createChannel(ch, channelLineage)] - response ok." + response.json());
+                }
+            }
+         /*accounts, api calls*/
+            async function spawnNewAccount(){
+                //TODO: api check, new account
+                let postData = {};
+                postData.ExternalId = externalId;
+                console.log(JSON.stringify(postData));
+                try {
+                    const response = await fetch(apiBase + "AccountCreated", {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        method: "POST",
+                        body: JSON.stringify(postData),
+                    });
+                    if (!response.ok)
+                    {
+                        throw new Error(`Response status: ${response.status}`);
+                    }
+                    else
+                    {
+                        extProto = await response.json();
+                        console.log("received data back with ok status.");
+                        console.log(JSON.stringify(extProto, null, 2));
+                        flattenChannels(extProto);
+                        redrawState();
+                        state_disconnected.style="display:none";
+                        state_connected.style=null;
+                    }
+
+                }
+                catch (error)
+                {
+                    console.log(error.message);
+                }
+            }
+            async function modifyAccount(){
+                //TODO: api check, account updated
+                let postData = {};
+                postData.ExternalId = externalId;
+                console.log(JSON.stringify(postData));
+                try {
+                    const response = await fetch(apiBase + "AccountUpdated", {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        method: "POST",
+                        body: JSON.stringify(postData),
+                    });
+                    if (!response.ok)
+                    {
+                        throw new Error(`Response status: ${response.status}`);
+                    }
+                    else
+                    {
+                        extProto = await response.json();
+                        console.log("received data back with ok status.");
+                        console.log(JSON.stringify(extProto, null, 2));
+                        flattenChannels(extProto);
+                        redrawState();
+                        state_disconnected.style="display:none";
+                        state_connected.style=null;
+                    }
+
+                }
+                catch (error)
+                {
+                    console.log(error.message);
+                }
+            }
+
+
+            function updatechannel(e){
+                let caller = e.target || e.srcElement;
+                //console.log("[updatechannel] caller:");
+                //console.log(JSON.stringify(caller, null, 2));
+                while(caller !== null && !caller.classList.contains("channel")){
+                    caller = caller.parentElement;
+                }
+                let channelIndex = caller.id.substr("channel_".length)
+                //console.log("[updatechannel] channelIndex - " + channelIndex);
+                let submissionChannel ={};// {ExternalId: caller.querySelector(".externalid").innerText};
+                let valueNode = caller.querySelector(".externalid");
+                submissionChannel.ExternalId = valueNode.innerText.substring("external id: ".length);
+                valueNode = caller.querySelector(".channeltype");
+                submissionChannel.ChannelType = valueNode.selectedIndex;
+                valueNode = caller.querySelector("#maxattachmentbytes_channel" + channelIndex);
+                submissionChannel.MaxAttachmentBytes = valueNode.value;
+                if (submissionChannel.MaxAttachmentBytes == "") submissionChannel.MaxAttachmentBytes = null;
+                    valueNode = caller.querySelector("#maxtextchars_channel" + channelIndex);
+                submissionChannel.MaxTextChars= valueNode.value;
+                if (submissionChannel.MaxTextChars == "") submissionChannel.MaxTextChars = null;
+                    valueNode = caller.querySelector("#linksallowed_channel" + channelIndex);
+                submissionChannel.LinksAllowed = valueNode.checked;
+                valueNode = caller.querySelector("#reactionspossible_channel" + channelIndex);
+                submissionChannel.ReactionsPossible = valueNode.checked;
+                valueNode = caller.querySelector("#channellewdness" + channelIndex);
+                submissionChannel.LewdnessFilterLevel = valueNode.selectedIndex;
+                valueNode = caller.querySelector("#channelmeanness" + channelIndex);
+                submissionChannel.MeannessFilterLevel = valueNode.selectedIndex;
+                console.log("[updatechannel] constructing channel for submission to update;" + JSON.stringify(submissionChannel, null, 2));
+                modifyChannel(submissionChannel, [externalId]);
             }
         </script>
     </head>
     <body>
-        <textarea disabled id="output">page loading.</textarea>
-        <div id="state-disconnected">
-            <button type="button" onclick="connect">connect</button>
-        </div>
-        <div id="state-connected">
-            <div class="externalid">external id</div>
-            <div id="channels">
-                <button type="button" onclick="createChannel">create channel</button>
+        <div id="controls">
+            <label for="externalid_overall">external id</label>
+            <input type="text" id="externalid_overall" onchange="() => {externalId = externalid_overall.value; console.log('external id: ' + externalId);}" />
+            <button type="button" onclick="generateexternalid()">generate new</button>
+            <div id="state_disconnected">
+                <button type="button" onclick="connect()">connect</button>
             </div>
-            <button type="button" onclick="newmessage"></button><br />
-            <button type="button" onclick="disconnect">disconnect</button><br />
-        </div>
+            <div id="state_connected">
+                <div id="channels">
+                </div>
+                <button type="button" onclick="createRandomChannel()">create channel</button>
+                <button type="button" onclick="newmessage()">message</button><br />
+                <button type="button" onclick="disconnect()">disconnect</button><br />
+            </div>
 
-        <div id="channel-template">
-            <div class="externalid">external id</div>
-            <div class="accounts">
+            <div id="channel-template" class="channel">
+                <div class="internalid">internal id</div><br />
+                <div class="externalid">external id</div><br />
+                <div class="uacs">uacs</div><br />
+                type:
+                <select class="channeltype" onchange="updatechannel(event)">
+                    <option>Normal</option>
+                    <option>DM</option>
+                    <option>protocol psuedo-channel (what?)</option>
+                    <option>organizational psuedo-channel</option>
+                </select><br />
+                <label for="maxattachmentbytes_channel">max attachment (bytes)</label>
+                <input type="number" id="maxattachmentbytes_channel" onchange="updatechannel(event)" /><br />
+                <label for="maxtextchars_channel">max characters of text</label>
+                <input type="number" id="maxtextchars_channel" onchange="updatechannel(event)" /><br />
+                <label for="linksallowed_channel">links allowed?</label>
+                <input type="checkbox" id="linksallowed_channel" onchange="updatechannel(event)" /><br />
+                <label for="reactionspossible_channel">reactions possible?</label>
+                <input type="checkbox" id="reactionspossible_channel" onchange="updatechannel(event)" /><br />
+                lewdness filter level:
+                <select id="channellewdness" onchange="updatechannel(event)">
+                    <option>this is a christian minecraft server 🙏</option>
+                    <option>G-Rated</option>
+                    <option>polite company</option>
+                    <option>;) ;) ;)</option>
+                </select><br />
+                meanness filter level:
+                <select id="channelmeanness" onchange="updatechannel(event)">
+                    <option>good vibes strictly enforced</option>
+                    <option>a bit cheeky</option>
+                    <option>387.44m mi of printed circuits</option>
+                </select><br />
                 accounts:<br />
-                <button type="button" onclick="spawnNewAccount">spawn new account</button><br />
-                <button type="button" onclick="copyInAccount">remeet account</button> (one we know from elsewhere)
+                <div class="accounts">
+                </div><br />
+                <button type="button" onclick="spawnNewAccount()">spawn new account</button>
+                <button type="button" onclick="copyInAccount()">remeet account</button> (one we know from elsewhere)<br />
+                subchannels:<br />
+                <div class="subchannels">
+                </div><br />
+                <button type="button" onclick="createSubChannel()">create subchannel</button>
+                <hr />
             </div>
-            <div class="subchannel">
-               subchannels:<br />
-                <button type="button" onclick="createChannel">create channel</button>
-            </div>
-            <button type="button" onclick="modifyChannel">modify</button>
         </div>
 
         <div id="account-template">
             <div class="externalid">external id</div>
-            <button type="button" onclick="modifyAccount">modify</button>
-            <button type="button" onclick="receiveMessageFrom">receive message from</button>
+            <button type="button" onclick="modifyAccount()">modify</button>
+            <button type="button" onclick="receiveMessageFrom()">receive message from</button>
         </div>
+        <script type="text/javascript">
+            console.log("click connect");
+            externalId = externalid_overall.value;
+        </script>
     </body>
 </html>

@@ -20,7 +20,7 @@ public static class Enumerations
     }
     public enum MeannessFilterLevel
     {
-        [Description("good vibes only")]
+        [Description("good vibes strictly enforced")]
         Strict,
         [Description("a bit cheeky")]
         Medium,

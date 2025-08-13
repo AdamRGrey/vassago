@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
+using Newtonsoft.Json;
 using vassago;
 using vassago.Models;
 
@@ -13,6 +14,11 @@ builder.Services.AddDbContext<ChattingContext>();
 builder.Services.AddControllers().AddNewtonsoftJson(options => {
         options.SerializerSettings.ReferenceLoopHandling =
             Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+        options.SerializerSettings.MissingMemberHandling =  MissingMemberHandling.Error;
+        options.SerializerSettings.Error = (object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args) =>
+            {
+                Console.Error.WriteLine($"serialization error - {args.ErrorContext.Error}");
+            };
     });
 builder.Services.AddProblemDetails();
 builder.Services.Configure<RazorViewEngineOptions>(o => {
