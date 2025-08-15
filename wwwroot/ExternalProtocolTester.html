@@ -336,15 +336,7 @@
             }
             function createRandomChannel(){
                 console.log("[createRandomChannel]");
-                lineage = [];
                 parentChannel = channels[Math.floor(Math.random() * channels.length)];
-                thisChannel = parentChannel;
-                lineage.push(thisChannel.externalId);
-                while(thisChannel.parentChannelId != null){
-                    thisChannel = channels.find((ch) => ch.externalId == thisChannel.parentChannelId);
-                    lineage.push(thisChannel.externalId);
-                }
-                lineage = lineage.reverse();
 
                 let submissionChannel ={};
                 submissionChannel.ExternalId = crypto.randomUUID();
@@ -355,7 +347,7 @@
                 submissionChannel.SubChannels = [];
                 submissionChannel.UACs = [];
                 submissionChannel.ChannelType = 0;
-                createChannel(submissionChannel, lineage);
+                createChannel(submissionChannel, parentChannel.externalId);
             }
          /*channels, api testing*/
             async function modifyChannel(ch, channelLineage){
@@ -510,7 +502,7 @@
                 valueNode = caller.querySelector("#channelmeanness" + channelIndex);
                 submissionChannel.MeannessFilterLevel = valueNode.selectedIndex;
                 console.log("[updatechannel] constructing channel for submission to update;" + JSON.stringify(submissionChannel, null, 2));
-                modifyChannel(submissionChannel, [externalId]);
+                modifyChannel(submissionChannel, externalId);
             }
         </script>
     </head>

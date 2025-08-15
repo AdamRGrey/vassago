@@ -40,7 +40,7 @@ public abstract class ProtocolInterface
     ///<summary>
     ///children aren't allowed to raise events.
     ///"why, adam?"
-    ///yeah, microsoft, why?
+    ///yeah, *microsoft*, why?
     ///</summary>
     protected void basedot_MessageReceived(Message m)
     {

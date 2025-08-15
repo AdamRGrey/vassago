@@ -207,28 +207,28 @@ public class ExternalProtocolController : ControllerBase
     ///<summary>"created" as far as our bookkeeping is concerned. "first spotted" would be valid. etc.</summary>
     [HttpPost]
     [Route("ChannelCreated")]
-    public async Task<IActionResult> ChannelCreated(Tuple<string, Channel, List<string>> parameters)
+    public async Task<IActionResult> ChannelCreated(Tuple<string, Channel, string> parameters)
     {
         string protocolExternalId = parameters.Item1;
         Channel channel = parameters.Item2;
-        List<string> channelLineage = parameters.Item3;
+        string parentChannelId = parameters.Item3;
         var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
             as ExternalRestful;
         if (extproto == null)
             return NotFound();
 
-        return StatusCode(await extproto.ExternalChannelJoin(channel, channelLineage));
+        return StatusCode(await extproto.ExternalChannelJoin(channel, parentChannelId));
     }
 
     [HttpPost]
     [Route("ChannelUpdated")]
-    public async Task<IActionResult> ChannelUpdated(Tuple<string, Channel, List<string>> parameters)
+    public async Task<IActionResult> ChannelUpdated(Tuple<string, Channel, string> parameters)
     {
         Console.Error.WriteLine($"[api ChannelUpdated]");
         string protocolExternalId = parameters.Item1;
         Channel channel = parameters.Item2;
-        List<string> channelLineage = parameters.Item3;
-        Console.Error.WriteLine($"[api ChannelUpdated] - present? {!string.IsNullOrWhiteSpace(protocolExternalId)}, {channel != null}, {channelLineage != null}");
+        string parentChannelId = parameters.Item3;
+        Console.Error.WriteLine($"[api ChannelUpdated] - present? {!string.IsNullOrWhiteSpace(protocolExternalId)}, {channel != null}, {!string.IsNullOrWhiteSpace(parentChannelId)}");
 
         var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
             as ExternalRestful;
@@ -239,7 +239,7 @@ public class ExternalProtocolController : ControllerBase
         }
         Console.Error.WriteLine($"[api ChannelUpdated] - looks good, shoving off on the protocol handler object");
 
-        return StatusCode(await extproto.ExternalChannelUpdate(channel, channelLineage));
+        return StatusCode(await extproto.ExternalChannelUpdate(channel, parentChannelId));
     }
 
     [HttpPost]
