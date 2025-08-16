@@ -31,6 +31,7 @@ pipeline {
                         testcmd ssh-keygen
                         testcmd scp
                         testcmd dotnet
+                        testcmd make
 
                         dotnet tool install dotnet-ef
                     """
@@ -39,13 +40,19 @@ pipeline {
         }
         stage('clean old'){
             steps{
-                sh 'rm -rf bin obj'
+                sh 'make clean'
             }
         }
         stage('Build') {
             steps {
-                dotnetBuild(outputDirectory: "dist", project: "vassago.csproj")
-                archiveArtifacts artifacts: 'dist/*'
+                sh 'make build'
+                archiveArtifacts artifacts: 'vassago/dist/*'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'make test'
+                archiveArtifacts artifacts: 'testsresults.html'
             }
         }
         stage ('upload') {
@@ -60,7 +67,7 @@ pipeline {
                 {
                     sh """#!/bin/bash
                         ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'rm -rf temp_deploy'
-                        rsync -e \"ssh -i \"${PK}\"\" -a dist/ ${linuxServiceAccount_USR}@${env.targetHost}:temp_deploy/
+                        rsync -e \"ssh -i \"${PK}\"\" -a vassago/dist/ ${linuxServiceAccount_USR}@${env.targetHost}:temp_deploy/
                     """
                 }
             }

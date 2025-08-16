@@ -379,3 +379,4 @@ FodyWeavers.xsd
 .history/
 
 tmp/
+/testsresults.html
