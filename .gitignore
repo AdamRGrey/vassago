@@ -1,4 +1,4 @@
-appsettings.Development.json
+appsettings.*.json
 assets/exchangepairs.json
 fail*/
 .projectile

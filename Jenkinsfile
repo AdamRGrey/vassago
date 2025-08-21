@@ -7,8 +7,7 @@ pipeline {
         targetHost="alloces.lan"
     }
     stages {
-
-         stage("environment setup") { //my environment, here on the jenkins agent
+         stage("environment setup") { //my environment, here on the jenkins agent. as opposed to the service's environment.
             steps {
                 script {
 
