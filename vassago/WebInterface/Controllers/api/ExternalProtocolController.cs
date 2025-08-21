@@ -134,10 +134,9 @@ public class ExternalProtocolController : ControllerBase
     ///<summary>if you do not intend to reconnect. when (read: if ever) i do webhook style, i'll want a temporary disconnect notification</summary>
     [HttpPost]
     [Route("Disconnect")]
-    public async Task<IActionResult> Disconnect(Tuple<string> body)
+    public async Task<IActionResult> Disconnect(string externalId)
     {
-        var ExternalId = body.Item1;
-        var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == ExternalId)
+        var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == externalId)
             as ExternalRestful;
         if (extproto == null)
             return NotFound();
@@ -174,8 +173,6 @@ public class ExternalProtocolController : ControllerBase
     ///<summary>"created" as far as our bookkeeping is concerned. "first spotted" would be valid. etc.</summary>
     [HttpPost]
     [Route("AccountCreated")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AccountCreated(string protocolExternalId, Account account, string channelExternalId)
     {
         var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
@@ -187,8 +184,6 @@ public class ExternalProtocolController : ControllerBase
     }
     [HttpPost]
     [Route("AccountUpdated")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AccountUpdated(string protocolExternalId, Account account, string channelExternalId)
     {
         var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
@@ -218,11 +213,11 @@ public class ExternalProtocolController : ControllerBase
     [Route("ChannelUpdated")]
     public async Task<IActionResult> ChannelUpdated(Tuple<string, Channel, string> parameters)
     {
-        Console.Error.WriteLine($"[api ChannelUpdated]");
+        Console.WriteLine($"[api ChannelUpdated]");
         string protocolExternalId = parameters.Item1;
         Channel channel = parameters.Item2;
         string parentChannelId = parameters.Item3;
-        Console.Error.WriteLine($"[api ChannelUpdated] - present? {!string.IsNullOrWhiteSpace(protocolExternalId)}, {channel != null}, {!string.IsNullOrWhiteSpace(parentChannelId)}");
+        Console.WriteLine($"[api ChannelUpdated] - present? {!string.IsNullOrWhiteSpace(protocolExternalId)}, {channel != null}, {!string.IsNullOrWhiteSpace(parentChannelId)}");
 
         var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
             as ExternalRestful;
@@ -231,7 +226,7 @@ public class ExternalProtocolController : ControllerBase
             Console.Error.WriteLine($"[api ChannelUpdate] = couldn't find external protocol handler for {protocolExternalId}");
             return NotFound();
         }
-        Console.Error.WriteLine($"[api ChannelUpdated] - looks good, shoving off on the protocol handler object");
+        Console.WriteLine($"[api ChannelUpdated] - looks good, shoving off on the protocol handler object");
 
         return StatusCode(await extproto.ExternalChannelUpdate(channel, parentChannelId));
     }

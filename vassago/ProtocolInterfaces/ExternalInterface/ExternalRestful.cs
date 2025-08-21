@@ -151,11 +151,19 @@ public class ExternalRestful : ProtocolInterface
     public async Task<int> ExternalChannelJoin(Channel channel, string parentChannelId)
     {
         Console.WriteLine($"[externalrestful.ExternalChannelJoin] for {channel?.ExternalId}");
-        if (String.IsNullOrWhiteSpace(channel?.ExternalId)) return 400;
+        if (String.IsNullOrWhiteSpace(channel?.ExternalId))
+        {
+            Console.Error.WriteLine($"[externalrestful.ExternalChannelJoin] no external id specified");
+            return 400;
+        }
 
         var found = getMyChannel(channel.ExternalId);
         Console.WriteLine($"[externalrestful.ExternalChannelJoin] my channel found? {found != null}");
-        if (found != null) return 409;
+        if (found != null)
+        {
+            Console.Error.WriteLine($"[externalrestful.ExternalChannelJoin] already in a channel with that ID");
+            return 409;
+        }
 
         var immediateParent = getMyChannel(parentChannelId);
         immediateParent.SubChannels ??= [];
@@ -172,21 +180,28 @@ public class ExternalRestful : ProtocolInterface
         Console.WriteLine("[ExternalChannelUpdate]");
         var otherTasks = new List<Task>();
         protocolAsChannel = r.SearchChannel(c => c.Id == protocolAsChannel.Id);
-        if(parentChannelId == protocolAsChannel.ExternalId)
-            return 400;
+
+        string.IsNullOrWhiteSpace(parentChannelId);
+        parentChannelId = protocolAsChannel.ExternalId;
 
         var dbChannel = getMyChannel(updatedChannel.ExternalId);
-        Console.WriteLine($"[ExternalChannelUpdate] - dbChannel? {dbChannel != null}");
-        if (dbChannel == null) return 404;
+        if (dbChannel == null)
+        {
+            Console.Error.WriteLine($"[ExternalChannelUpdate] - couldn't find that channel");
+            return 404;
+        }
 
         if (dbChannel != protocolAsChannel && dbChannel.ParentChannel?.ExternalId != parentChannelId)
         {
-            if(string.IsNullOrWhiteSpace(parentChannelId))
+            if (string.IsNullOrWhiteSpace(parentChannelId))
+            {
+                Console.Error.WriteLine("parent channel id not specified.");
                 return 400;
+            }
 
             Console.WriteLine($"[ExternalChannelUpdate] - reorganizing, {dbChannel.ParentChannel?.ExternalId} --> {parentChannelId}");
             var adoptiveParent = getMyChannel(parentChannelId);
-            if(adoptiveParent == null)
+            if (adoptiveParent == null)
             {
                 Console.Error.WriteLine($"[ExternalChannelUpdate] - adoptive parent not found!");
                 return 400;
@@ -197,10 +212,14 @@ public class ExternalRestful : ProtocolInterface
                 formerParent.SubChannels.Remove(dbChannel);
                 otherTasks.Add(Task.Run(() => r.RememberChannel(formerParent)));
             }
-            dbChannel.ParentChannel = adoptiveParent ;
+            dbChannel.ParentChannel = adoptiveParent;
             adoptiveParent.SubChannels ??= [];
             adoptiveParent.SubChannels.Add(dbChannel);
             otherTasks.Add(Task.Run(() => r.RememberChannel(adoptiveParent)));
+        }
+        else
+        {
+            Console.WriteLine($"[ExternalChannelUpdate] - no need to reorganize");
         }
 
         dbChannel.ChannelType = updatedChannel.ChannelType;
@@ -209,12 +228,14 @@ public class ExternalRestful : ProtocolInterface
         dbChannel.MaxAttachmentBytes = updatedChannel.MaxAttachmentBytes;
         dbChannel.MaxTextChars = updatedChannel.MaxTextChars;
         dbChannel.ReactionsPossible = updatedChannel.ReactionsPossible;
+        dbChannel.LewdnessFilterLevel = updatedChannel.LewdnessFilterLevel;
+        dbChannel.MeannessFilterLevel= updatedChannel.MeannessFilterLevel;
+        Console.WriteLine($"[ExternalChannelUpdate] - stuff updated. remembering.");
         otherTasks.Add(Task.Run(() => r.RememberChannel(dbChannel)));
 
         foreach (var t in otherTasks)
-        {
             await t;
-        }
+        Console.WriteLine($"[ExternalChannelUpdate] - tasks ready. firing event.");
         base.basedot_ChannelUpdated(dbChannel);
         return 200;
     }
