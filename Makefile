@@ -10,17 +10,17 @@ connectionstr=Host=localhost;Database=${servicename}_dev;Username=${servicename}
 netframework=net8.0
 configuration=Debug
 
-.PHONY: test build clean db-* update-framework
+.PHONY: test testsresults.html build clean db-* update-framework
 
 test: testsresults.html
 testsresults.html: vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll
 	echo test results.html. $(netframework), $(servicename), $(connectionstr)
 	dotnet test vassago.tests/vassago.tests.csproj --logger:"html;LogFileName=testsresults.html" --results-directory ./
-vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll:vassago/bin/$(configuration)/$(netframework)/vassago.dll
+vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll:vassago/bin/$(configuration)/$(netframework)/vassago.dll vassago.tests/*.cs
 	@echo tests.dll needed to build base vassago
 
 build:vassago/bin/$(configuration)/$(netframework)/vassago.dll
-vassago/bin/$(configuration)/$(netframework)/vassago.dll:
+vassago/bin/$(configuration)/$(netframework)/vassago.dll: vassago/*.cs vassago/*.json
 	dotnet build vassago/vassago.csproj
 	@echo base vassago needed to build
 
@@ -37,12 +37,11 @@ update-framework:
 #-f, --framework <FRAMEWORK>          The target framework to build for. The target framework must also be specified in the project file.
 #to reiterate:
 #The target framework
-#must
-#also
+# must
+# also
 #be specified in the project file.
 #
-#microsoft. why. microsoft.
-#do you understand the problem?
+#microsoft. why. microsoft. do you understand the problem, microsoft? i'm worried you don't think this is an absurd thing to have done.
 
 db-initial:
 	sudo -u postgres psql -c "create database $(servicename)_dev;"
@@ -50,11 +49,23 @@ db-initial:
 	sudo -u postgres psql -c "grant all privileges on database ${servicename}_dev to $servicename;"
 	sudo -u postgres psql -d "${servicename}_dev" -c "GRANT ALL ON SCHEMA public TO $servicename"
 
-	cp appsettings.sample.json appsettings.json
+	cp vassago/appsettings.sample.json vassago/appsettings.json
 	$(MAKE) db-update
 db-update:
-	dotnet ef database update --connection "$connnectionstr"
+	cd vassago; dotnet ef database update --connection "$(connectionstr)"
 db-fullreset:
 	sudo -u postgres psql -c "drop database ${servicename}_dev;"
 	sudo -u postgres psql -c "drop user $servicename"
 	$(MAKE) db-initial
+db-addmigration:
+	cd vassago; dotnet ef migrations add "$(migrationname)"
+	cd vassago; dotnet ef database update --connection "$(connectionstr)"
+db-dump:
+	sudo -u postgres pg_dump ${servicename}_dev >dumpp
+db-wipe:
+	touch tables.csv
+	chmod 777 tables.csv
+	sudo -u postgres psql -d ${servicename}_dev -c "select table_name from information_schema.tables where table_schema='public' AND table_name <> '__EFMigrationsHistory';" --csv -o tables.csv
+	sed -i 1d tables.csv
+	while read p; do sudo -u postgres psql -d vassago_dev -c "TRUNCATE \"$$p\" RESTART IDENTITY CASCADE;"; done<tables.csv
+	rm tables.csv
