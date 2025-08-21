@@ -3,8 +3,6 @@ namespace vassago.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using vassago.Models;
-
 
 //TODO: rename.
 //"uac" originally meant "user account control". but it might just be channel control. in fact, channel-control is much more fun,
@@ -20,13 +18,13 @@ public class UAC
     ///a hardcoded ID thing
     ///so they can find theirs.
     ///</summary>
-    public Guid OwnerId { get; set;}
+    public Guid OwnerId { get; set; }
     public string DisplayName { get; set; }
     public List<Account> AccountInChannels { get; set; }
     public List<Channel> Channels { get; set; }
     public List<User> Users { get; set; }
     public string Description { get; set; }
 
-    public Dictionary<string, string> CommandAlterations {get; set;}
-    public Dictionary<string, string> Translations {get; set;}
+    public Dictionary<string, string> CommandAlterations { get; set; }
+    public Dictionary<string, string> Translations { get; set; }
 }

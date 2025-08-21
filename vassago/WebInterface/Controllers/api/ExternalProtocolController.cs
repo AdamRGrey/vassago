@@ -32,8 +32,6 @@ public class ExternalProtocolController : ControllerBase
 
     [HttpGet]
     [Route("GetCommands")]
-    [ProducesResponseType<List<ExternalCommand>>(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult GetCommands(string protocolExternalId)
     {
         var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
@@ -47,8 +45,6 @@ public class ExternalProtocolController : ControllerBase
     }
     [HttpGet]
     [Route("GetChannel")]
-    [ProducesResponseType<Channel>(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult GetChannel(string protocolExternalId)
     {
         var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
@@ -58,11 +54,9 @@ public class ExternalProtocolController : ControllerBase
 
         return Ok(extproto.SelfChannel);
     }
-    ///<summary>for the first time. reconnecting, you're on your own... until I do the Webhook and other style.</summary>
+    ///<summary>for the first time. reconnecting, you're on your own... until I do the Webhook and other style. All we want is External and Style</summary>
     [HttpPost]
     [Route("Connect")]
-    // [ProducesResponseType<ProtocolExternal>(StatusCodes.Status200OK)]
-    // [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Connect(ProtocolExternal incoming)
     {
         Console.WriteLine("[connect] hello from [connect]");

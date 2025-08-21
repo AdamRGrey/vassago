@@ -22,6 +22,8 @@ public class ChattingContext : DbContext
     public ChattingContext() : base() { }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+        Console.WriteLine($"shared.dbconnectionstring: {Shared.DBConnectionString}");
+        // optionsBuilder.UseSqlite(Shared.DBConnectionString);
         optionsBuilder.UseNpgsql(Shared.DBConnectionString);
         //.EnableSensitiveDataLogging(true); //logging "sensitive" data (i.e., information that might be useful for debugging) is one thing.
         //writing "did something" every time you think a thought is a different, retarded thing that no one wants.

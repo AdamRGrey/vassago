@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>$(NoWarn);CS1998;CS4014</NoWarn>
     <!-- CS1998: "This async method lacks 'await' operators and will run synchronously." -->
     <!-- CS4014: "Because this call is not awaited, execution of the current method continues before the call is completed."-->
-    <!-- those 2 cancel out. Async foo calls async Bar, foo doesn't say "await" so cs1998 says "well don't mark foo as async" and cs4014 says "you should awake bar".
-         what, you want me to just add bar to some big stupid task list that I don't care about anyway? -->
+    <!-- those 2 cancel out. Async foo calls async Bar, foo doesn't say "await" so cs1998 says "well don't mark foo as async" and cs4014 says "you should await bar".
+         what, you want me to just add bar to some big stupid task list that I don't care about anyway? i only do that sometimes-->
   </PropertyGroup>
 
 
