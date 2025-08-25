@@ -107,8 +107,11 @@ public class ExternalRestful : ProtocolInterface
     {
         var containingChannel = getMyChannel(channelExternalId);
         if (containingChannel == null) return 404;
+        message.Channel = containingChannel;
         var authoringAccount = containingChannel.Users?.FirstOrDefault(a => a.ExternalId == authorExternalId);
         if (authoringAccount == null) return 404;
+        message.Author = authoringAccount;
+
         Console.WriteLine($"received message; author: {message.Author.DisplayName}, {message.Author.Id}. messageid:{message.Id}");
         r.RememberMessage(message);
         base.basedot_MessageReceived(message);

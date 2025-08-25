@@ -3,6 +3,7 @@ namespace vassago.ProtocolInterfaces;
 using Newtonsoft.Json;
 using static vassago.Models.Enumerations;
 
+
 using vassago.Models;
 
 /*

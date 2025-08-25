@@ -72,16 +72,81 @@ public class ExternalProtocolTest
         Channel usableState = (contr.GetChannel(myExternalId) as OkObjectResult).Value as Channel;
         Assert.That(usableState, Is.Not.Null);
     }
-    // [Test]
-    // public void MessageReceived()
-    // {
-    //     Assert.Fail();
-    // }
-    // [Test]
-    // public void MessageUpdated()
-    // {
-    //     Assert.Fail();
-    // }
+    [Test]
+    public async Task MessageReceived()
+    {
+        var anChannel = new Channel()
+        {
+            ExternalId = Guid.NewGuid().ToString(),
+            DisplayName = "messagereceiving"
+        };
+        await contr.ChannelCreated(new Tuple<string, Channel, string>(myExternalId,anChannel,myExternalId));
+
+        var anAccount = new Account();
+        anAccount.ExternalId = Guid.NewGuid().ToString();
+        anAccount.Username = "messagesender";
+        await contr.AccountCreated(myExternalId, anAccount, anChannel.ExternalId);
+
+        var aMessage = new Message()
+        {
+            ExternalId = Guid.NewGuid().ToString(),
+            Content = "hello, world"
+        };
+        var statusCodeResult =
+            await contr.MessageReceived(myExternalId,
+                                  aMessage,
+                                  anAccount.ExternalId,
+                                  anChannel.ExternalId) as IStatusCodeActionResult;
+
+
+        Assert.That(statusCodeResult.StatusCode, Is.EqualTo(250).Within(50));
+        var dbMessage = rememberer.SearchMessage(m => m.ChannelId == anChannel.Id && m.ExternalId == aMessage.ExternalId);
+        Assert.That(dbMessage, Is.Not.Null);
+
+        var dbAccount = rememberer.SearchAccount(a => a.ExternalId == anAccount.ExternalId);
+        rememberer.ForgetAccount(dbAccount);
+        var dbChannel = rememberer.SearchChannel(c => c.ExternalId == anChannel.ExternalId);
+        rememberer.ForgetChannel(dbChannel);
+    }
+    [Test]
+    public async Task MessageUpdated()
+    {
+        var anChannel = new Channel()
+        {
+            ExternalId = Guid.NewGuid().ToString(),
+            DisplayName = "messagereceiving"
+        };
+        await contr.ChannelCreated(new Tuple<string, Channel, string>(myExternalId,anChannel,myExternalId));
+
+        var anAccount = new Account();
+        anAccount.ExternalId = Guid.NewGuid().ToString();
+        anAccount.Username = "messagesender";
+        await contr.AccountCreated(myExternalId, anAccount, anChannel.ExternalId);
+
+        var aMessage = new Message()
+        {
+            ExternalId = Guid.NewGuid().ToString(),
+            Content = "hello, cruel world"
+        };
+        await contr.MessageReceived(myExternalId,
+            aMessage,
+            anAccount.ExternalId,
+            anChannel.ExternalId);
+
+        aMessage.Content += " edit: thank you for the gold kind stranger";
+        var statusCodeResult =
+            await contr.MessageUpdated(myExternalId,
+                aMessage,
+                anAccount.ExternalId,
+                anChannel.ExternalId) as IStatusCodeActionResult;
+        var dbMessage = rememberer.SearchMessage(m => m.ChannelId == anChannel.Id && m.ExternalId == aMessage.ExternalId);
+        Assert.That(dbMessage.Content, Is.EquivalentTo("hello, cruel world edit: thank you for the gold kind stranger"));
+
+        var dbAccount = rememberer.SearchAccount(a => a.ExternalId == anAccount.ExternalId);
+        rememberer.ForgetAccount(dbAccount);
+        var dbChannel = rememberer.SearchChannel(c => c.ExternalId == anChannel.ExternalId);
+        rememberer.ForgetChannel(dbChannel);
+    }
     [Test]
     public async Task AccountCreated()
     {

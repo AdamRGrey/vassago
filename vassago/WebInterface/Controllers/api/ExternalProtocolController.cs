@@ -148,27 +148,25 @@ public class ExternalProtocolController : ControllerBase
     }
     [HttpPost]
     [Route("MessageReceived")]
-    public async Task<IActionResult> MessageReceived((string protocolExternalId, Message message, string authorExternalId, string channelExternalId) parameters)
+    public async Task<IActionResult> MessageReceived(string protocolExternalId, Message message, string authorExternalId, string channelExternalId)
     {
-        var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == parameters.protocolExternalId)
+        var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
             as ExternalRestful;
         if (extproto == null)
             return NotFound();
 
-        return StatusCode(await extproto.ExternalMessageReceive(parameters.message, parameters.authorExternalId, parameters.channelExternalId));
+        return StatusCode(await extproto.ExternalMessageReceive(message, authorExternalId, channelExternalId));
     }
     [HttpPost]
     [Route("MessageUpdated")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> MessageUpdated((string protocolExternalId, Message message, string authorExternalId, string channelExternalId) parameters)
+    public async Task<IActionResult> MessageUpdated(string protocolExternalId, Message message, string authorExternalId, string channelExternalId)
     {
-        var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == parameters.protocolExternalId)
+        var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
             as ExternalRestful;
         if (extproto == null)
             return NotFound();
 
-        return StatusCode(await extproto.ExternalMessageUpdate(parameters.message, parameters.authorExternalId, parameters.channelExternalId));
+        return StatusCode(await extproto.ExternalMessageUpdate(message, authorExternalId, channelExternalId));
     }
     ///<summary>"created" as far as our bookkeeping is concerned. "first spotted" would be valid. etc.</summary>
     [HttpPost]
