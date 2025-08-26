@@ -39,6 +39,7 @@ pipeline {
         stage('clean old'){
             steps{
                 sh 'make clean'
+                sh 'rm -rf dist'
             }
         }
         stage('Build') {
