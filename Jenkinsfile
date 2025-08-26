@@ -44,13 +44,13 @@ pipeline {
         stage('Build') {
             steps {
                 sh 'make build'
-                archiveArtifacts artifacts: 'vassago/dist/*'
+                archiveArtifacts artifacts: 'vassago/vassago/dist/*'
             }
         }
         stage('Test') {
             steps {
                 sh 'make test'
-                archiveArtifacts artifacts: 'testsresults.html'
+                archiveArtifacts artifacts: 'TestResults/testsresults.html'
             }
         }
         stage ('upload') {
@@ -65,7 +65,7 @@ pipeline {
                 {
                     sh """#!/bin/bash
                         ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'rm -rf temp_deploy'
-                        rsync -e \"ssh -i \"${PK}\"\" -a vassago/dist/ ${linuxServiceAccount_USR}@${env.targetHost}:temp_deploy/
+                        rsync -e \"ssh -i \"${PK}\"\" -a vassago/vassago/dist/ ${linuxServiceAccount_USR}@${env.targetHost}:temp_deploy/
                     """
                 }
             }
