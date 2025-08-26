@@ -85,8 +85,6 @@ public class Behaver
 
     internal async Task ForwardToKafka(Message message, List<string> actedOnBy, List<UAC> matchingUACs)
     {
-        return;
-
         var kafkaesque = new chat_message()
         {
             MessageId = message.Id,

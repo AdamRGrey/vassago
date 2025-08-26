@@ -2,6 +2,7 @@ appsettings.*.json
 assets/exchangepairs.json
 fail*/
 .projectile
+vassago/dist
 
 # ---> VisualStudio
 ## Ignore Visual Studio temporary files, build results, and
