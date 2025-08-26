@@ -59,7 +59,6 @@ public class ExternalProtocolController : ControllerBase
     [Route("Connect")]
     public async Task<IActionResult> Connect(ProtocolExternal incoming)
     {
-        Console.WriteLine("[connect] hello from [connect]");
         if (String.IsNullOrWhiteSpace(incoming?.ExternalId))
         {
             ModelState.AddModelError(nameof(incoming.ExternalId), "ExternalId is required.");
@@ -71,7 +70,6 @@ public class ExternalProtocolController : ControllerBase
 
         if (extproto == null)
         {
-            Console.WriteLine($"[connect] eid {incoming.ExternalId} is new to me");
             confEntity = new ProtocolExternal()
             {
                 ExternalId = incoming.ExternalId,
@@ -83,7 +81,6 @@ public class ExternalProtocolController : ControllerBase
                 await Reconfigurator.ProtocolInterfaces();
                 extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == incoming.ExternalId)
                     as ExternalRestful;
-                Console.WriteLine($"[connect] remembered, reconfigurated, and we'll be returning one. not null: {extproto != null}");
                 return Ok(extproto.SelfChannel);
             }
             catch (Exception e)

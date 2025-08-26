@@ -9,25 +9,27 @@ namespace vassago
     public static class Reconfigurator
     {
         private static Rememberer r = Rememberer.Instance;
-        private static Configuration conf;
+        private static Configuration _conf;
         private static List<ProtocolConfiguration> protocolConfigs;
         // private static List<ProtocolDiscord> protocolConfigsDiscord;
         // private static List<ProtocolTwitch> protocolConfigsTwitch;
 
         public static async Task Initialize(CancellationToken cancellationToken)
         {
-            conf = r.Configuration();
+            _conf = r.Configuration();
+            Console.WriteLine($"reconfigurator is initializing with {JsonConvert.SerializeObject(_conf)}");
             var initTasks = new List<Task>();
             initTasks.Add(Conversions());
             initTasks.Add(Webhooks());
-            initTasks.Add(Kafka());
+            initTasks.Add(Kafka(_conf));
             initTasks.Add(ProtocolInterfaces());
             Task.WaitAll(initTasks.ToArray());
         }
 
-        public static async Task Kafka()
+        public static async Task Kafka(Configuration conf)
         {
             Telefranz.Configure(conf.KafkaName, conf.KafkaBootstrap);
+            Shared.telefranz = Telefranz.Instance;
         }
         public static async Task Webhooks()
         {
@@ -35,7 +37,7 @@ namespace vassago
         }
         public static async Task Conversions()
         {
-            Conversion.Converter.Load(conf.ExchangePairsLocation);
+            Conversion.Converter.Load(_conf.ExchangePairsLocation);
         }
         public static async Task ProtocolInterfaces()
         {

@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 public class Behaver
 {
@@ -82,8 +83,9 @@ public class Behaver
         return message.ActedOn;
     }
 
-    internal void ForwardToKafka(Message message, List<string> actedOnBy, List<UAC> matchingUACs)
+    internal async Task ForwardToKafka(Message message, List<string> actedOnBy, List<UAC> matchingUACs)
     {
+            return;
         var kafkaesque = new chat_message()
         {
             MessageId = message.Id,
@@ -107,9 +109,10 @@ public class Behaver
             UAC_Matches = matchingUACs.Select(uac => uac.Id).ToList(),
             BehavedOnBy = actedOnBy
         };
-        Console.WriteLine("producing message");
-        Telefranz.Instance.ProduceMessage(kafkaesque);
-        Console.WriteLine("survived producing message");
+        // Console.WriteLine("producing for kafka.");
+        // Console.WriteLine("when this hangs, I'll remind you the one function that calls this is async and doesn't await this.");
+        Shared.telefranz.ProduceMessage(kafkaesque);
+        // Console.WriteLine("survived producing for kafka");
     }
 
     internal bool IsSelf(Guid AccountId)

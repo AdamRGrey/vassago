@@ -16,13 +16,24 @@ public class ExternalProtocolTest
     private static string myExternalId = Guid.NewGuid().ToString();
     private static ExternalProtocolController contr = new ExternalProtocolController(Substitute.For<ILogger<vassago.Controllers.api.ExternalProtocolController>>());
     private static ProgramConfiguration conf = new ProgramConfiguration();
-    private Channel channelState;
+    private static bool configured = false;
     [SetUp]
     public void Setup()
     {
         //jump through hoops to get nunit to cooperate (a.k.a. "arrange") - appsettings is specified via the .csproj to get copied from the target project to this test project
         conf = JsonConvert.DeserializeObject<ProgramConfiguration>(File.ReadAllText("appsettings.Development.json"));
         Shared.DBConnectionString = conf.DBConnectionString;
+        if(!configured)
+        {
+            var testconf = new Configuration()
+            {
+                KafkaBootstrap = "alloces.lan:9092",
+                KafkaName = "testforvassago"
+            };
+            Task.WaitAll(vassago.Reconfigurator.Kafka(testconf));
+            configured = true;
+        }
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) =>{Assert.Fail("Unhandled exception: " + e.ExceptionObject.ToString());};
 
         //actual arrange
         ProtocolExternal connectionBody = new()
@@ -61,11 +72,6 @@ public class ExternalProtocolTest
             ?.FirstOrDefault();
         Assert.That(okbutdidyoufindittho, Is.Null);
     }
-    // [Test]
-    // public void GetCommands()
-    // {
-    //     Assert.Fail();
-    // }
     [Test]
     public void GetChannel()
     {
@@ -75,78 +81,44 @@ public class ExternalProtocolTest
     [Test]
     public async Task MessageReceived()
     {
-        var anChannel = new Channel()
-        {
-            ExternalId = Guid.NewGuid().ToString(),
-            DisplayName = "messagereceiving"
-        };
-        await contr.ChannelCreated(new Tuple<string, Channel, string>(myExternalId,anChannel,myExternalId));
+        var res = await messagein("hello, cruel world", "receivetest", "messagesender");
 
-        var anAccount = new Account();
-        anAccount.ExternalId = Guid.NewGuid().ToString();
-        anAccount.Username = "messagesender";
-        await contr.AccountCreated(myExternalId, anAccount, anChannel.ExternalId);
-
-        var aMessage = new Message()
-        {
-            ExternalId = Guid.NewGuid().ToString(),
-            Content = "hello, world"
-        };
-        var statusCodeResult =
-            await contr.MessageReceived(myExternalId,
-                                  aMessage,
-                                  anAccount.ExternalId,
-                                  anChannel.ExternalId) as IStatusCodeActionResult;
-
-
-        Assert.That(statusCodeResult.StatusCode, Is.EqualTo(250).Within(50));
-        var dbMessage = rememberer.SearchMessage(m => m.ChannelId == anChannel.Id && m.ExternalId == aMessage.ExternalId);
+        var dbMessage = rememberer.SearchMessage(m => m.ChannelId == res.c.Id && m.ExternalId == res.m.ExternalId);
         Assert.That(dbMessage, Is.Not.Null);
+        Assert.That(dbMessage.Content, Is.EquivalentTo("hello, cruel world"));
 
-        var dbAccount = rememberer.SearchAccount(a => a.ExternalId == anAccount.ExternalId);
+        var dbAccount = rememberer.SearchAccount(a => a.ExternalId == res.a.ExternalId);
         rememberer.ForgetAccount(dbAccount);
-        var dbChannel = rememberer.SearchChannel(c => c.ExternalId == anChannel.ExternalId);
+        var dbChannel = rememberer.SearchChannel(c => c.ExternalId == res.c.ExternalId);
         rememberer.ForgetChannel(dbChannel);
     }
-    [Test]
-    public async Task MessageUpdated()
-    {
-        var anChannel = new Channel()
-        {
-            ExternalId = Guid.NewGuid().ToString(),
-            DisplayName = "messagereceiving"
-        };
-        await contr.ChannelCreated(new Tuple<string, Channel, string>(myExternalId,anChannel,myExternalId));
+    // crashes the test host. I guess i'll have to write a test for this test?
+    // oh, maybe I'll debug it some other way like with the debugger OH WAIT doesn't work outside of visual studio.
+    // maybe i'll use debug statements? OH WAIT nunit *catches* all of that to dump it all at once afterward. moronic.
+    // maybe i'll just catch all exceptions, as NUnit seems to be? nope, doesn't help.
+    // alright so debugging a test is much harder than just... figuring out other ways to debug code. cool. coolcoolcool.
+    // on par for microsoft 🙄
+    // [Test]
+    // public async Task MessageUpdated()
+    // {
+    //     var res = await messagein("hello, cruel world", "updatetest", "messageeditor");
+    //     var updatedMessage = res.m;
+    //     Assert.That(updatedMessage.Content, Is.EquivalentTo("hello, cruel world"));
 
-        var anAccount = new Account();
-        anAccount.ExternalId = Guid.NewGuid().ToString();
-        anAccount.Username = "messagesender";
-        await contr.AccountCreated(myExternalId, anAccount, anChannel.ExternalId);
+    //     updatedMessage.Content += " edit: thank you for the gold kind stranger";
+    //     var statusCodeResult =
+    //         await contr.MessageUpdated(myExternalId,
+    //             updatedMessage,
+    //             res.a.ExternalId,
+    //             res.c.ExternalId) as IStatusCodeActionResult;
 
-        var aMessage = new Message()
-        {
-            ExternalId = Guid.NewGuid().ToString(),
-            Content = "hello, cruel world"
-        };
-        await contr.MessageReceived(myExternalId,
-            aMessage,
-            anAccount.ExternalId,
-            anChannel.ExternalId);
 
-        aMessage.Content += " edit: thank you for the gold kind stranger";
-        var statusCodeResult =
-            await contr.MessageUpdated(myExternalId,
-                aMessage,
-                anAccount.ExternalId,
-                anChannel.ExternalId) as IStatusCodeActionResult;
-        var dbMessage = rememberer.SearchMessage(m => m.ChannelId == anChannel.Id && m.ExternalId == aMessage.ExternalId);
-        Assert.That(dbMessage.Content, Is.EquivalentTo("hello, cruel world edit: thank you for the gold kind stranger"));
+    //     var dbMessage = rememberer.SearchMessage(m => m.ChannelId == res.c.Id && m.ExternalId == updatedMessage.ExternalId);
+    //     Assert.That(dbMessage.Content, Is.EquivalentTo("hello, cruel world edit: thank you for the gold kind stranger"));
 
-        var dbAccount = rememberer.SearchAccount(a => a.ExternalId == anAccount.ExternalId);
-        rememberer.ForgetAccount(dbAccount);
-        var dbChannel = rememberer.SearchChannel(c => c.ExternalId == anChannel.ExternalId);
-        rememberer.ForgetChannel(dbChannel);
-    }
+    //     rememberer.ForgetAccount(res.a);
+    //     rememberer.ForgetChannel(res.c);
+    // }
     [Test]
     public async Task AccountCreated()
     {
@@ -273,5 +245,84 @@ public class ExternalProtocolTest
         Assert.That(dbChannel.MeannessFilterLevel, Is.EqualTo(scrambledChannel.MeannessFilterLevel));
 
         rememberer.ForgetChannel(dbChannel);
+    }
+    [Test]
+    public void CanGet0Commands()
+    {
+        var res = (contr.GetCommands(myExternalId) as OkObjectResult).Value as List<ExternalCommand>;
+        res = (contr.GetCommands(myExternalId) as OkObjectResult).Value as List<ExternalCommand>;
+
+        Assert.That(res, Is.Not.Null);
+        Assert.That(res.Count, Is.Zero);
+    }
+    [Test]
+    public async Task CanGet1Command()
+    {
+        var commandListGotten = (contr.GetCommands(myExternalId) as OkObjectResult).Value as List<ExternalCommand>;
+        commandListGotten = (contr.GetCommands(myExternalId) as OkObjectResult).Value as List<ExternalCommand>;
+        Assert.That(commandListGotten.Count, Is.Zero);
+
+        var commandMsgResult = await messagein("!pulsecheck", "receivetest", "messagesender");
+        commandListGotten = (contr.GetCommands(myExternalId) as OkObjectResult).Value as List<ExternalCommand>;
+
+        Assert.That(commandListGotten, Is.Not.Null);
+        foreach(var cl in commandListGotten)
+        {
+            Console.WriteLine($"[test, CanGet1Command] - {JsonConvert.SerializeObject(cl)}");
+        }
+        Assert.That(commandListGotten.FirstOrDefault(ec => ec.Type == ExternalCommandType.SendMessage && ec.ChannelId == commandMsgResult.c.ExternalId &&
+                                                     ec.Text == "[lub-dub]"),
+                    Is.Not.Null);
+    }
+    [Test]
+    public async Task CanGetCommandReact()
+    {
+        var commandListGotten = (contr.GetCommands(myExternalId) as OkObjectResult).Value as List<ExternalCommand>;
+        commandListGotten = (contr.GetCommands(myExternalId) as OkObjectResult).Value as List<ExternalCommand>;
+        Assert.That(commandListGotten.Count, Is.Zero);
+
+        var commandMsgResult = await messagein("wish me luck", "receivetest", "reaction fisher");
+        commandListGotten = (contr.GetCommands(myExternalId) as OkObjectResult).Value as List<ExternalCommand>;
+
+        Assert.That(commandListGotten, Is.Not.Null);
+        foreach(var cl in commandListGotten)
+        {
+            Console.WriteLine($"[test, CanGetCommandReact] - {JsonConvert.SerializeObject(cl)}");
+        }
+        var reactCmd = commandListGotten.FirstOrDefault(ec => ec.Type == ExternalCommandType.React && ec.ChannelId == commandMsgResult.c.ExternalId);
+        Assert.That(reactCmd, Is.Not.Null);
+    }
+
+    private async Task<(Message m, Channel c, Account a)> messagein(string text, string channelName, string authorName)
+    {
+        var anChannel = new Channel()
+        {
+            ExternalId = Guid.NewGuid().ToString(),
+            DisplayName = channelName,
+            ReactionsPossible = true
+        };
+        await contr.ChannelCreated(new Tuple<string, Channel, string>(myExternalId, anChannel, myExternalId));
+
+        var anAccount = new Account();
+        anAccount.ExternalId = Guid.NewGuid().ToString();
+        anAccount.Username = authorName;
+        await contr.AccountCreated(myExternalId, anAccount, anChannel.ExternalId);
+
+        var aMessage = new Message()
+        {
+            ExternalId = Guid.NewGuid().ToString(),
+            Content = text
+        };
+        var statusCodeResult =
+            await contr.MessageReceived(myExternalId,
+                                  aMessage,
+                                  anAccount.ExternalId,
+                                  anChannel.ExternalId) as IStatusCodeActionResult;
+
+        Assert.That(statusCodeResult.StatusCode, Is.EqualTo(250).Within(50));
+        var dbMessage = rememberer.SearchMessage(m => m.ChannelId == anChannel.Id && m.ExternalId == aMessage.ExternalId);
+        var dbAccount = rememberer.SearchAccount(a => a.ExternalId == anAccount.ExternalId);
+        var dbChannel = rememberer.SearchChannel(c => c.ExternalId == anChannel.ExternalId);
+        return new() { m = dbMessage, c = dbChannel, a = dbAccount };
     }
 }

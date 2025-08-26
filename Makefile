@@ -10,12 +10,13 @@ connectionstr=Host=localhost;Database=${servicename}_dev;Username=${servicename}
 netframework=net8.0
 configuration=Debug
 
-.PHONY: test testsresults.html build clean db-* update-framework
+.PHONY: test TestResults/testsresults.html build clean db-* update-framework
 
-test: testsresults.html
-testsresults.html: vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll
+test: TestResults/testsresults.html
+TestResults/testsresults.html: vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll
 	echo test results.html. $(netframework), $(servicename), $(connectionstr)
-	dotnet test vassago.tests/vassago.tests.csproj --logger:"html;LogFileName=testsresults.html" --results-directory ./
+	rm -rf ./TestResults/
+	dotnet test --blame-hang-timeout 10000 vassago.tests/vassago.tests.csproj --logger:"html;LogFileName=testsresults.html" --results-directory ./TestResults
 vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll:vassago/bin/$(configuration)/$(netframework)/vassago.dll vassago.tests/*.cs
 	@echo tests.dll needed to build base vassago
 

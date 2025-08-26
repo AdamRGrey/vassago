@@ -45,7 +45,7 @@ public class ExternalRestful : ProtocolInterface
         CommandQueue.Add(new ExternalCommand()
         {
             Type = ExternalCommandType.SendMessage,
-            ChannelId = channel.Id,
+            ChannelId = channel.ExternalId,
             Text = text
         });
         return 200;
@@ -55,7 +55,7 @@ public class ExternalRestful : ProtocolInterface
         CommandQueue.Add(new ExternalCommand()
         {
             Type = ExternalCommandType.SendFile,
-            ChannelId = channel.Id,
+            ChannelId = channel.ExternalId,
             Text = accompanyingText,
             FileData = base64dData,
             FileName = filename
@@ -67,8 +67,9 @@ public class ExternalRestful : ProtocolInterface
         CommandQueue.Add(new ExternalCommand()
         {
             Type = ExternalCommandType.React,
-            MessageId = message.Id,
-            Text = reaction
+            MessageId = message.ExternalId,
+            Text = reaction,
+            ChannelId = message.Channel.ExternalId
         });
         return 200;
     }
@@ -77,7 +78,7 @@ public class ExternalRestful : ProtocolInterface
         CommandQueue.Add(new ExternalCommand()
         {
             Type = ExternalCommandType.Reply,
-            MessageId = message.Id,
+            MessageId = message.ExternalId,
             Text = text
         });
         return 200;
@@ -139,6 +140,7 @@ public class ExternalRestful : ProtocolInterface
                 msg.Content = message.Content;
                 msg.MentionsMe = message.MentionsMe;
                 msg.Timestamp = message.Timestamp;
+                //no no, *i* translate it?
                 msg.TranslatedContent = message.TranslatedContent;
                 r.RememberMessage(msg);
                 base.basedot_MessageUpdated(msg);
@@ -377,8 +379,8 @@ public class ExternalRestful : ProtocolInterface
 public class ExternalCommand
 {
     public ExternalCommandType Type { get; set; }
-    public Guid ChannelId { get; set; }
-    public Guid MessageId { get; set; }
+    public string ChannelId { get; set; }
+    public string MessageId { get; set; }
     ///<summary>
     ///or for reactions, reaction. for files, this will be the accompanying text.
     ///</summary>
