@@ -23,13 +23,13 @@ vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll:vassago/bin
 build:vassago/bin/$(configuration)/$(netframework)/vassago.dll
 vassago/bin/$(configuration)/$(netframework)/vassago.dll: vassago/*.cs vassago/*.json
 	dotnet build vassago/vassago.csproj
-	cp vassago/bin/$(configuration)/$(netframework)/ dist
+	cp -r vassago/bin/$(configuration)/$(netframework)/ dist
 	@echo base vassago needed to build
 
 clean:
 	dotnet clean vassago
 	dotnet clean vassago.tests
-	rm -rf vassago/bin vassago/obj vassago.tests/bin vassago.tests/obj
+	rm -rf vassago/bin vassago/obj vassago.tests/bin vassago.tests/obj dist
 
 update-framework:
 	@echo updating framework to $(netframework)
