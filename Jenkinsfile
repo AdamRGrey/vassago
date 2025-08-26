@@ -10,7 +10,6 @@ pipeline {
          stage("environment setup") { //my environment, here on the jenkins agent. as opposed to the service's environment.
             steps {
                 script {
-
                     sh """#!/bin/bash
                         function testcmd(){
                             if ! command -v \$1 2>&1 >/dev/null
@@ -32,7 +31,7 @@ pipeline {
                         testcmd dotnet
                         testcmd make
 
-                        dotnet tool install dotnet-ef
+                        dotnet tool install --local dotnet-ef
                     """
                 }
             }
