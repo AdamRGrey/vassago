@@ -65,7 +65,7 @@ public class Behaver
             behavior.ActOn(message);
             message.ActedOn = true;
             behaviorsActedOn.Add(behavior.ToString());
-            Console.WriteLine("acted on, moving forward");
+            //Console.WriteLine("acted on, moving forward");
         }
         if (message.ActedOn == false && message.MentionsMe && message.TranslatedContent.Contains('?') && !Behaver.Instance.SelfAccounts.Any(acc => acc.Id == message.Author.Id))
         {
@@ -85,7 +85,8 @@ public class Behaver
 
     internal async Task ForwardToKafka(Message message, List<string> actedOnBy, List<UAC> matchingUACs)
     {
-            return;
+        return;
+
         var kafkaesque = new chat_message()
         {
             MessageId = message.Id,
@@ -188,26 +189,26 @@ public class Behaver
     }
     public async Task<int> React(Guid messageId, string reaction)
     {
-        Console.WriteLine($"sanity check: behaver is reacting, {messageId}, {reaction}");
+        //Console.WriteLine($"sanity check: behaver is reacting, {messageId}, {reaction}");
         var message = r.MessageDetail(messageId);
         if (message == null)
         {
             Console.Error.WriteLine($"message {messageId} not found");
             return 404;
         }
-        Console.WriteLine($"sanity check: message found.");
+        //Console.WriteLine($"sanity check: message found.");
         if (message.Channel == null)
         {
             Console.Error.WriteLine($"react is going to fail because message {messageId} has no Channel");
         }
-        Console.WriteLine($"sanity check: message has a channel.");
+        //Console.WriteLine($"sanity check: message has a channel.");
         var iprotocol = fetchInterface(message.Channel);
         if (iprotocol == null)
         {
             Console.WriteLine($"couldn't find protocol for {message.Channel?.Id}");
             return 404;
         }
-        Console.WriteLine("I remember this message, i have found a protocol, i am ready to react toit");
+        //Console.WriteLine("I remember this message, i have found a protocol, i am ready to react toit");
         return await iprotocol.React(message, reaction);
     }
     public async Task<int> Reply(Guid messageId, string text)

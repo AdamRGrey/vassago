@@ -42,7 +42,7 @@ public class ExternalProtocolTest
             Style = ExternalProtocolStyle.Restful
         };
         var thisisnotanawait = contr.Connect(connectionBody).Result;
-        Console.WriteLine(thisisnotanawait);
+        //Console.WriteLine(thisisnotanawait);
         var ourProtocol = Shared.ProtocolList.FirstOrDefault(p => p is ExternalRestful && (p as ExternalRestful).SelfChannel.ExternalId == myExternalId) as ExternalRestful;
         Channel usableState = (contr.GetChannel(myExternalId) as OkObjectResult).Value as Channel;
     }
@@ -268,7 +268,7 @@ public class ExternalProtocolTest
         Assert.That(commandListGotten, Is.Not.Null);
         foreach(var cl in commandListGotten)
         {
-            Console.WriteLine($"[test, CanGet1Command] - {JsonConvert.SerializeObject(cl)}");
+            //Console.WriteLine($"[test, CanGet1Command] - {JsonConvert.SerializeObject(cl)}");
         }
         Assert.That(commandListGotten.FirstOrDefault(ec => ec.Type == ExternalCommandType.SendMessage && ec.ChannelId == commandMsgResult.c.ExternalId &&
                                                      ec.Text == "[lub-dub]"),
@@ -287,7 +287,7 @@ public class ExternalProtocolTest
         Assert.That(commandListGotten, Is.Not.Null);
         foreach(var cl in commandListGotten)
         {
-            Console.WriteLine($"[test, CanGetCommandReact] - {JsonConvert.SerializeObject(cl)}");
+            //Console.WriteLine($"[test, CanGetCommandReact] - {JsonConvert.SerializeObject(cl)}");
         }
         var reactCmd = commandListGotten.FirstOrDefault(ec => ec.Type == ExternalCommandType.React && ec.ChannelId == commandMsgResult.c.ExternalId);
         Assert.That(reactCmd, Is.Not.Null);

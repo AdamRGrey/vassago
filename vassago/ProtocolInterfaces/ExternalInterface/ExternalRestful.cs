@@ -32,12 +32,12 @@ public class ExternalRestful : ProtocolInterface
                 ExternalId = cfg.ExternalId,
                 Protocol = ExternalRestful.Protocol
             };
-            Console.WriteLine("[ExternalRestful.Init] creating new channel");
+            //Console.WriteLine("[ExternalRestful.Init] creating new channel");
             protocolAsChannel = r.RememberChannel(protocolAsChannel);
         }
         else
         {
-            Console.WriteLine("[ExternalRestful.Init] found old channel");
+            //Console.WriteLine("[ExternalRestful.Init] found old channel");
         }
     }
     public override async Task<int> SendMessage(Channel channel, string text)
@@ -113,7 +113,7 @@ public class ExternalRestful : ProtocolInterface
         if (authoringAccount == null) return 404;
         message.Author = authoringAccount;
 
-        Console.WriteLine($"received message; author: {message.Author.DisplayName}, {message.Author.Id}. messageid:{message.Id}");
+        //Console.WriteLine($"received message; author: {message.Author.DisplayName}, {message.Author.Id}. messageid:{message.Id}");
         r.RememberMessage(message);
         base.basedot_MessageReceived(message);
         return 202;
@@ -155,18 +155,18 @@ public class ExternalRestful : ProtocolInterface
     ///</summary>
     public async Task<int> ExternalChannelJoin(Channel channel, string parentChannelId)
     {
-        Console.WriteLine($"[externalrestful.ExternalChannelJoin] for {channel?.ExternalId}");
+        //Console.WriteLine($"[externalrestful.ExternalChannelJoin] for {channel?.ExternalId}");
         if (String.IsNullOrWhiteSpace(channel?.ExternalId))
         {
-            Console.Error.WriteLine($"[externalrestful.ExternalChannelJoin] no external id specified");
+            //Console.Error.WriteLine($"[externalrestful.ExternalChannelJoin] no external id specified");
             return 400;
         }
 
         var found = getMyChannel(channel.ExternalId);
-        Console.WriteLine($"[externalrestful.ExternalChannelJoin] my channel found? {found != null}");
+        //Console.WriteLine($"[externalrestful.ExternalChannelJoin] my channel found? {found != null}");
         if (found != null)
         {
-            Console.Error.WriteLine($"[externalrestful.ExternalChannelJoin] already in a channel with that ID");
+            //Console.Error.WriteLine($"[externalrestful.ExternalChannelJoin] already in a channel with that ID");
             return 409;
         }
 
@@ -175,14 +175,14 @@ public class ExternalRestful : ProtocolInterface
         immediateParent.SubChannels.Add(channel);
         channel.ParentChannel = immediateParent;
         r.RememberChannel(channel);
-        Console.WriteLine($"[externalrestful.ExternalChannelJoin] joined channel {channel.DisplayName}/{channel.ExternalId} - {channel.Id}");
+        //Console.WriteLine($"[externalrestful.ExternalChannelJoin] joined channel {channel.DisplayName}/{channel.ExternalId} - {channel.Id}");
 
         base.basedot_ChannelJoined(channel);
         return 201;
     }
     public async Task<int> ExternalChannelUpdate(Channel updatedChannel, string parentChannelId)
     {
-        Console.WriteLine("[ExternalChannelUpdate]");
+        //Console.WriteLine("[ExternalChannelUpdate]");
         var otherTasks = new List<Task>();
         protocolAsChannel = r.SearchChannel(c => c.Id == protocolAsChannel.Id);
 
@@ -204,7 +204,7 @@ public class ExternalRestful : ProtocolInterface
                 return 400;
             }
 
-            Console.WriteLine($"[ExternalChannelUpdate] - reorganizing, {dbChannel.ParentChannel?.ExternalId} --> {parentChannelId}");
+            //Console.WriteLine($"[ExternalChannelUpdate] - reorganizing, {dbChannel.ParentChannel?.ExternalId} --> {parentChannelId}");
             var adoptiveParent = getMyChannel(parentChannelId);
             if (adoptiveParent == null)
             {
@@ -224,7 +224,7 @@ public class ExternalRestful : ProtocolInterface
         }
         else
         {
-            Console.WriteLine($"[ExternalChannelUpdate] - no need to reorganize");
+            //Console.WriteLine($"[ExternalChannelUpdate] - no need to reorganize");
         }
 
         dbChannel.ChannelType = updatedChannel.ChannelType;
@@ -235,12 +235,12 @@ public class ExternalRestful : ProtocolInterface
         dbChannel.ReactionsPossible = updatedChannel.ReactionsPossible;
         dbChannel.LewdnessFilterLevel = updatedChannel.LewdnessFilterLevel;
         dbChannel.MeannessFilterLevel= updatedChannel.MeannessFilterLevel;
-        Console.WriteLine($"[ExternalChannelUpdate] - stuff updated. remembering.");
+        //Console.WriteLine($"[ExternalChannelUpdate] - stuff updated. remembering.");
         otherTasks.Add(Task.Run(() => r.RememberChannel(dbChannel)));
 
         foreach (var t in otherTasks)
             await t;
-        Console.WriteLine($"[ExternalChannelUpdate] - tasks ready. firing event.");
+        //Console.WriteLine($"[ExternalChannelUpdate] - tasks ready. firing event.");
         base.basedot_ChannelUpdated(dbChannel);
         return 200;
     }
@@ -296,54 +296,14 @@ public class ExternalRestful : ProtocolInterface
         base.basedot_AccountUpdated(already);
         return 200;
     }
-    // private Tuple<Channel, List<Channel>> getMyChannel(string channelExternalId)
-    // {
-    //     Console.WriteLine($"[getMyChannel a]({channelExternalId})");
-    //     if (! (lineage?.Count > 0))
-    //         throw new ArgumentNullException("lineage");
-
-    //     var pathDown = new List<Channel>() { protocolAsChannel };
-    //     var last = pathDown.Last();
-    //     if (lineage?.Count > 0) foreach (var externalId in lineage)
-    //         {
-    //             if (last?.ExternalId == channelExternalId)
-    //             {
-    //                 Console.WriteLine($"[getMyChannel a] found it.");
-    //                 break;
-    //             }
-    //             last = pathDown.Last();
-    //             var child = last.SubChannels?.FirstOrDefault(c => c.ExternalId == externalId);
-    //             if (child == null)
-    //             {
-    //                 Console.WriteLine($"[getMyChannel a] the path you gave me doesn't lead to the channel. (presently: {string.Join('/', from c in pathDown select c.ExternalId)})");
-    //                 return new Tuple<Channel, List<Channel>>(null, pathDown);
-    //             }
-    //             else
-    //             {
-    //                 pathDown.Add(child);
-    //             }
-    //         }
-
-    //     var dbChannel = last.SubChannels.FirstOrDefault(c => c.ExternalId == channelExternalId);
-    //     if (dbChannel == null)
-    //     {
-    //         Console.WriteLine($"[getMyChannel a] path is valid, but couldn't find that channel.");
-    //         return getMyChannel(channelExternalId);
-    //     }
-    //     else
-    //     {
-    //         Console.WriteLine($"[getMyChannel a] the happy path  - found channel, on exactly provided path");
-    //         return new Tuple<Channel, List<Channel>>(dbChannel, pathDown);
-    //     }
-    // }
     private Channel getMyChannel(string channelExternalId)
     {
         var dbChannel = r.SearchChannel(c => c.ExternalId == channelExternalId);
-        Console.WriteLine($"[getMyChannel]({channelExternalId}) - found channel? {dbChannel != null}");
+        //Console.WriteLine($"[getMyChannel]({channelExternalId}) - found channel? {dbChannel != null}");
         if (dbChannel == null) return null;
 
         //ok it is *a* channel... but is it *our* channel?
-        Console.WriteLine($"[getMyChannel] - the goal is to find {protocolAsChannel.ExternalId} (interally known as {protocolAsChannel.Id}");
+        //Console.WriteLine($"[getMyChannel] - the goal is to find {protocolAsChannel.ExternalId} (interally known as {protocolAsChannel.Id}");
         var walkUp = dbChannel;
         var loopCheckBreadcrumbs = new List<Channel>();
         while (!loopCheckBreadcrumbs.Contains(walkUp))
@@ -357,24 +317,19 @@ public class ExternalRestful : ProtocolInterface
             if (walkUp.Id == protocolAsChannel.Id)
             {
                 protocolAsChannel = walkUp;
-                Console.WriteLine($"[getMyChannel] - walking up, did we hit the top? {walkUp.Id == protocolAsChannel.Id} did we *pass* the top? {walkUp == null}");
+                //Console.WriteLine($"[getMyChannel] - walking up, did we hit the top? {walkUp.Id == protocolAsChannel.Id} did we *pass* the top? {walkUp == null}");
                 loopCheckBreadcrumbs.Reverse();
-                Console.WriteLine($"[getMyChannel] found channel along {string.Join('/', from c in loopCheckBreadcrumbs select c.ExternalId)}");
+                //Console.WriteLine($"[getMyChannel] found channel along {string.Join('/', from c in loopCheckBreadcrumbs select c.ExternalId)}");
                 return dbChannel;
             }
 
-            Console.WriteLine($"[getMyChannel] - walking up, stepping from {walkUp.ExternalId} (internally known as {walkUp.Id}) to its parent...");
+            //Console.WriteLine($"[getMyChannel] - walking up, stepping from {walkUp.ExternalId} (internally known as {walkUp.Id}) to its parent...");
             walkUp = walkUp.ParentChannel;
         }
 
-        Console.WriteLine($"[getMyChannel] failed to find channel, probably found a loop");
+        //Console.WriteLine($"[getMyChannel] failed to find channel, probably found a loop");
         return null;
     }
-    // public User UserFor(Account account)
-    // {
-    //     //i should probably do this in all of these because i'll need it all the time and it's a compl- wait. it's a 1-liner.
-    //     return protocolAsChannel.Users?.FirstOrDefault(acc => acc.ExternalId == account.ExternalId)?.IsUser;
-    // }
 }
 public class ExternalCommand
 {

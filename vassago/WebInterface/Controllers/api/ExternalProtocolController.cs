@@ -208,11 +208,11 @@ public class ExternalProtocolController : ControllerBase
     [Route("ChannelUpdated")]
     public async Task<IActionResult> ChannelUpdated(Tuple<string, Channel, string> parameters)
     {
-        Console.WriteLine($"[api ChannelUpdated]");
+        //Console.WriteLine($"[api ChannelUpdated]");
         string protocolExternalId = parameters.Item1;
         Channel channel = parameters.Item2;
         string parentChannelId = parameters.Item3;
-        Console.WriteLine($"[api ChannelUpdated] - present? {!string.IsNullOrWhiteSpace(protocolExternalId)}, {channel != null}, {!string.IsNullOrWhiteSpace(parentChannelId)}");
+        //Console.WriteLine($"[api ChannelUpdated] - present? {!string.IsNullOrWhiteSpace(protocolExternalId)}, {channel != null}, {!string.IsNullOrWhiteSpace(parentChannelId)}");
 
         var extproto = Shared.ProtocolList.FirstOrDefault(p => (p as ExternalRestful) != null && (p as ExternalRestful).SelfChannel.ExternalId == protocolExternalId)
             as ExternalRestful;
@@ -221,7 +221,7 @@ public class ExternalProtocolController : ControllerBase
             Console.Error.WriteLine($"[api ChannelUpdate] = couldn't find external protocol handler for {protocolExternalId}");
             return NotFound();
         }
-        Console.WriteLine($"[api ChannelUpdated] - looks good, shoving off on the protocol handler object");
+        //Console.WriteLine($"[api ChannelUpdated] - looks good, shoving off on the protocol handler object");
 
         return StatusCode(await extproto.ExternalChannelUpdate(channel, parentChannelId));
     }
