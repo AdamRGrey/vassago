@@ -22,7 +22,8 @@ vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll:vassago/bin
 
 build:vassago/bin/$(configuration)/$(netframework)/vassago.dll
 vassago/bin/$(configuration)/$(netframework)/vassago.dll: vassago/*.cs vassago/*.json
-	dotnet build vassago/vassago.csproj --output vassago/dist
+	dotnet build vassago/vassago.csproj
+	mv vassago/bin/$(configuration)/$(netframework)/ dist/
 	@echo base vassago needed to build
 
 clean:
