@@ -51,8 +51,11 @@ pipeline {
         }
         stage('Test') {
             steps{
-                sh 'cp dist/appsettings.json vassago.tests/ 2>/dev/null'
-                sh 'cp dist/appsettings.*.json vassago.tests/ 2>/dev/null'
+                sh '''#!/bin/bash
+                    cp dist/appsettings.json vassago.tests/
+                    [[ -e dist/appsettings.*.json ]] && cp dist/appsettings.*.json vassago.tests/
+                '''
+
                 sh 'make test configuration=Release'
                 archiveArtifacts artifacts: 'TestResults/testsresults.html'
             }
