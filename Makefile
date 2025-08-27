@@ -17,6 +17,7 @@ TestResults/testsresults.html: vassago.tests/bin/$(configuration)/$(netframework
 	echo test results.html. $(netframework), $(servicename), $(connectionstr)
 	rm -rf ./TestResults/
 	dotnet test --blame-hang-timeout 10000 vassago.tests/vassago.tests.csproj --logger:"html;LogFileName=testsresults.html" --results-directory ./TestResults
+
 vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll:vassago/bin/$(configuration)/$(netframework)/vassago.dll vassago.tests/*.cs
 	@echo tests.dll needed to build base vassago
 
