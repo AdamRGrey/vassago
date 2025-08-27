@@ -52,8 +52,12 @@ pipeline {
         stage('Test') {
             steps{
                 sh '''#!/bin/bash
+
+                    echo "hello from bash. if jenkins deigns to print it. You know how unreliable reliability things are."
                     cp dist/appsettings.json vassago.tests/
+                    echo "easy part done"
                     [[ -e dist/appsettings.*.json ]] && cp dist/appsettings.*.json vassago.tests/
+                    echo "hard aprt done"
                 '''
 
                 sh 'make test configuration=Release'
