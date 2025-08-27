@@ -13,7 +13,7 @@ configuration=Debug
 .PHONY: test TestResults/testsresults.html build clean db-* update-framework
 
 test: TestResults/testsresults.html
-TestResults/testsresults.html: vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll
+TestResults/testsresults.html: vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll vassago/bin/$(configuration)/$(netframework)/vassago.dll
 	echo test results.html. $(netframework), $(servicename), $(connectionstr)
 	rm -rf ./TestResults/
 	dotnet test --blame-hang-timeout 10000 vassago.tests/vassago.tests.csproj --logger:"html;LogFileName=testsresults.html" --results-directory ./TestResults
