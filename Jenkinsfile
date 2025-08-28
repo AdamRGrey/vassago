@@ -20,6 +20,7 @@ pipeline {
                             fi    
                         }
 
+                        testcmd bash 
                         testcmd mktemp
                         testcmd curl
                         testcmd git
@@ -40,7 +41,8 @@ pipeline {
         stage('clean old'){
             steps{
                 sh '''#!/bin/bash
-                    make clean
+                    echo "bash bashy bash"
+                    bash -c make clean configuration=Release databasename=vassago
                 '''
                 sh 'rm -rf dist'
             }
