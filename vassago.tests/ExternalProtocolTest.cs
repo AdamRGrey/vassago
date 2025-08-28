@@ -9,20 +9,24 @@ using vassago.ProtocolInterfaces;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 public class ExternalProtocolTest
 {
     Rememberer rememberer = Rememberer.Instance;
     private static string myExternalId = Guid.NewGuid().ToString();
     private static ExternalProtocolController contr = new ExternalProtocolController(Substitute.For<ILogger<vassago.Controllers.api.ExternalProtocolController>>());
-    private static ProgramConfiguration conf = new ProgramConfiguration();
     private static bool configured = false;
     [SetUp]
     public void Setup()
     {
         //jump through hoops to get nunit to cooperate (a.k.a. "arrange") - appsettings is specified via the .csproj to get copied from the target project to this test project
-        conf = JsonConvert.DeserializeObject<ProgramConfiguration>(File.ReadAllText("appsettings.Development.json"));
-        Shared.DBConnectionString = conf.DBConnectionString;
+        var configuration = (IConfiguration)new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json")
+            .Build();
+        Console.WriteLine(configuration["DBConnectionString"]);
+        Shared.DBConnectionString = configuration["DBConnectionString"];
         if(!configured)
         {
             var testconf = new Configuration()
