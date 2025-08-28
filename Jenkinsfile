@@ -45,7 +45,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh 'make build configuration=Release'
+                sh 'make build configuration=Release databasename=vassago'
                 archiveArtifacts artifacts: 'dist/*'
             }
         }
@@ -56,8 +56,9 @@ pipeline {
                     [[ -e dist/appsettings.Development.json ]] && cp dist/appsettings.Development.json vassago.tests/
                     [[ -e dist/appsettings.Release.json ]] && cp dist/appsettings.Release.json vassago.tests/
                     '''
-
-                sh 'make test configuration=Release'
+                sh '''#!/bin/bash
+                   make test configuration=Release databasename=vassago
+                '''
                 archiveArtifacts artifacts: 'TestResults/testsresults.html'
             }
         }
