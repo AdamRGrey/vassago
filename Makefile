@@ -78,6 +78,7 @@ db-wipe:
 	rm tables.csv
 db-setuptest: db-dump
 	psql -c "DROP DATABASE IF EXISTS ${databasename}_test"
+#psst, jenkins. UPDATE.
 	psql -c "create database ${databasename}_test;"
 	psql -c "grant all privileges on database ${databasename}_test to ${serviceusername};"
 	psql -d "${databasename}_test" -c "GRANT ALL ON SCHEMA public TO ${serviceusername}"
