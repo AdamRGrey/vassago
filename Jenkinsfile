@@ -39,13 +39,17 @@ pipeline {
         }
         stage('clean old'){
             steps{
-                sh 'make clean'
+                sh '''#!/bin/bash
+                    make clean
+                '''
                 sh 'rm -rf dist'
             }
         }
         stage('Build') {
             steps {
-                sh 'make build configuration=Release databasename=vassago'
+                sh '''#!/bin/bash
+                    make build configuration=Release databasename=vassago
+                '''
                 archiveArtifacts artifacts: 'dist/*'
             }
         }
