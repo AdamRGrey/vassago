@@ -41,7 +41,6 @@ pipeline {
         stage('clean old'){
             steps{
                 sh '''#!/bin/bash
-                    echo "bash bashy bash"
                     bash -c make clean configuration=Release databasename=vassago
                 '''
                 sh 'rm -rf dist'
