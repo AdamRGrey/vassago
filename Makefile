@@ -33,7 +33,7 @@ clean:
 	dotnet clean vassago
 	dotnet clean vassago.tests
 	rm -rf vassago/bin vassago/obj vassago.tests/bin vassago.tests/obj dist
-	psql -h localhost -U postgres -d postgres <<< "SELECT 'DROP DATABASE ${databasename}_test' WHERE EXISTS (SELECT FROM pg_database WHERE datname = '${databasename}_test')\\gexec"
+	psql -h localhost -d postgres <<< "SELECT 'DROP DATABASE ${databasename}_test' WHERE EXISTS (SELECT FROM pg_database WHERE datname = '${databasename}_test')\\gexec"
 #psql -h localhost -U ${serviceusername} -d postgres <<< "SELECT 'DROP DATABASE ${databasename}_test' WHERE EXISTS (SELECT FROM pg_database WHERE datname = '${databasename}_test')\\gexec"
 
 update-framework:
@@ -51,38 +51,38 @@ update-framework:
 #microsoft. why. microsoft. do you understand the problem, microsoft? i'm worried you don't think this is an absurd thing to have done.
 
 db-initial:
-	psql -h localhost -U postgres -c "create database ${serviceusername};"
-	psql -h localhost -U postgres -c "create user ${serviceusername} with encrypted password '$(pw_database)';"
-	psql -h localhost -U postgres -c "grant all privileges on database ${databasename} to ${serviceusername};"
-	psql -h localhost -U postgres -d "${databasename}" -c "GRANT ALL ON SCHEMA public TO ${serviceusername}"
+	psql -h localhost -c "create database ${serviceusername};"
+	psql -h localhost -c "create user ${serviceusername} with encrypted password '$(pw_database)';"
+	psql -h localhost -c "grant all privileges on database ${databasename} to ${serviceusername};"
+	psql -h localhost -d "${databasename}" -c "GRANT ALL ON SCHEMA public TO ${serviceusername}"
 
 	cp vassago/appsettings.sample.json vassago/appsettings.json
 	$(MAKE) db-update
 db-update:
 	cd vassago; dotnet ef database update --connection "$(connectionstr)"
 db-fullreset:
-	psql -h localhost -U postgres -c "drop database ${databasename};"
-	psql -h localhost -U postgres -c "drop user ${serviceusername}"
+	psql -h localhost -c "drop database ${databasename};"
+	psql -h localhost -c "drop user ${serviceusername}"
 	$(MAKE) db-initial
 db-addmigration:
 	cd vassago; dotnet ef migrations add "$(migrationname)"
 	cd vassago; dotnet ef database update --connection "${connectionstr}"
 db-dump:
-	pg_dump -h localhost -U postgres ${databasename} >dumpp
+	pg_dump -h localhost ${databasename} >dumpp
 db-wipe:
 	touch tables.csv
 	chmod 777 tables.csv
-	psql -h localhost -U postgres -d ${databasename} -c "select table_name from information_schema.tables where table_schema='public' AND table_name <> '__EFMigrationsHistory';" --csv -o tables.csv
+	psql -h localhost -d ${databasename} -c "select table_name from information_schema.tables where table_schema='public' AND table_name <> '__EFMigrationsHistory';" --csv -o tables.csv
 	sed -i 1d tables.csv
-	while read p; do psql -h localhost -U postgres -d ${databasename} -c "TRUNCATE \"$$p\" RESTART IDENTITY CASCADE;"; done<tables.csv
+	while read p; do psql -h localhost -d ${databasename} -c "TRUNCATE \"$$p\" RESTART IDENTITY CASCADE;"; done<tables.csv
 	rm tables.csv
 db-setuptest: db-dump
 # postgres may be love, postgres may be life, but it doesn't have "create database if not exists". or "drop if exists". or "wipe only data".
-	psql -h localhost -U postgres <<< "SELECT 'DROP DATABASE ${databasename}_test' WHERE EXISTS (SELECT FROM pg_database WHERE datname = '${databasename}_test')\\gexec"
-	psql -h localhost -U postgres -c "create database ${databasename}_test;"
-	psql -h localhost -U postgres -c "grant all privileges on database ${databasename}_test to ${serviceusername};"
-	psql -h localhost -U postgres -d "${databasename}_test" -c "GRANT ALL ON SCHEMA public TO ${serviceusername}"
+	psql -h localhost <<< "SELECT 'DROP DATABASE ${databasename}_test' WHERE EXISTS (SELECT FROM pg_database WHERE datname = '${databasename}_test')\\gexec"
+	psql -h localhost -c "create database ${databasename}_test;"
+	psql -h localhost -c "grant all privileges on database ${databasename}_test to ${serviceusername};"
+	psql -h localhost -d "${databasename}_test" -c "GRANT ALL ON SCHEMA public TO ${serviceusername}"
 
-	psql -h localhost -U postgres -d "${databasename}_test" -1 -f dumpp
+	psql -h localhost -d "${databasename}_test" -1 -f dumpp
 	rm dumpp
 	echo "Host=localhost;Database=${databasename}_test;Username=${serviceusername};Password=${pw_database};IncludeErrorDetail=true;" > vassago.tests/testdb-connectionstring.txt
