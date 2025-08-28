@@ -33,7 +33,7 @@ clean:
 	dotnet clean vassago
 	dotnet clean vassago.tests
 	rm -rf vassago/bin vassago/obj vassago.tests/bin vassago.tests/obj dist
-	psql -d postgres <<< "SELECT 'DROP DATABASE ${databasename}_test' WHERE EXISTS (SELECT FROM pg_database WHERE datname = '${databasename}_test')\\gexec"
+	psql -c "DROP DATABASE IF EXISTS ${databasename}_test"
 #psql -U ${serviceusername} -d postgres <<< "SELECT 'DROP DATABASE ${databasename}_test' WHERE EXISTS (SELECT FROM pg_database WHERE datname = '${databasename}_test')\\gexec"
 
 update-framework:
@@ -78,7 +78,6 @@ db-wipe:
 	rm tables.csv
 db-setuptest: db-dump
 	psql -c "DROP DATABASE IF EXISTS ${databasename}_test"
-#psst, jenkins. UPDATE.
 	psql -c "create database ${databasename}_test;"
 	psql -c "grant all privileges on database ${databasename}_test to ${serviceusername};"
 	psql -d "${databasename}_test" -c "GRANT ALL ON SCHEMA public TO ${serviceusername}"
