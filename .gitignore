@@ -3,6 +3,7 @@ assets/exchangepairs.json
 fail*/
 .projectile
 dist
+vassago.tests/testdb-connectionstring.txt
 
 # ---> VisualStudio
 ## Ignore Visual Studio temporary files, build results, and

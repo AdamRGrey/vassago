@@ -13,7 +13,7 @@ using Microsoft.Extensions.Configuration;
 
 public class ExternalProtocolTest
 {
-    Rememberer rememberer = Rememberer.Instance;
+    Rememberer rememberer;
     private static string myExternalId = Guid.NewGuid().ToString();
     private static ExternalProtocolController contr = new ExternalProtocolController(Substitute.For<ILogger<vassago.Controllers.api.ExternalProtocolController>>());
     private static bool configured = false;
@@ -21,14 +21,10 @@ public class ExternalProtocolTest
     public void Setup()
     {
         //jump through hoops to get nunit to cooperate (a.k.a. "arrange") - appsettings is specified via the .csproj to get copied from the target project to this test project
-        var configuration = (IConfiguration)new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json")
-            .Build();
-        Console.WriteLine(configuration["DBConnectionString"]);
-        Shared.DBConnectionString = configuration["DBConnectionString"];
         if(!configured)
         {
+            Shared.DBConnectionString = File.ReadAllText("testdb-connectionstring.txt");
+            rememberer = Rememberer.Instance;
             var testconf = new Configuration()
             {
                 KafkaBootstrap = "alloces.lan:9092",

@@ -27,14 +27,9 @@
     <ProjectReference Include="..\vassago\vassago.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="..\vassago\appsettings.json">
+    <None Update="testdb-connectionstring.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="..\vassago\appsettings.Development.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="..\vassago\appsettings.Release.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+
   </ItemGroup>
 </Project>

@@ -55,7 +55,6 @@ pipeline {
                     cp dist/appsettings.json vassago.tests/
                     [[ -e dist/appsettings.Development.json ]] && cp dist/appsettings.Development.json vassago.tests/
                     [[ -e dist/appsettings.Release.json ]] && cp dist/appsettings.Release.json vassago.tests/
-                    jq -s '.[0] * .[1] * .[2]' vassago.tests/appsettings.json vassago.tests/appsettings.Development.json vassago.tests/appsettings.Release.json
                     '''
 
                 sh 'make test configuration=Release'
