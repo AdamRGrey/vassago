@@ -77,8 +77,7 @@ db-wipe:
 	while read p; do psql -d ${databasename} -c "TRUNCATE \"$$p\" RESTART IDENTITY CASCADE;"; done<tables.csv
 	rm tables.csv
 db-setuptest: db-dump
-# postgres may be love, postgres may be life, but it doesn't have "create database if not exists". or "drop if exists". or "wipe only data".
-	psql <<< "SELECT 'DROP DATABASE ${databasename}_test' WHERE EXISTS (SELECT FROM pg_database WHERE datname = '${databasename}_test')\\gexec"
+	psql -c "DROP DATABASE IF EXISTS ${databasename}_test"
 	psql -c "create database ${databasename}_test;"
 	psql -c "grant all privileges on database ${databasename}_test to ${serviceusername};"
 	psql -d "${databasename}_test" -c "GRANT ALL ON SCHEMA public TO ${serviceusername}"
