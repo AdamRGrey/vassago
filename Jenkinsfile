@@ -57,11 +57,6 @@ pipeline {
         stage('Test') {
             steps{
                 sh '''#!/bin/bash
-                    cp dist/appsettings.json vassago.tests/
-                    [[ -e dist/appsettings.Development.json ]] && cp dist/appsettings.Development.json vassago.tests/
-                    [[ -e dist/appsettings.Release.json ]] && cp dist/appsettings.Release.json vassago.tests/
-                    '''
-                sh '''#!/bin/bash
                    make test configuration=Release databasename=vassago
                 '''
                 archiveArtifacts artifacts: 'TestResults/testsresults.html'
