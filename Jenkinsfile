@@ -3,8 +3,9 @@ pipeline {
     environment {
         linuxServiceAccount=credentials("a83b97d0-dbc6-42d9-96c9-f07a7f2dfab5")
         linuxServiceAccountID="3ca1be00-3d9f-42a1-bab2-48a4d7b99fb0"
-        database_connectionString=credentials("7ab58922-c647-42e5-ae15-84faa0c1ee7d")
-        database_connectionStringTest=credentials("7ab58922-c647-42e5-ae15-84faa0c1ee7d")
+        database_password_prod=credentials("7ab58922-c647-42e5-ae15-84faa0c1ee7d")
+        database_password_test=credentials("7ab58922-c647-42e5-ae15-84faa0c1ee7d")
+            //database_connectionString=credentials("7ab58922-c647-42e5-ae15-84faa0c1ee7d")
         targetHost="alloces.lan"
     }
     stages {
@@ -51,7 +52,6 @@ pipeline {
                 sh '''#!/bin/bash
                     make build configuration=Release databasename=vassago
                 '''
-                archiveArtifacts artifacts: 'dist/*'
             }
         }
         stage('Test') {
@@ -72,6 +72,7 @@ pipeline {
             steps{
                 withCredentials([sshUserPrivateKey(credentialsId: env.linuxServiceAccountID, keyFileVariable: 'PK')])
                 {
+                    archiveArtifacts artifacts: 'dist/*'
                     sh """#!/bin/bash
                         ssh -i \"${PK}\" -tt ${linuxServiceAccount_USR}@${targetHost} 'rm -rf temp_deploy'
                         rsync -e \"ssh -i \"${PK}\"\" -a dist/ ${linuxServiceAccount_USR}@${env.targetHost}:temp_deploy/
@@ -101,11 +102,13 @@ pipeline {
             steps{
                 //TODO: backup database
                 sh """#!/bin/bash
+                    make db-dump configuration=Release databasename=vassago
                 """
                 
                 sh """#!/bin/bash
-                    dotnet ef database update --connection "${env.database_connectionString}"
+                    make db-update  pw_database=${env.database_password_prod}
                 """
+                //dotnet ef database update --connection "Host=localhost;Database=vassago_prod;Username=vassago;Password=${env.database_password_prod};IncludeErrorDetail=true;"
                 //TODO: if updating the db fails, restore the old one
                 sh """#!/bin/bash
                 """

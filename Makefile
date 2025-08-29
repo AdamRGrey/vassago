@@ -69,6 +69,8 @@ db-addmigration:
 	cd vassago; dotnet ef database update --connection "${connectionstr}"
 db-dump:
 	pg_dump ${databasename} >dumpp
+db-recover:
+	psql -d "${databasename}" -1 -f dumpp
 db-wipe:
 	touch tables.csv
 	chmod 777 tables.csv
