@@ -43,8 +43,13 @@ pipeline {
                 sh '''#!/bin/bash
                 #https://devops.stackexchange.com/questions/13905/why-does-jenkins-pipeline-script-returnstatus-value-not-match-status-examined-in
                     make clean configuration=Release databasename=vassago pw_database=$database_password_prod
-                    echo "$?">jenkins-result.txt
-                '''
+                    if $?
+                    then
+                        #no-op
+                    else
+                        1
+                    fi
+                 '''
                 sh 'rm -rf dist'
             }
         }
@@ -52,8 +57,13 @@ pipeline {
             steps {
                 sh '''#!/bin/bash
                     make build configuration=Release databasename=vassago pw_database=$database_password_prod
-                    echo "$?">jenkins-result.txt
-                '''
+                    if $?
+                    then
+                        #no-op
+                    else
+                        1
+                    fi
+                 '''
             }
         }
         stage('Test') {
@@ -61,8 +71,12 @@ pipeline {
                 sh '''#!/bin/bash
                     make vassago.tests/testdb-connectionstring.txt pw_database=$database_password_prod
                     make test configuration=Release databasename=vassago pw_database=$database_password_prod
-                    echo "$?">jenkins-result.txt
-                    echo "make test gave me result $?"
+                    if $?
+                    then
+                        #no-op
+                    else
+                        1
+                    fi
                 '''
 
                 archiveArtifacts artifacts: 'TestResults/testsresults.html'
