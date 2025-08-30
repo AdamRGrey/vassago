@@ -62,6 +62,7 @@ pipeline {
                     make vassago.tests/testdb-connectionstring.txt pw_database=$database_password_prod
                     retstatus=$(make test configuration=Release databasename=vassago pw_database=$database_password_prod)
                     echo retstatus>jenkins-result.txt
+                    echo "make test gave me result $retstatus"
                 '''
 
                 archiveArtifacts artifacts: 'TestResults/testsresults.html'
