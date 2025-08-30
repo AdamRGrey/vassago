@@ -57,10 +57,10 @@ pipeline {
         stage('Test') {
             steps{
                 sh '''#!/bin/bash
-                   make vassago.tests/testdb-connectionstring.txt pw_database=$database_password_prod
-                   make test configuration=Release databasename=vassago pw_database=$database_password_prod
+                    make vassago.tests/testdb-connectionstring.txt pw_database=$database_password_prod
+                    make test configuration=Release databasename=vassago pw_database=$database_password_prod
+                    rm vassago.tests/testdb-connectionstring.txt
                 '''
-                sh "rm vassago.tests/testdb-connectionstring.txt"
 
                 archiveArtifacts artifacts: 'TestResults/testsresults.html'
             }
