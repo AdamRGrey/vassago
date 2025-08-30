@@ -42,7 +42,7 @@ pipeline {
         stage('clean old'){
             steps{
                 sh '''#!/bin/bash
-                    make clean configuration=Release databasename=vassago pw_database=${env.database_password_prod}
+                    make clean configuration=Release databasename=vassago pw_database=$database_password_prod
                 '''
                 sh 'rm -rf dist'
             }
