@@ -60,6 +60,8 @@ pipeline {
                    make vassago.tests/testdb-connectionstring.txt pw_database=$database_password_prod
                    make test configuration=Release databasename=vassago pw_database=$database_password_prod
                 '''
+                sh "rm vassago.tests/testdb-connectionstring.txt"
+
                 archiveArtifacts artifacts: 'TestResults/testsresults.html'
             }
         }
