@@ -45,9 +45,9 @@ pipeline {
                     make clean configuration=Release databasename=vassago pw_database=$database_password_prod
                     if $?
                     then
-                        #no-op
+                        exit 0
                     else
-                        1
+                        exit 1
                     fi
                  '''
                 sh 'rm -rf dist'
@@ -59,9 +59,9 @@ pipeline {
                     make build configuration=Release databasename=vassago pw_database=$database_password_prod
                     if $?
                     then
-                        #no-op
+                        exit 0
                     else
-                        1
+                        exit 1
                     fi
                  '''
             }
@@ -73,11 +73,11 @@ pipeline {
                     make test configuration=Release databasename=vassago pw_database=$database_password_prod
                     if $?
                     then
-                        #no-op
+                        exit 0
                     else
-                        1
+                        exit 1
                     fi
-                '''
+               '''
 
                 archiveArtifacts artifacts: 'TestResults/testsresults.html'
             }
