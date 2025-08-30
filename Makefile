@@ -34,7 +34,6 @@ clean:
 	dotnet clean vassago.tests
 	rm -rf vassago/bin vassago/obj vassago.tests/bin vassago.tests/obj dist
 	psql -c "DROP DATABASE IF EXISTS ${databasename}_test"
-#psql -U ${serviceusername} -d postgres <<< "SELECT 'DROP DATABASE ${databasename}_test' WHERE EXISTS (SELECT FROM pg_database WHERE datname = '${databasename}_test')\\gexec"
 
 update-framework:
 	@echo updating framework to $(netframework)

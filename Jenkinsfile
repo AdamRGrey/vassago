@@ -40,12 +40,8 @@ pipeline {
         }
         stage('clean old'){
             steps{
+                sh "echo 'hi i am in the clean step i will be calling make clean. not make test.'"
                 sh "bash -c make clean configuration=Release databasename=vassago pw_database=$database_password_prod"
-                sh '''#!/bin/bash
-                    #make clean configuration=Release databasename=vassago pw_database=$database_password_prod
-                #https://devops.stackexchange.com/questions/13905/why-does-jenkins-pipeline-script-returnstatus-value-not-match-status-examined-in
-
-                 '''
                 sh 'rm -rf dist'
             }
         }
@@ -53,20 +49,13 @@ pipeline {
             steps {
                 sh '''#!/bin/bash
                     make build configuration=Release databasename=vassago pw_database=$database_password_prod
-                    if $?
-                    then
-                        exit 0
-                    else
-                        exit 1
-                    fi
-                 '''
+                '''
             }
         }
         stage('Test') {
             steps{
                 sh '''#!/bin/bash
                     make vassago.tests/testdb-connectionstring.txt pw_database=$database_password_prod
-                    # make test configuration=Release databasename=vassago pw_database=$database_password_prod
                 '''
                 sh "bash -c make test configuration=Release databasename=vassago pw_database=$database_password_prod"
 
