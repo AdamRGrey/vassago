@@ -42,7 +42,7 @@ pipeline {
         stage('clean old'){
             steps{
                 sh '''#!/bin/bash
-                    make clean configuration=Release databasename=vassago
+                    make clean configuration=Release databasename=vassago pw_database=${env.database_password_prod}
                 '''
                 sh 'rm -rf dist'
             }
@@ -50,14 +50,14 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''#!/bin/bash
-                    make build configuration=Release databasename=vassago
+                    make build configuration=Release databasename=vassago pw_database=${env.database_password_prod}
                 '''
             }
         }
         stage('Test') {
             steps{
                 sh '''#!/bin/bash
-                   make test configuration=Release databasename=vassago
+                   make test configuration=Release databasename=vassago pw_database=${env.database_password_prod}
                 '''
                 archiveArtifacts artifacts: 'TestResults/testsresults.html'
             }
@@ -102,11 +102,11 @@ pipeline {
             steps{
                 //TODO: backup database
                 sh """#!/bin/bash
-                    make db-dump configuration=Release databasename=vassago
+                    make db-dump configuration=Release databasename=vassago pw_database=${env.database_password_prod}
                 """
                 
                 sh """#!/bin/bash
-                    make db-update  pw_database=${env.database_password_prod}
+                    make db-update pw_database=${env.database_password_prod}
                 """
                 //dotnet ef database update --connection "Host=localhost;Database=vassago_prod;Username=vassago;Password=${env.database_password_prod};IncludeErrorDetail=true;"
                 //TODO: if updating the db fails, restore the old one
