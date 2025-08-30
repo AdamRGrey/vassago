@@ -5,7 +5,6 @@ pipeline {
         linuxServiceAccountID="3ca1be00-3d9f-42a1-bab2-48a4d7b99fb0"
         database_password_prod=credentials("7ab58922-c647-42e5-ae15-84faa0c1ee7d")
         database_password_test=credentials("7ab58922-c647-42e5-ae15-84faa0c1ee7d")
-            //database_connectionString=credentials("7ab58922-c647-42e5-ae15-84faa0c1ee7d")
         targetHost="alloces.lan"
     }
     stages {
@@ -42,7 +41,7 @@ pipeline {
         stage('clean old'){
             steps{
                 sh '''#!/bin/bash
-                    make clean configuration=Release databasename=vassago pw_database=$database_password_prod
+                    return make clean configuration=Release databasename=vassago pw_database=$database_password_prod
                 '''
                 sh 'rm -rf dist'
             }
@@ -50,7 +49,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''#!/bin/bash
-                    make build configuration=Release databasename=vassago pw_database=$database_password_prod
+                    return make build configuration=Release databasename=vassago pw_database=$database_password_prod
                 '''
             }
         }
@@ -58,8 +57,7 @@ pipeline {
             steps{
                 sh '''#!/bin/bash
                     make vassago.tests/testdb-connectionstring.txt pw_database=$database_password_prod
-                    make test configuration=Release databasename=vassago pw_database=$database_password_prod
-                    rm vassago.tests/testdb-connectionstring.txt
+                    return make test configuration=Release databasename=vassago pw_database=$database_password_prod
                 '''
 
                 archiveArtifacts artifacts: 'TestResults/testsresults.html'
