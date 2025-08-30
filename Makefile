@@ -86,4 +86,6 @@ db-setuptest: db-dump
 
 	psql -d "${databasename}_test" -1 -f dumpp
 	rm dumpp
+	$(MAKE) vassago.tests/testdb-connectionstring.txt
+vassago.tests/testdb-connectionstring.txt
 	echo "Host=localhost;Database=${databasename}_test;Username=${serviceusername};Password=${pw_database};IncludeErrorDetail=true;" > vassago.tests/testdb-connectionstring.txt

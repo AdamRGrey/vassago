@@ -57,6 +57,7 @@ pipeline {
         stage('Test') {
             steps{
                 sh '''#!/bin/bash
+                   make vassago.tests/testdb-connectionstring.txt pw_database=$database_password_prod
                    make test configuration=Release databasename=vassago pw_database=$database_password_prod
                 '''
                 archiveArtifacts artifacts: 'TestResults/testsresults.html'
@@ -100,7 +101,6 @@ pipeline {
                 branch "release"
             }
             steps{
-                //TODO: backup database
                 sh """#!/bin/bash
                     make db-dump configuration=Release databasename=vassago pw_database=$database_password_prod
                 """
