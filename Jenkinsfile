@@ -64,7 +64,7 @@ pipeline {
                         exit 1
                     fi
 
-                    if ! sh "bash -c make test configuration=Release databasename=vassago pw_database=$database_password_prod"
+                    if ! bash -c make test configuration=Release databasename=vassago pw_database=$database_password_prod
                     then
                         echo "fail running tests"
                         exit 1
