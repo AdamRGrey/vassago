@@ -40,8 +40,8 @@ pipeline {
         }
         stage('clean old'){
             steps{
-                sh "echo 'hi i am in the clean step i will be calling make clean. not make test.'"
-                sh "bash -c make clean configuration=Release databasename=vassago pw_database=$database_password_prod"
+                sh "echo 'hi i am in the clean step i will be calling make clean. i will not be calling make test nor make build or anything.'"
+                sh "make clean configuration=Release databasename=vassago pw_database=$database_password_prod"
                 sh 'rm -rf dist'
             }
         }

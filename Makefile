@@ -30,6 +30,7 @@ vassago/bin/$(configuration)/$(netframework)/vassago.dll: vassago/*.cs vassago/*
 	@echo base vassago needed to build
 
 clean:
+	echo "hi i am the clean target, I will not be building anything."
 	dotnet clean vassago
 	dotnet clean vassago.tests
 	rm -rf vassago/bin vassago/obj vassago.tests/bin vassago.tests/obj dist
