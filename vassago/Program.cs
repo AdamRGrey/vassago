@@ -7,6 +7,7 @@ using vassago.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var crashplz = 1 / 0;
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IHostedService, vassago.ConsoleService>();

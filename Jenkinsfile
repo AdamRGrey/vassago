@@ -48,7 +48,11 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''#!/bin/bash
-                    make build configuration=Release databasename=vassago pw_database=$database_password_prod
+                    if ! make build configuration=Release databasename=vassago pw_database=$database_password_prod
+                    then
+                        echo "build fail"
+                        exit 1
+                    fi
                 '''
             }
         }
