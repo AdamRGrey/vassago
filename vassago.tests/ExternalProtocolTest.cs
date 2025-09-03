@@ -51,7 +51,11 @@ public class ExternalProtocolTest
     {
         var thisisnotanawait = contr.Disconnect(myExternalId).Result;
     }
-
+    [Test]
+    public void failthisplease()
+    {
+        Assert.Fail();
+    }
     [Test]
     public void Connect()
     {
