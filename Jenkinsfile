@@ -60,7 +60,7 @@ pipeline {
                 sh '''#!/bin/bash
                     if ! make vassago.tests/testdb-connectionstring.txt pw_database=$database_password_prod
                     then
-                        echo "fail setting up connection string
+                        echo "fail setting up connection string"
                         exit 1
                     fi
 
