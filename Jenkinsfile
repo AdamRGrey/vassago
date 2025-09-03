@@ -63,6 +63,11 @@ pipeline {
                         echo "fail setting up connection string"
                         exit 1
                     fi
+                    if ! make db-setuptest pw_database=$database_password_prod
+                    then
+                        echo "fail setting up test db"
+                        exit 1
+                    fi
 
                     if ! bash -c make test configuration=Release databasename=vassago pw_database=$database_password_prod
                     then
