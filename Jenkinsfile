@@ -58,13 +58,15 @@ pipeline {
         stage('Test') {
             steps{
                 sh '''#!/bin/bash
-                    if ! make db-setuptest pw_database=$database_password_prod
+                # the irony of saying "database is _test" and "password is _prod" on the same line...
+                # whatever, 2 separate dbs. and they'd both be stored in jenkins, triggered by push, i.e., compromise 1 you've gotten both anyway, whooooo caaaaaares
+                    if ! make db-setuptest databasename=vassago_test pw_database=$database_password_prod
                     then
                         echo "fail setting up test db"
                         exit 1
                     fi
 
-                    if ! bash -c make test configuration=Release databasename=vassago pw_database=$database_password_prod
+                    if ! bash -c make test configuration=Release databasename=vassago_test pw_database=$database_password_prod
                     then
                         echo "fail running tests"
                         exit 1
