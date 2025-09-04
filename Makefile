@@ -3,6 +3,7 @@
 #
 # @file
 # @version 0.1
+#
 export
 serviceusername=vassago
 databasename=vassago_dev
@@ -11,7 +12,7 @@ connectionstr=Host=localhost;Database=${databasename};Username=${serviceusername
 netframework=net8.0
 configuration=Debug
 
-.PHONY: test TestResults/testsresults.html build clean db-* update-framework
+.PHONY: clean build test TestResults/testsresults.html db-* update-framework
 
 test: TestResults/testsresults.html
 TestResults/testsresults.html: vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll vassago/bin/$(configuration)/$(netframework)/vassago.dll vassago.tests/testdb-connectionstring.txt
@@ -53,6 +54,7 @@ update-framework:
 #
 
 should-dbupdate: vassago/Migrations/ChattingContextModelSnapshot.cs
+	@echo "hi i'm should-dbupdate. apparently i should. ${connectionstr}"
 	$(MAKE) db-update
 
 db-initial:
