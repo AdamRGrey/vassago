@@ -52,8 +52,10 @@ update-framework:
 #
 #microsoft. why. microsoft. do you understand the problem, microsoft? i'm worried you don't think this is an absurd thing to have done.
 #
+should-dbupdate: vassago/Migrations/ChattingContextModelSnapshot.cs
+	@echo "hi i'm should-dbupdate. connection string: ${connectionstr}"
+	cd vassago; dotnet ef database update --connection "${connectionstr}"
 
-#vassago/Migrations/ChattingContextModelSnapshot.cs
 
 db-initial:
 	psql -c "create database ${serviceusername};"
