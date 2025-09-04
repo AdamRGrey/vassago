@@ -60,7 +60,7 @@ pipeline {
                 sh '''#!/bin/bash
                 # the irony of saying "database is _test" and "password is _prod" on the same line...
                 # whatever, 2 separate dbs. and they'd both be stored in jenkins, triggered by push, i.e., compromise 1 you've gotten both anyway, whooooo caaaaaares
-                echo "db-setuptest, with $(database_password_prod}. i refuse to believe that passing to make clears variables."
+                echo "db-setuptest, with ${database_password_prod}. i refuse to believe that passing to make clears variables."
                     if ! make db-setuptest databasename=vassago pw_database=${database_password_prod}
                     then
                         echo "fail setting up test db"
