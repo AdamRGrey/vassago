@@ -19,9 +19,10 @@ public class JokesController : ControllerBase
     }
     [HttpPut]
     [Route("Create")]
-    public void Create(Joke joke)
+    public Guid Create(Joke joke)
     {
         r.RememberJoke(joke);
+        return joke.Id;
     }
     [HttpGet]
     [Route("GetSpecific")]
@@ -31,9 +32,15 @@ public class JokesController : ControllerBase
     }
     [HttpPatch]
     [Route("Update")]
-    public void Update(Joke joke)
+    public Joke Update(Joke joke)
     {
-        r.RememberJoke(joke);
+        var updated = r.SearchJoke(joke.Id);
+        updated.PrimaryText = joke.PrimaryText;
+        updated.SecondaryText= joke.SecondaryText;
+        updated.LewdnessConformity = joke.LewdnessConformity;
+        updated.MeannessConformity= joke.MeannessConformity;
+        r.RememberJoke(updated);
+        return updated;
     }
     [HttpDelete]
     [Route("Delete")]
