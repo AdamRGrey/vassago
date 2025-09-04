@@ -10,10 +10,10 @@ namespace vassago.Controllers.api;
 [ApiController]
 public class JokesController : ControllerBase
 {
-    private readonly ILogger<JokesController > _logger;
+    private readonly ILogger<JokesController> _logger;
     private static Rememberer r = Rememberer.Instance;
 
-    public JokesController(ILogger<JokesController > logger)
+    public JokesController(ILogger<JokesController> logger)
     {
         _logger = logger;
     }
@@ -36,9 +36,9 @@ public class JokesController : ControllerBase
     {
         var updated = r.SearchJoke(joke.Id);
         updated.PrimaryText = joke.PrimaryText;
-        updated.SecondaryText= joke.SecondaryText;
+        updated.SecondaryText = joke.SecondaryText;
         updated.LewdnessConformity = joke.LewdnessConformity;
-        updated.MeannessConformity= joke.MeannessConformity;
+        updated.MeannessConformity = joke.MeannessConformity;
         r.RememberJoke(updated);
         return updated;
     }

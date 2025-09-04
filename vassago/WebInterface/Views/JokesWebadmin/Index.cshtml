@@ -1,0 +1,122 @@
+@using vassago.Models;
+@using static vassago.Models.Enumerations;
+@model List<Joke>
+
+<a href="/">home</a>/
+
+if a joke is a 1-liner, leave "punchline" blank
+
+  <table class="table">
+    <tbody>
+    <tr class="form-header">
+        <th>Straightline</th>
+        <th>Punchline</th>
+        <th>Meanness</th>
+        <th>Lewdness</th>
+        <th>actions</th>
+    </tr>
+    @foreach(var joke in Model)
+    {
+        <form action="@Url.Action("Submit", "JokesWebadmin")" method="post">
+            <input type="hidden" name="Id" value="@joke.Id"/>
+            <tr class="form-text">
+                <td><input type="text" class="form-control" name="PrimaryText" value="@joke.PrimaryText"/></td>
+                <td><input type="text" class="form-control" name="SecondaryText" value="@joke.SecondaryText"/></td>
+                <td>
+                    <select name="MeannessConformity">
+                        @foreach (Enumerations.MeannessFilterLevel enumVal in
+                        Enum.GetValues(typeof(Enumerations.MeannessFilterLevel)))
+                        {
+                            <!option value="@((int)enumVal)" @(joke.MeannessConformity == enumVal ? "selected" : "")>
+                                @(Enumerations.GetDescription<Enumerations.MeannessFilterLevel>(enumVal))</!option>
+                        }
+                    </select>
+                </td>
+                <td>
+                    <select name="LewdnessConformity">
+                        @foreach (Enumerations.LewdnessFilterLevel enumVal in
+                        Enum.GetValues(typeof(Enumerations.LewdnessFilterLevel)))
+                        {
+                            <!option value="@((int)enumVal)" @(joke.LewdnessConformity == enumVal ? "selected" : "")>
+                                @(Enumerations.GetDescription<Enumerations.LewdnessFilterLevel>(enumVal))</!option>
+                        }
+                    </select>
+                </td>
+                <td>
+                    <button class="btn btn-danger" type="button" onclick="deleteJoke('@joke.Id')">delete</button>
+                    <button class="btn btn-success" type="submit">save</button>
+                </td>
+            </tr>
+        </form>
+    }
+    <tr class="form-text">
+        <td colspan="5">
+            <button class="btn btn-success" type="button" onclick="addModal.show()">new</button>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<dialog id="deleteModal">
+    <form action="@Url.Action("Delete", "JokesWebadmin")" method="post">
+        <input type="hidden" name="Id" id="deletionId"/>
+        are you suuuuuure?
+        <button class="btn btn-secondary" type="button" onclick="deleteModal.close()">cancel</button>
+        <button class="btn btn-danger" type="submit">delete</button>
+    </form>
+</dialog>
+
+<dialog id="addModal">
+    <form action="@Url.Action("New", "JokesWebadmin")" method="post">
+    <table class="table">
+    <tr>
+        <th>straightline</th>
+        <td><input type="text" class="form-control" name="PrimaryText"  required/></td>
+    </tr>
+    <tr>
+        <th>punchline</th>
+        <td><input type="text" class="form-control" name="SecondaryText" /></td>
+    </tr>
+    <tr>
+        <th>meanness</th>
+        <td>
+            <select name="MeannessConformity">
+                @foreach (Enumerations.MeannessFilterLevel enumVal in
+                Enum.GetValues(typeof(Enumerations.MeannessFilterLevel)))
+                {
+                    <!option value="@((int)enumVal)">
+                        @(Enumerations.GetDescription<Enumerations.MeannessFilterLevel>(enumVal))</!option>
+                }
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <th>lewdness</th>
+        <td>
+            <select name="LewdnessConformity">
+                @foreach (Enumerations.LewdnessFilterLevel enumVal in
+                Enum.GetValues(typeof(Enumerations.LewdnessFilterLevel)))
+                {
+                    <!option value="@((int)enumVal)">
+                        @(Enumerations.GetDescription<Enumerations.LewdnessFilterLevel>(enumVal))</!option>
+                }
+            </select>
+        </td>
+    <tr>
+    <th></th>
+    <td>
+        <button class="btn btn-secondary" type="button" onclick="addModal.close()">cancel</button>
+        <button class="btn btn-success" type="submit">submit</button>
+    </td>
+    </table>
+    </form>
+</dialog>
+
+@section Scripts{
+    <script type="text/javascript">
+        function deleteJoke(id){
+            deletionId.value = id;
+            deleteModal.show();
+        }
+    </script>
+}

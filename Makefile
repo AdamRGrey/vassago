@@ -11,8 +11,6 @@ connectionstr=Host=localhost;Database=${databasename};Username=${serviceusername
 netframework=net8.0
 configuration=Debug
 
-SHELL=/bin/bash
-.SHELLFLAGS="-O extglob -c"
 .PHONY: test TestResults/testsresults.html build clean db-* update-framework
 
 test: TestResults/testsresults.html
@@ -25,8 +23,7 @@ vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll:vassago/bin
 	@echo tests.dll needed to build base vassago
 vassago.tests/testdb-connectionstring.txt:
 	$(MAKE) db-setuptest
-build:vassago/bin/$(configuration)/$(netframework)/vassago.dll
-vassago/bin/$(configuration)/$(netframework)/vassago.dll: vassago/*.cs vassago/*.json
+build:
 	dotnet build vassago/vassago.csproj
 	cp -r vassago/bin/$(configuration)/$(netframework)/ dist
 	@echo base vassago needed to build

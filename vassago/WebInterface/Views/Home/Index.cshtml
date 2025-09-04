@@ -6,7 +6,10 @@
 <table class="table">
     <tbody>
     <tr class="form-text"><td>
-            <a href="@Url.Action("Index", "Configuration")">Misc overall config</a>
+        <a href="@Url.Action("Index", "Configuration")">Misc overall config</a>
+    </td></tr>
+    <tr class="form-text"><td>
+        <a href="@Url.Action("Index", "JokesWebadmin")">Jokes</a>
     </td></tr>
     <tr class="form-text">
         <td>
@@ -34,7 +37,7 @@
             <summary>Users</summary>
             <table class="table">
                 <tbody>
-                    @if(Model.Users != null) foreach(var user in Model.Users)
+                    @if(Model.Users != null) foreach(var user in Model.Users.OrderBy(u => u.DisplayName))
                     {
                         <tr class="form-text"><td>
                             <a href="@Url.Action("Details", "Users", new {Id = user.Id})">@user.DisplayName</a>
@@ -82,7 +85,7 @@
     </tr>
     <tr class="form-text">
         <td>
-        <details open>
+        <details>
             <summary>UACs</summary>
             <table class="table">
                 <tbody>
@@ -112,7 +115,7 @@
     </tr>
     <tr class="form-text">
         <td>
-        <details open>
+        <details>
             <summary>Webhooks</summary>
             <table class="table">
                 <tbody>
