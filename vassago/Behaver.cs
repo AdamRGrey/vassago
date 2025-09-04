@@ -42,14 +42,13 @@ public class Behaver
 
     public async Task<bool> ActOn(Message message)
     {
-        //TODO: this is yet another hit to the database, and a big one. cache them in memory! there needs to be a feasibly-viewable amount, anyway.
         var matchingUACs = r.MatchUACs(message);
         message.TranslatedContent = message.Content;
         foreach (var uacMatch in matchingUACs)
         {
             uacMatch.Translations ??= [];
             uacMatch.CommandAlterations ??= [];
-            foreach (var localization in uacMatch.Translations) //honestly, i'm *still* mad that foreach thing in null is an exception. in what world is "if not null then" assumed?
+            foreach (var localization in uacMatch.Translations) //honestly, i'm *still* mad that foreach thing in null is an exception. in what world is "if not null then" not assumed?
             {
                 var r = new Regex(localization.Key);
                 message.TranslatedContent = r.Replace(message.TranslatedContent, localization.Value);
@@ -71,7 +70,6 @@ public class Behaver
         {
             Console.WriteLine("providing bullshit nonanswer / admitting uselessness");
             var responses = new List<string>(){
-                                @"Well, that's a great question, and there are certainly many different possible answers. Ultimately, the decision will depend on a variety of factors, including your personal interests and goals, as well as any practical considerations (like the economy). I encourage you to do your research, speak with experts and educators, and explore your options before making a decision that's right for you.",
                                 @"┐(ﾟ ～ﾟ )┌", @"¯\_(ツ)_/¯", @"╮ (. ❛ ᴗ ❛.) ╭", @"╮(╯ _╰ )╭"
                             };
             Behaver.Instance.SendMessage(message.Channel.Id, responses[Shared.r.Next(responses.Count)]);

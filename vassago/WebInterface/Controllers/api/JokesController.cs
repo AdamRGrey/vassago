@@ -17,7 +17,6 @@ public class JokesController : ControllerBase
     {
         _logger = logger;
     }
-
     [HttpPut]
     [Route("Create")]
     public void Create(Joke joke)
@@ -34,7 +33,7 @@ public class JokesController : ControllerBase
     [Route("Update")]
     public void Update(Joke joke)
     {
-        r.SearchJoke(id);
+        r.RememberJoke(joke);
     }
     [HttpDelete]
     [Route("Delete")]

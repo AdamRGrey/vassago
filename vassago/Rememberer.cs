@@ -9,7 +9,6 @@ public class Rememberer
 {
     private readonly SemaphoreSlim dbAccessSemaphore = new(1, 1);
     private readonly ChattingContext db = new();
-    private CacheList<Channel> cachedChannels;
     private Rememberer() { }
     private static Rememberer _instance = null;
     public static Rememberer Instance
@@ -78,9 +77,7 @@ public class Rememberer
     }
     public Channel SearchChannel(Func<Channel, bool> predicate)
     {
-        if (cachedChannels.cacheDirty)
-            cache(cachedChannels);
-        return cachedChannels.actualList.FirstOrDefault(predicate);
+        return db.Channels.FirstOrDefault(predicate);
     }
     public Message SearchMessage(Expression<Func<Message, bool>> predicate)
     {
@@ -124,14 +121,10 @@ public class Rememberer
     }
     public Channel RememberChannel(Channel toRemember)
     {
-        if (cachedChannels.cacheDirty)
-            cache(cachedChannels);
         dbAccessSemaphore.Wait();
         db.Update(toRemember);
         db.SaveChanges();
         dbAccessSemaphore.Release();
-        cachedChannels.cacheDirty = true;
-        cacheAsync(cachedChannels);
         return toRemember;
     }
     public void RememberMessage(Message toRemember)
@@ -199,8 +192,6 @@ public class Rememberer
         db.Channels.Remove(toForget);
         db.SaveChanges();
         dbAccessSemaphore.Release();
-        cachedChannels.cacheDirty = true;
-        cacheAsync(cachedChannels);
     }
     public void ForgetMessage(Message toForget)
     {
@@ -236,9 +227,7 @@ public class Rememberer
     ///</summary>
     public List<Channel> ChannelsOverview()
     {
-        if (cachedChannels.cacheDirty)
-            cache(cachedChannels);
-        return cachedChannels.actualList.ToList();
+        return db.Channels.ToList();
     }
     public Account AccountDetail(Guid Id)
     {
@@ -258,9 +247,7 @@ public class Rememberer
     }
     public Channel ChannelDetail(Guid Id, bool accounts = true, bool messages = false)
     {
-        if (cachedChannels.cacheDirty)
-            cache(cachedChannels);
-        var ch = cachedChannels.actualList.Find(c => c.Id == Id);
+        var ch = db.Channels.Find(Id);
         if (accounts)
             ch.Users = SearchAccounts(a => a.SeenInChannel == ch);
         if (messages)
@@ -343,8 +330,6 @@ public class Rememberer
         db.Update(toRemember);
         db.SaveChanges();
         dbAccessSemaphore.Release();
-        if (toRemember.Channels?.Count() > 0)
-            cache(cachedChannels);
     }
     public Configuration Configuration()
     {
@@ -492,39 +477,34 @@ public class Rememberer
         dbAccessSemaphore.Release();
     }
 
-    public List<Joke> AllJokes()
+    public List<Joke> JokesOverview()
     {
-        throw new NotImplementedException();
+        List<Joke> toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = [.. db.Jokes];
+        dbAccessSemaphore.Release();
+        return toReturn;
     }
     public void RememberJoke(Joke joke)
     {
-        throw new NotImplementedException();
+        dbAccessSemaphore.Wait();
+        db.Update(joke);
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
     }
-
     public Joke SearchJoke(Guid id)
     {
-        throw new NotImplementedException();
+        Joke toReturn;
+        dbAccessSemaphore.Wait();
+        toReturn = db.Jokes.Find(id);
+        dbAccessSemaphore.Release();
+        return toReturn;
     }
     public void ForgetJoke(Guid id)
     {
-        throw new NotImplementedException();
-    }
-    private void cache<T>(CacheList<T> list) where T : class
-    {
-        throw new NotImplementedException();
-    }
-    private async Task cacheAsync<T>(CacheList<T> list) where T : class
-    {
-        Task.Run(() => cache(list));
-    }
-    private class CacheList<T> where T : class
-    {
-        public ChattingContext dbContextReference { get; set; }
-        public DbSet<T> dbSetReference { get; set; }
-        public bool cacheDirty { get; set; }
-        public List<T> actualList
-        {
-            get;
-        }
+        dbAccessSemaphore.Wait();
+        db.Jokes.Remove(db.Jokes.Find(id));
+        db.SaveChanges();
+        dbAccessSemaphore.Release();
     }
 }

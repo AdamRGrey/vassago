@@ -20,35 +20,35 @@ public class Joke : Behavior
 
     public override async Task<bool> ActOn(Message message)
     {
-        Console.WriteLine("joking");
-        var jokes = rememberer.AllJokes();
-        //var jokes = File.ReadAllLines("assets/jokes.txt");
-        jokes = jokes.Where(l => !string.IsNullOrWhiteSpace(l))?.ToArray();
-        if (jokes?.Length == 0)
+        Console.WriteLine("telling a joke");
+        var jokes = rememberer.JokesOverview();
+        if (jokes?.Count == 0)
         {
             Behaver.Instance.SendMessage(message.Channel.Id, "I don't know any. Adam!");
+            return false;
         }
-        var thisJoke = jokes[Shared.r.Next(jokes.Length)];
-        if (thisJoke.Contains("?") && !thisJoke.EndsWith('?'))
+        jokes = jokes.Where(j => j.LewdnessConformity <= message.Channel.EffectivePermissions.LewdnessFilterLevel &&
+                            j.MeannessConformity <= message.Channel.EffectivePermissions.MeannessFilterLevel).ToList();
+        if (jokes?.Count == 0)
+        {
+            Behaver.Instance.SendMessage(message.Channel.Id, "I don't know any *that are appropriate for this channel*. Adam!");
+            return false;
+        }
+        var thisJoke = jokes[Shared.r.Next(jokes.Count)];
+        Behaver.Instance.SendMessage(message.Channel.Id, thisJoke.PrimaryText);
+
+        if(!string.IsNullOrWhiteSpace(thisJoke.SecondaryText))
         {
             Task.Run(async () =>
             {
-                var firstIndexAfterQuestionMark = thisJoke.LastIndexOf('?') + 1;
-                var straightline = thisJoke.Substring(0, firstIndexAfterQuestionMark);
-                var punchline = thisJoke.Substring(firstIndexAfterQuestionMark, thisJoke.Length - firstIndexAfterQuestionMark).Trim();
-                Task.WaitAll(Behaver.Instance.SendMessage(message.Channel.Id, straightline));
                 Thread.Sleep(TimeSpan.FromSeconds(Shared.r.Next(5, 30)));
                 if (message.Channel.EffectivePermissions.ReactionsPossible == true && Shared.r.Next(8) == 0)
                 {
-                    Behaver.Behaviors.Add(new LaughAtOwnJoke(punchline));
+                    Behaver.Behaviors.Add(new LaughAtOwnJoke(thisJoke.SecondaryText));
                 }
-                Behaver.Instance.SendMessage(message.Channel.Id, punchline);
+                Behaver.Instance.SendMessage(message.Channel.Id, thisJoke.SecondaryText);
                 // var myOwnMsg = await message.Channel.SendMessage(punchline);
             });
-        }
-        else
-        {
-            Behaver.Instance.SendMessage(message.Channel.Id, thisJoke);
         }
         return true;
     }

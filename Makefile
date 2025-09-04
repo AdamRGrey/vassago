@@ -11,6 +11,8 @@ connectionstr=Host=localhost;Database=${databasename};Username=${serviceusername
 netframework=net8.0
 configuration=Debug
 
+SHELL=/bin/bash
+.SHELLFLAGS="-O extglob -c"
 .PHONY: test TestResults/testsresults.html build clean db-* update-framework
 
 test: TestResults/testsresults.html
