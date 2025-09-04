@@ -3,13 +3,13 @@ namespace vassago;
 using System.Linq.Expressions;
 using vassago.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 public class Rememberer
 {
     private readonly SemaphoreSlim dbAccessSemaphore = new(1, 1);
     private readonly ChattingContext db = new();
-    private List<Channel> channels;
-    private bool channelCacheDirty = true;
+    private CacheList<Channel> cachedChannels;
     private Rememberer() { }
     private static Rememberer _instance = null;
     public static Rememberer Instance
@@ -32,27 +32,26 @@ public class Rememberer
     }
     private static readonly object instantiationLock = new();
 
-    private void cacheChannels()
-    {
-        dbAccessSemaphore.Wait();
-        channels = db.Channels.ToList();
-        foreach (Channel ch in channels)
-        {
-            if (ch.ParentChannelId != null)
-            {
-                ch.ParentChannel = channels.FirstOrDefault(c => c.Id == ch.ParentChannelId);
-                ch.ParentChannel.SubChannels ??= [];
-                if (!ch.ParentChannel.SubChannels.Contains(ch))
-                {
-                    ch.ParentChannel.SubChannels.Add(ch);
-                }
-            }
-            ch.SubChannels ??= [];
-        }
-        channelCacheDirty = false;
-        dbAccessSemaphore.Release();
-    }
-
+    // private void cacheChannels()
+    // {
+    //     dbAccessSemaphore.Wait();
+    //     channels = db.Channels.ToList();
+    //     foreach (Channel ch in channels)
+    //     {
+    //         if (ch.ParentChannelId != null)
+    //         {
+    //             ch.ParentChannel = channels.FirstOrDefault(c => c.Id == ch.ParentChannelId);
+    //             ch.ParentChannel.SubChannels ??= [];
+    //             if (!ch.ParentChannel.SubChannels.Contains(ch))
+    //             {
+    //                 ch.ParentChannel.SubChannels.Add(ch);
+    //             }
+    //         }
+    //         ch.SubChannels ??= [];
+    //     }
+    //     channelCacheDirty = false;
+    //     dbAccessSemaphore.Release();
+    // }
     public Account SearchAccount(Expression<Func<Account, bool>> predicate)
     {
         Account toReturn;
@@ -79,9 +78,9 @@ public class Rememberer
     }
     public Channel SearchChannel(Func<Channel, bool> predicate)
     {
-        if (channelCacheDirty)
-            Task.Run(() => cacheChannels()).Wait();
-        return channels.FirstOrDefault(predicate);
+        if (cachedChannels.cacheDirty)
+            cache(cachedChannels);
+        return cachedChannels.actualList.FirstOrDefault(predicate);
     }
     public Message SearchMessage(Expression<Func<Message, bool>> predicate)
     {
@@ -125,14 +124,14 @@ public class Rememberer
     }
     public Channel RememberChannel(Channel toRemember)
     {
-        if (channelCacheDirty)
-            Task.Run(() => cacheChannels()).Wait(); //so we always do 2 db trips?
+        if (cachedChannels.cacheDirty)
+            cache(cachedChannels);
         dbAccessSemaphore.Wait();
         db.Update(toRemember);
         db.SaveChanges();
         dbAccessSemaphore.Release();
-        channelCacheDirty = true;
-        cacheChannels();
+        cachedChannels.cacheDirty = true;
+        cacheAsync(cachedChannels);
         return toRemember;
     }
     public void RememberMessage(Message toRemember)
@@ -200,8 +199,8 @@ public class Rememberer
         db.Channels.Remove(toForget);
         db.SaveChanges();
         dbAccessSemaphore.Release();
-        channelCacheDirty = true;
-        cacheChannels();
+        cachedChannels.cacheDirty = true;
+        cacheAsync(cachedChannels);
     }
     public void ForgetMessage(Message toForget)
     {
@@ -237,9 +236,9 @@ public class Rememberer
     ///</summary>
     public List<Channel> ChannelsOverview()
     {
-        if (channelCacheDirty)
-            Task.Run(() => cacheChannels()).Wait();
-        return channels.ToList();
+        if (cachedChannels.cacheDirty)
+            cache(cachedChannels);
+        return cachedChannels.actualList.ToList();
     }
     public Account AccountDetail(Guid Id)
     {
@@ -259,9 +258,9 @@ public class Rememberer
     }
     public Channel ChannelDetail(Guid Id, bool accounts = true, bool messages = false)
     {
-        if (channelCacheDirty)
-            Task.Run(() => cacheChannels()).Wait();
-        var ch = channels.Find(c => c.Id == Id);
+        if (cachedChannels.cacheDirty)
+            cache(cachedChannels);
+        var ch = cachedChannels.actualList.Find(c => c.Id == Id);
         if (accounts)
             ch.Users = SearchAccounts(a => a.SeenInChannel == ch);
         if (messages)
@@ -345,7 +344,7 @@ public class Rememberer
         db.SaveChanges();
         dbAccessSemaphore.Release();
         if (toRemember.Channels?.Count() > 0)
-            cacheChannels();
+            cache(cachedChannels);
     }
     public Configuration Configuration()
     {
@@ -484,12 +483,48 @@ public class Rememberer
     {
         dbAccessSemaphore.Wait();
         var acc = db.Accounts.Find(id);
-        if(acc.IsUser.Accounts.Count > 1)
+        if (acc.IsUser.Accounts.Count > 1)
         {
             acc.IsUser.Accounts.Remove(acc);
-            acc.IsUser = new User(){ Accounts = [acc]};
+            acc.IsUser = new User() { Accounts = [acc] };
             db.SaveChanges();
         }
         dbAccessSemaphore.Release();
+    }
+
+    public List<Joke> AllJokes()
+    {
+        throw new NotImplementedException();
+    }
+    public void RememberJoke(Joke joke)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Joke SearchJoke(Guid id)
+    {
+        throw new NotImplementedException();
+    }
+    public void ForgetJoke(Guid id)
+    {
+        throw new NotImplementedException();
+    }
+    private void cache<T>(CacheList<T> list) where T : class
+    {
+        throw new NotImplementedException();
+    }
+    private async Task cacheAsync<T>(CacheList<T> list) where T : class
+    {
+        Task.Run(() => cache(list));
+    }
+    private class CacheList<T> where T : class
+    {
+        public ChattingContext dbContextReference { get; set; }
+        public DbSet<T> dbSetReference { get; set; }
+        public bool cacheDirty { get; set; }
+        public List<T> actualList
+        {
+            get;
+        }
     }
 }

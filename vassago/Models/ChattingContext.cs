@@ -17,6 +17,7 @@ public class ChattingContext : DbContext
     public DbSet<ProtocolTwitch> ProtocolTwitchs { get; set; }
     public DbSet<ProtocolDiscord> ProtocolDiscords { get; set; }
     public DbSet<ProtocolExternal> ProtocolExternals { get; set; }
+    public DbSet<Joke> Jokes { get; set; }
 
     public ChattingContext(DbContextOptions<ChattingContext> options) : base(options) { }
     public ChattingContext() : base() { }

@@ -21,7 +21,8 @@ public class Joke : Behavior
     public override async Task<bool> ActOn(Message message)
     {
         Console.WriteLine("joking");
-        var jokes = File.ReadAllLines("assets/jokes.txt");
+        var jokes = rememberer.AllJokes();
+        //var jokes = File.ReadAllLines("assets/jokes.txt");
         jokes = jokes.Where(l => !string.IsNullOrWhiteSpace(l))?.ToArray();
         if (jokes?.Length == 0)
         {

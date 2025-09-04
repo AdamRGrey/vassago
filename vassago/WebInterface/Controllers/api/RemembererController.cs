@@ -60,6 +60,7 @@ public class RemembererController : ControllerBase
     {
         return r.UserDetail(id);
     }
+
     //Read
     [HttpGet]
     [Route("Account")]
