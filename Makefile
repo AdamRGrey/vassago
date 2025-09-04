@@ -23,16 +23,16 @@ TestResults/testsresults.html: vassago.tests/bin/$(configuration)/$(netframework
 vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll:vassago/bin/$(configuration)/$(netframework)/vassago.dll vassago.tests/*.cs vassago.tests/vassago.tests.csproj
 	@echo tests.dll needed to build base vassago
 vassago.tests/testdb-connectionstring.txt: vassago/Migrations/ChattingContextModelSnapshot.cs
-	$(MAKE) db-setuptest
-vassago/bin/$(configuration)/$(netframework)/vassago.dll: vassago/*.cs vassago/vassago.csproj
-	$(MAKE) build
+#$(MAKE) db-setuptest
+#vassago/bin/$(configuration)/$(netframework)/vassago.dll: vassago/*.cs vassago/vassago.csproj
+#$(MAKE) build
 build: should-dbupdate
 	dotnet build vassago/vassago.csproj
 	cp -r vassago/bin/$(configuration)/$(netframework)/ dist
 	@echo base vassago needed to build
 
 clean:
-	echo "hi i am the clean target, I will not be building anything."
+	@echo "hi i am the clean target, I will not be building anything."
 	dotnet clean vassago
 	dotnet clean vassago.tests
 	rm -rf vassago/bin vassago/obj vassago.tests/bin vassago.tests/obj dist
@@ -53,9 +53,7 @@ update-framework:
 #microsoft. why. microsoft. do you understand the problem, microsoft? i'm worried you don't think this is an absurd thing to have done.
 #
 
-should-dbupdate: vassago/Migrations/ChattingContextModelSnapshot.cs
-	@echo "hi i'm should-dbupdate. apparently i should. ${connectionstr}"
-	$(MAKE) db-update
+#vassago/Migrations/ChattingContextModelSnapshot.cs
 
 db-initial:
 	psql -c "create database ${serviceusername};"
@@ -64,14 +62,13 @@ db-initial:
 	psql -d "${databasename}" -c "GRANT ALL ON SCHEMA public TO ${serviceusername}"
 
 	cp vassago/appsettings.sample.json vassago/appsettings.json
-	$(MAKE) db-update
 db-update:
 	@echo "hi i'm the db-update target. connection string: ${connectionstr}"
 	cd vassago; dotnet ef database update --connection "${connectionstr}"
 db-fullreset:
 	psql -c "drop database ${databasename};"
 	psql -c "drop user ${serviceusername}"
-	$(MAKE) db-initial
+	@echo "now do make db-initial."
 db-addmigration:
 	cd vassago; dotnet ef migrations add "$(migrationname)"
 	cd vassago; dotnet ef database update --connection "${connectionstr}"
@@ -94,6 +91,7 @@ db-setuptest: db-dump
 
 	psql -d "${databasename}_test" -1 -f dumpp
 	rm dumpp
-	$(MAKE) vassago.tests/testdb-connectionstring.txt
+	@echo "you should probably now make testdb-connectionstring.txt"
+#$(MAKE) vassago.tests/testdb-connectionstring.txt
 vassago.tests/testdb-connectionstring.txt:
 	echo "Host=localhost;Database=${databasename}_test;Username=${serviceusername};Password=${pw_database};IncludeErrorDetail=true;" > vassago.tests/testdb-connectionstring.txt
