@@ -2,6 +2,7 @@ namespace vassago.Models;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 public class ChattingContext : DbContext
 {
@@ -19,7 +20,7 @@ public class ChattingContext : DbContext
     public DbSet<ProtocolExternal> ProtocolExternals { get; set; }
     public DbSet<Joke> Jokes { get; set; }
 
-    public ChattingContext(DbContextOptions<ChattingContext> options) : base(options) { }
+    public ChattingContext(DbContextOptions<ChattingContext> options) : base(options) {}
     public ChattingContext() : base() { }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

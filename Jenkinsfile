@@ -116,7 +116,7 @@ pipeline {
             }
             steps{
                 sh """#!/bin/bash
-                    make db-dump configuration=Release databasename=vassago pw_database=$database_password_prod
+                    make db-dump configuration=Release databasename=vassago pw_database=${database_password_prod}
                 """
                 
                 sh """#!/bin/bash

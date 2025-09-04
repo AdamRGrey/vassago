@@ -64,7 +64,8 @@ db-initial:
 	cp vassago/appsettings.sample.json vassago/appsettings.json
 	$(MAKE) db-update
 db-update:
-	cd vassago; dotnet ef database update --connection "$(connectionstr)"
+	@echo "hi i'm the db-update target. connection string: ${connectionstr}"
+	cd vassago; dotnet ef database update --connection "${connectionstr}"
 db-fullreset:
 	psql -c "drop database ${databasename};"
 	psql -c "drop user ${serviceusername}"
