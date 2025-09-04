@@ -4,12 +4,12 @@
 # @file
 # @version 0.1
 
-serviceusername=vassago
-databasename=vassago_dev
-pw_database=wnmhOttjA0wCiR9hVoG7jjrf90SxWvAV
-connectionstr=Host=localhost;Database=${databasename};Username=${serviceusername};Password=${pw_database};IncludeErrorDetail=true;
-netframework=net8.0
-configuration=Debug
+export serviceusername=vassago
+export databasename=vassago_dev
+export pw_database=wnmhOttjA0wCiR9hVoG7jjrf90SxWvAV
+export connectionstr=Host=localhost;Database=${databasename};Username=${serviceusername};Password=${pw_database};IncludeErrorDetail=true;
+export netframework=net8.0
+export configuration=Debug
 
 .PHONY: test TestResults/testsresults.html build clean db-* update-framework
 
