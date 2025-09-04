@@ -19,11 +19,13 @@ TestResults/testsresults.html: vassago.tests/bin/$(configuration)/$(netframework
 	rm -rf ./TestResults/
 	dotnet test --blame-hang-timeout 10000 vassago.tests/vassago.tests.csproj --logger:"html;LogFileName=testsresults.html" --results-directory ./TestResults
 
-vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll:vassago/bin/$(configuration)/$(netframework)/vassago.dll vassago.tests/*.cs
+vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll:vassago/bin/$(configuration)/$(netframework)/vassago.dll vassago.tests/*.cs vassago.tests/vassago.tests.csproj
 	@echo tests.dll needed to build base vassago
-vassago.tests/testdb-connectionstring.txt:
+vassago.tests/testdb-connectionstring.txt: vassago/Migrations/ChattingContextModelSnapshot.cs
 	$(MAKE) db-setuptest
-build:
+vassago/bin/$(configuration)/$(netframework)/vassago.dll: vassago/*.cs vassago/vassago.csproj
+	$(MAKE) build
+build: should-dbupdate
 	dotnet build vassago/vassago.csproj
 	cp -r vassago/bin/$(configuration)/$(netframework)/ dist
 	@echo base vassago needed to build
@@ -48,6 +50,10 @@ update-framework:
 #be specified in the project file.
 #
 #microsoft. why. microsoft. do you understand the problem, microsoft? i'm worried you don't think this is an absurd thing to have done.
+#
+
+should-dbupdate: vassago/Migrations/ChattingContextModelSnapshot.cs
+	$(MAKE) db-update
 
 db-initial:
 	psql -c "create database ${serviceusername};"

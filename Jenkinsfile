@@ -58,11 +58,6 @@ pipeline {
         stage('Test') {
             steps{
                 sh '''#!/bin/bash
-                    if ! make vassago.tests/testdb-connectionstring.txt pw_database=$database_password_prod
-                    then
-                        echo "fail setting up connection string"
-                        exit 1
-                    fi
                     if ! make db-setuptest pw_database=$database_password_prod
                     then
                         echo "fail setting up test db"
