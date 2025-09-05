@@ -8,13 +8,11 @@ export
 serviceusername=vassago
 databasename=vassago_dev
 pw_database=wnmhOttjA0wCiR9hVoG7jjrf90SxWvAV
-export
 netframework=net8.0
 configuration=Debug
-connectionstr=Host=localhost;Database=${databasename};Username=${serviceusername};Password=${pw_database};IncludeErrorDetail=true;
-export
+CONNECTIONSTR=Host=localhost;Database=${databasename};Username=${serviceusername};Password=${pw_database};IncludeErrorDetail=true;
 
-.PHONY: clean build test sniff TestResults/testsresults.html db-* update-framework connectionStr.txt
+.PHONY: clean build test sniff TestResults/testsresults.html db-* update-framework CONNECTIONSTR.txt
 
 build: should-dbupdate vassago/bin/$(configuration)/$(netframework)/vassago.dll
 	cp -r vassago/bin/$(configuration)/$(netframework)/ dist
@@ -25,7 +23,7 @@ sniff:
 	rg -i "\) =>" -g '*.cs' -g '!vassago/Program.cs';  test $$? -eq 1
 test: TestResults/testsresults.html
 TestResults/testsresults.html: vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll vassago/bin/$(configuration)/$(netframework)/vassago.dll vassago.tests/testdb-connectionstring.txt
-	echo test results.html. $(netframework), $(serviceusername), $(connectionstr)
+	echo test results.html. $(netframework), $(serviceusername), $(CONNECTIONSTR)
 	rm -rf ./TestResults/
 	dotnet test --configuration $(configuration) --blame-hang-timeout 10000 vassago.tests/vassago.tests.csproj --logger:"html;LogFileName=testsresults.html" --results-directory ./TestResults
 
@@ -56,8 +54,8 @@ update-framework:
 #microsoft. why. microsoft. do you understand the problem, microsoft? i'm worried you don't think this is an absurd thing to have done.
 #
 should-dbupdate: vassago/Migrations/ChattingContextModelSnapshot.cs
-	@echo "hi i'm should-dbupdate. connection string: ${connectionstr}"
-	cd vassago; dotnet ef database update --connection "${connectionstr}"
+	@echo "hi i'm should-dbupdate. connection string: ${CONNECTIONSTR}"
+	cd vassago; dotnet ef database update --connection "${CONNECTIONSTR}"
 
 
 db-initial:
@@ -68,15 +66,15 @@ db-initial:
 
 	cp vassago/appsettings.sample.json vassago/appsettings.json
 db-update:
-	@echo "hi i'm the db-update target. connection string: ${connectionstr}"
-	cd vassago; dotnet ef database update --connection "${connectionstr}"
+	@echo "hi i'm the db-update target. connection string: ${CONNECTIONSTR}"
+	cd vassago; dotnet ef database update --connection "${CONNECTIONSTR}"
 db-fullreset:
 	psql -c "drop database ${databasename};"
 	psql -c "drop user ${serviceusername}"
 	@echo "now do make db-initial."
 db-addmigration:
 	cd vassago; dotnet ef migrations add "$(migrationname)"
-	cd vassago; dotnet ef database update --connection "${connectionstr}"
+	cd vassago; dotnet ef database update --connection "${CONNECTIONSTR}"
 db-dump:
 	pg_dump ${databasename} >dumpp
 db-recover:
