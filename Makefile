@@ -23,14 +23,14 @@ sniff:
 	@echo "dotnet will 'handle' exceptions in anonymous functions. I've had it with trying to track them down."
 	rg -i "\) =>" -g '*.cs' -g '!vassago/Program.cs';  test $$? -eq 1
 test: TestResults/testsresults.html
+	@echo "hello from test (itself). $(CONNECTIONSTR), in case you were wondering."
 TestResults/testsresults.html: vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll vassago/bin/$(configuration)/$(netframework)/vassago.dll vassago.tests/testdb-connectionstring.txt
-	echo test results.html. $(netframework), $(serviceusername), $(CONNECTIONSTR)
+	@echo test results.html. $(netframework), $(serviceusername), $(CONNECTIONSTR)
 	rm -rf ./TestResults/
 	dotnet test --configuration $(configuration) --blame-hang-timeout 10000 vassago.tests/vassago.tests.csproj --logger:"html;LogFileName=testsresults.html" --results-directory ./TestResults
 
 vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll:vassago/bin/$(configuration)/$(netframework)/vassago.dll vassago.tests/*.cs vassago.tests/vassago.tests.csproj
 	@echo tests.dll needed to build base vassago
-vassago.tests/testdb-connectionstring.txt: vassago/Migrations/ChattingContextModelSnapshot.cs
 vassago/bin/$(configuration)/$(netframework)/vassago.dll: vassago/*.cs vassago/vassago.csproj
 	dotnet build --configuration $(configuration) vassago/vassago.csproj
 clean:
@@ -95,7 +95,7 @@ db-setuptest: db-dump
 
 	psql -d "${databasename}_test" -1 -f dumpp
 	rm dumpp
-	@echo "you should probably now make testdb-connectionstring.txt"
+	@echo "you should probably now make testdb-connectionstring.txt. I would, but, you know. FOR NOW, pw=${pw_database}"
 #$(MAKE) vassago.tests/testdb-connectionstring.txt
 vassago.tests/testdb-connectionstring.txt:
 	echo "Host=localhost;Database=${databasename}_test;Username=${serviceusername};Password=${pw_database};IncludeErrorDetail=true;" > vassago.tests/testdb-connectionstring.txt
