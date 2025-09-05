@@ -18,19 +18,16 @@ test: TestResults/testsresults.html
 TestResults/testsresults.html: vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll vassago/bin/$(configuration)/$(netframework)/vassago.dll vassago.tests/testdb-connectionstring.txt
 	echo test results.html. $(netframework), $(serviceusername), $(connectionstr)
 	rm -rf ./TestResults/
-	dotnet test --blame-hang-timeout 10000 vassago.tests/vassago.tests.csproj --logger:"html;LogFileName=testsresults.html" --results-directory ./TestResults
+	dotnet test --configuration $(configuration) --blame-hang-timeout 10000 vassago.tests/vassago.tests.csproj --logger:"html;LogFileName=testsresults.html" --results-directory ./TestResults
 
 vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll:vassago/bin/$(configuration)/$(netframework)/vassago.dll vassago.tests/*.cs vassago.tests/vassago.tests.csproj
 	@echo tests.dll needed to build base vassago
 vassago.tests/testdb-connectionstring.txt: vassago/Migrations/ChattingContextModelSnapshot.cs
-#$(MAKE) db-setuptest
-#vassago/bin/$(configuration)/$(netframework)/vassago.dll: vassago/*.cs vassago/vassago.csproj
-#$(MAKE) build
-build: should-dbupdate
-	dotnet build vassago/vassago.csproj
+vassago/bin/$(configuration)/$(netframework)/vassago.dll: vassago/*.cs vassago/vassago.csproj
+	dotnet build --configuration $(configuration) vassago/vassago.csproj
+build: should-dbupdate vassago/bin/$(configuration)/$(netframework)/vassago.dll
 	cp -r vassago/bin/$(configuration)/$(netframework)/ dist
 	@echo base vassago needed to build
-
 clean:
 	@echo "hi i am the clean target, I will not be building anything."
 	dotnet clean vassago
