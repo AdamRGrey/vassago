@@ -11,6 +11,7 @@ pw_database=wnmhOttjA0wCiR9hVoG7jjrf90SxWvAV
 netframework=net8.0
 configuration=Debug
 CONNECTIONSTR=Host=localhost;Database=${databasename};Username=${serviceusername};Password=${pw_database};IncludeErrorDetail=true;
+export
 
 .PHONY: clean build test sniff TestResults/testsresults.html db-* update-framework CONNECTIONSTR.txt
 
