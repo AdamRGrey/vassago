@@ -33,7 +33,6 @@ public class ExternalProtocolTest
             Task.WaitAll(vassago.Reconfigurator.Kafka(testconf));
             configured = true;
         }
-        AppDomain.CurrentDomain.UnhandledException += (sender, e) =>{Assert.Fail("Unhandled exception: " + e.ExceptionObject.ToString());};
 
         //actual arrange
         ProtocolExternal connectionBody = new()

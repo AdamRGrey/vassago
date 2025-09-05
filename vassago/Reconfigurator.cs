@@ -106,13 +106,13 @@ namespace vassago
                     {
                         case "discord":
                             var d = new DiscordInterface();
-                            d.MessageReceived += (m) => Behaver.Instance.ActOn(m);
+                            d.MessageReceived += Behaver.Instance.ActOn;
                             initTasks.Add(d.Init(newCfg as ProtocolDiscord));
                             Shared.ProtocolList.Add(d);
                             break;
                         case "twitch":
                             var t = new TwitchInterface();
-                            t.MessageReceived += (m) => Behaver.Instance.ActOn(m);
+                            t.MessageReceived += Behaver.Instance.ActOn;
                             initTasks.Add(t.Init(newCfg as ProtocolTwitch));
                             Shared.ProtocolList.Add(t);
                             break;
@@ -122,7 +122,7 @@ namespace vassago
                             {
                                 case ExternalProtocolStyle.Restful:
                                     var e = new ExternalRestful();
-                                    e.MessageReceived += (m) => Behaver.Instance.ActOn(m);
+                                    e.MessageReceived += Behaver.Instance.ActOn;
                                     initTasks.Add(e.Init(peCFG));
                                     Shared.ProtocolList.Add(e);
                                     break;

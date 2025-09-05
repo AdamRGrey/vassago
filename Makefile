@@ -12,8 +12,11 @@ connectionstr=Host=localhost;Database=${databasename};Username=${serviceusername
 netframework=net8.0
 configuration=Debug
 
-.PHONY: clean build test TestResults/testsresults.html db-* update-framework
+.PHONY: clean build test sniff TestResults/testsresults.html db-* update-framework
 
+sniff:
+	@echo "dotnet will 'handle' exceptions in anonymous functions. I've had it with trying to track them down."
+	rg -i "\) =>" -g '*.cs' -g '!vassago/Program.cs';  test $$? -eq 1
 test: TestResults/testsresults.html
 TestResults/testsresults.html: vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll vassago/bin/$(configuration)/$(netframework)/vassago.dll vassago.tests/testdb-connectionstring.txt
 	echo test results.html. $(netframework), $(serviceusername), $(connectionstr)

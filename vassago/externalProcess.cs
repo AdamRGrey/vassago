@@ -11,20 +11,21 @@ namespace vassago
 {
     public class ExternalProcess
     {
-        public static bool GoPlz(string commandPath, string commandArguments)
+        private StringBuilder outputData = new StringBuilder();
+        private StringBuilder errorData = new StringBuilder();
+        private void RegularOutputData(object sender, DataReceivedEventArgs e)
+        {
+            outputData.Append(e.Data);
+        }
+        private void ErrorOutputData(object sender, DataReceivedEventArgs e)
+        {
+            errorData.Append(e.Data);
+        }
+        public bool GoPlz(string commandPath, string commandArguments)
         {
             var process = readableProcess(commandPath, commandArguments);
-            var outputData = new StringBuilder();
-            process.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
-            {
-                outputData.Append(e.Data);
-            });
-            var errorData = new StringBuilder();
-            process.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
-            {
-                errorData.Append(e.Data);
-            });
-
+            process.OutputDataReceived += RegularOutputData;
+            process.ErrorDataReceived += ErrorOutputData;
             try
             {
                 process.Start();

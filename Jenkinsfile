@@ -46,6 +46,9 @@ pipeline {
         }
         stage('Build') {
             steps {
+            #should probably get its own step
+                sh "make sniff"
+
                 sh '''#!/bin/bash
                     if ! make build configuration=Release databasename=vassago pw_database=${database_password_prod}
                     then

@@ -40,7 +40,7 @@ public class QRify : Behavior
             Directory.CreateDirectory("tmp");
         }
         File.WriteAllText($"tmp/qr{todaysnumber}.svg", qrCodeAsSvg);
-        if (ExternalProcess.GoPlz("convert", $"tmp/qr{todaysnumber}.svg tmp/qr{todaysnumber}.png"))
+        if ((new ExternalProcess()).GoPlz("convert", $"tmp/qr{todaysnumber}.svg tmp/qr{todaysnumber}.png"))
         {
             if (message.Channel.EffectivePermissions.MaxAttachmentBytes >= (ulong)(new System.IO.FileInfo($"tmp/qr{todaysnumber}.png").Length))
                 Behaver.Instance.SendFile(message.Channel.Id, $"tmp/qr{todaysnumber}.png", null);

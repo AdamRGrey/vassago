@@ -126,7 +126,6 @@ public class TwitchInterface : ProtocolInterface
         //translate to internal, upsert
         var m = UpsertMessage(e.WhisperMessage);
         //can't send whispers without giving up cellphone number.
-        //m.Reply = (t) => { return Task.Run(() => { client.SendWhisper(e.WhisperMessage.Username, t); }); };
         m.Channel.ChannelType = vassago.Models.Enumerations.ChannelType.DM;
         base.basedot_MessageReceived(m);
     }
@@ -321,7 +320,7 @@ public class TwitchInterface : ProtocolInterface
     }
     public override async Task<int> SendMessage(Channel channel, string text)
     {
-        Task.Run(() => { client.SendMessage(channel.ExternalId, text); });
+        client.SendMessage(channel.ExternalId, text);
         return 200;
     }
     public override async Task<int> SendFile(Channel channel, string base64dData, string filename, string accompanyingText)
@@ -334,7 +333,7 @@ public class TwitchInterface : ProtocolInterface
     }
     public override async Task<int> Reply(Message message, string text)
     {
-        Task.Run(() => { client.SendReply(message.Channel.ExternalId, message.ExternalId, text); });
+        client.SendReply(message.Channel.ExternalId, message.ExternalId, text);
         return 200;
     }
 }

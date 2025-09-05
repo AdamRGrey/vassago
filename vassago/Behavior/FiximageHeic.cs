@@ -64,7 +64,7 @@ public class FiximageHeic : Behavior
                 (await Shared.HttpClient.GetAsync(att.Source))
                     .Content.CopyTo(output, null, token);
             }
-            if (ExternalProcess.GoPlz("convert", $"tmp/{att.Filename} tmp/{att.Filename}.jpg"))
+            if ((new ExternalProcess()).GoPlz("convert", $"tmp/{att.Filename} tmp/{att.Filename}.jpg"))
             {
                 Behaver.Instance.SendFile(message.Channel.Id, $"tmp/{att.Filename}.jpg", "converted from jpeg-but-apple to jpeg");
                 File.Delete($"tmp/{att.Filename}");

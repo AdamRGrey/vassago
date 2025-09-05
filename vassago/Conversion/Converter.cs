@@ -30,18 +30,19 @@ namespace vassago.Conversion
             return $"{convertibles.Count()} convertibles; {string.Join(", ", convertibles)}";
         }
 
+        private static async Task currencyLoadLoop()
+        {
+            while (true)
+            {
+                await Task.Delay(TimeSpan.FromHours(8));
+                loadCurrency();
+            }
+        }
         public static void Load(string currencyPath)
         {
             Converter.currencyPath = currencyPath;
             loadStatic();
-            Task.Run(async () =>
-            {
-                while (true)
-                {
-                    await Task.Delay(TimeSpan.FromHours(8));
-                    loadCurrency();
-                }
-            });
+            Task.Run(currencyLoadLoop);
         }
         private static void loadStatic()
         {

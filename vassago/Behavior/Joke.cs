@@ -39,16 +39,13 @@ public class Joke : Behavior
 
         if(!string.IsNullOrWhiteSpace(thisJoke.SecondaryText))
         {
-            Task.Run(async () =>
+            Thread.Sleep(TimeSpan.FromSeconds(Shared.r.Next(5, 30)));
+            if (message.Channel.EffectivePermissions.ReactionsPossible == true && Shared.r.Next(8) == 0)
             {
-                Thread.Sleep(TimeSpan.FromSeconds(Shared.r.Next(5, 30)));
-                if (message.Channel.EffectivePermissions.ReactionsPossible == true && Shared.r.Next(8) == 0)
-                {
-                    Behaver.Behaviors.Add(new LaughAtOwnJoke(thisJoke.SecondaryText));
-                }
-                Behaver.Instance.SendMessage(message.Channel.Id, thisJoke.SecondaryText);
-                // var myOwnMsg = await message.Channel.SendMessage(punchline);
-            });
+                Behaver.Behaviors.Add(new LaughAtOwnJoke(thisJoke.SecondaryText));
+            }
+            Behaver.Instance.SendMessage(message.Channel.Id, thisJoke.SecondaryText);
+            // var myOwnMsg = await message.Channel.SendMessage(punchline);
         }
         return true;
     }

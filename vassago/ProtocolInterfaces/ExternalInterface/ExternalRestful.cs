@@ -127,26 +127,23 @@ public class ExternalRestful : ProtocolInterface
         var authoringAccount = containingChannel.Users?.FirstOrDefault(a => a.ExternalId == authorExternalId);
         if (authoringAccount == null) return 404;
 
-        Task.Run(() =>
+        var msg = r.SearchMessage(m => m.ChannelId == containingChannel.Id && m.Author.Id == authoringAccount.Id && m.ExternalId == message.ExternalId);
+        if (msg == null)
         {
-            var msg = r.SearchMessage(m => m.ChannelId == containingChannel.Id && m.Author.Id == authoringAccount.Id && m.ExternalId == message.ExternalId);
-            if (msg == null)
-            {
-                Console.Error.WriteLine($"attempt to update {message.ExternalId}, apparently by {authoringAccount.Id} in channel {containingChannel.Id}, but i don't think that message is in that channel? oh well.");
-            }
-            else
-            {
-                msg.Attachments = message.Attachments;
-                msg.Content = message.Content;
-                msg.MentionsMe = message.MentionsMe;
-                msg.Timestamp = message.Timestamp;
-                //no no, *i* translate it?
-                msg.TranslatedContent = message.TranslatedContent;
-                r.RememberMessage(msg);
-                base.basedot_MessageUpdated(msg);
-            }
-        });
-        return 202;
+            Console.Error.WriteLine($"attempt to update {message.ExternalId}, apparently by {authoringAccount.Id} in channel {containingChannel.Id}, but i don't think that message is in that channel? oh well.");
+        }
+        else
+        {
+            msg.Attachments = message.Attachments;
+            msg.Content = message.Content;
+            msg.MentionsMe = message.MentionsMe;
+            msg.Timestamp = message.Timestamp;
+            //no no, *i* translate it?
+            msg.TranslatedContent = message.TranslatedContent;
+            r.RememberMessage(msg);
+            base.basedot_MessageUpdated(msg);
+        }
+        return 200;
     }
     ///<summary>
     ///you've joined a channel. Tip: if, like discord, you learn about a channel, and consequently walk
@@ -215,12 +212,12 @@ public class ExternalRestful : ProtocolInterface
             if (formerParent != null)
             {
                 formerParent.SubChannels.Remove(dbChannel);
-                otherTasks.Add(Task.Run(() => r.RememberChannel(formerParent)));
+                otherTasks.Add(rememberChannelTask(formerParent));
             }
             dbChannel.ParentChannel = adoptiveParent;
             adoptiveParent.SubChannels ??= [];
             adoptiveParent.SubChannels.Add(dbChannel);
-            otherTasks.Add(Task.Run(() => r.RememberChannel(adoptiveParent)));
+            otherTasks.Add(rememberChannelTask(adoptiveParent));
         }
         else
         {
@@ -236,13 +233,17 @@ public class ExternalRestful : ProtocolInterface
         dbChannel.LewdnessFilterLevel = updatedChannel.LewdnessFilterLevel;
         dbChannel.MeannessFilterLevel= updatedChannel.MeannessFilterLevel;
         //Console.WriteLine($"[ExternalChannelUpdate] - stuff updated. remembering.");
-        otherTasks.Add(Task.Run(() => r.RememberChannel(dbChannel)));
+        otherTasks.Add(rememberChannelTask(dbChannel));
 
         foreach (var t in otherTasks)
             await t;
         //Console.WriteLine($"[ExternalChannelUpdate] - tasks ready. firing event.");
         base.basedot_ChannelUpdated(dbChannel);
         return 200;
+    }
+    private async Task rememberChannelTask(Channel channel)
+    {
+        r.RememberChannel(channel);
     }
     public async Task<int> ExternalAccountCreate(Account account, string channelExternalId)
     {
@@ -255,7 +256,7 @@ public class ExternalRestful : ProtocolInterface
 
         dbChannel.Users ??= [];
         dbChannel.Users.Add(account);
-        var channelTask = Task.Run(() => r.RememberChannel(dbChannel));
+        var channelTask = rememberChannelTask(dbChannel);
 
         if (account.IsUser == null)
         {

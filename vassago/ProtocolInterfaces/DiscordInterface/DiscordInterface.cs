@@ -44,17 +44,17 @@ public class DiscordInterface : ProtocolInterface
         await SetupDiscordChannel();
         client = new DiscordSocketClient(new DiscordSocketConfig() { GatewayIntents = GatewayIntents.All });
 
-        client.Log += (msg) =>
-        {
-            Console.WriteLine(msg.ToString());
-            return Task.CompletedTask;
-        };
+        client.Log +=  logmessage;
         client.Connected += this.SelfConnected;
         client.Disconnected += this.ClientDisconnected;
         client.Ready += this.ClientReady;
 
         await client.LoginAsync(TokenType.Bot, token);
         await client.StartAsync();
+    }
+    private async Task logmessage(LogMessage msg)
+    {
+        Console.WriteLine(msg.ToString());
     }
     public override async Task<int> Die()
     {

@@ -3,7 +3,6 @@ namespace vassago.ProtocolInterfaces;
 using Newtonsoft.Json;
 using static vassago.Models.Enumerations;
 
-
 using vassago.Models;
 
 /*
@@ -36,7 +35,7 @@ public abstract class ProtocolInterface
     public abstract Task<int> UpdateConfiguration(ProtocolConfiguration newCfg);
     public abstract Task<int> Die();
 
-    public delegate void MessageEvent(Message m);
+    public delegate Task<bool> MessageEvent(Message m);
     public event MessageEvent MessageReceived;
     ///<summary>
     ///children aren't allowed to raise events.
