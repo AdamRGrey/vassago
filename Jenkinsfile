@@ -46,7 +46,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-            #should probably get its own step
+                // should probably get its own step
                 sh "make sniff"
 
                 sh '''#!/bin/bash

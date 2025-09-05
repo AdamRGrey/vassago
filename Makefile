@@ -14,6 +14,10 @@ configuration=Debug
 
 .PHONY: clean build test sniff TestResults/testsresults.html db-* update-framework
 
+build: should-dbupdate vassago/bin/$(configuration)/$(netframework)/vassago.dll
+	cp -r vassago/bin/$(configuration)/$(netframework)/ dist
+	@echo base vassago needed to build
+
 sniff:
 	@echo "dotnet will 'handle' exceptions in anonymous functions. I've had it with trying to track them down."
 	rg -i "\) =>" -g '*.cs' -g '!vassago/Program.cs';  test $$? -eq 1
@@ -28,9 +32,6 @@ vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll:vassago/bin
 vassago.tests/testdb-connectionstring.txt: vassago/Migrations/ChattingContextModelSnapshot.cs
 vassago/bin/$(configuration)/$(netframework)/vassago.dll: vassago/*.cs vassago/vassago.csproj
 	dotnet build --configuration $(configuration) vassago/vassago.csproj
-build: should-dbupdate vassago/bin/$(configuration)/$(netframework)/vassago.dll
-	cp -r vassago/bin/$(configuration)/$(netframework)/ dist
-	@echo base vassago needed to build
 clean:
 	@echo "hi i am the clean target, I will not be building anything."
 	dotnet clean vassago
