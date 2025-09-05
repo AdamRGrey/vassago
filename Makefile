@@ -8,11 +8,13 @@ export
 serviceusername=vassago
 databasename=vassago_dev
 pw_database=wnmhOttjA0wCiR9hVoG7jjrf90SxWvAV
-connectionstr=Host=localhost;Database=${databasename};Username=${serviceusername};Password=${pw_database};IncludeErrorDetail=true;
+export
 netframework=net8.0
 configuration=Debug
+connectionstr=Host=localhost;Database=${databasename};Username=${serviceusername};Password=${pw_database};IncludeErrorDetail=true;
+export
 
-.PHONY: clean build test sniff TestResults/testsresults.html db-* update-framework
+.PHONY: clean build test sniff TestResults/testsresults.html db-* update-framework connectionStr.txt
 
 build: should-dbupdate vassago/bin/$(configuration)/$(netframework)/vassago.dll
 	cp -r vassago/bin/$(configuration)/$(netframework)/ dist
