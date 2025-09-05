@@ -11,7 +11,6 @@ pw_database=wnmhOttjA0wCiR9hVoG7jjrf90SxWvAV
 netframework=net8.0
 configuration=Debug
 CONNECTIONSTR=Host=localhost;Database=${databasename};Username=${serviceusername};Password=${pw_database};IncludeErrorDetail=true;
-export
 
 .PHONY: clean build test sniff TestResults/testsresults.html db-* update-framework CONNECTIONSTR.txt
 
@@ -31,6 +30,7 @@ TestResults/testsresults.html: vassago.tests/bin/$(configuration)/$(netframework
 
 vassago.tests/bin/$(configuration)/$(netframework)/vassago.tests.dll:vassago/bin/$(configuration)/$(netframework)/vassago.dll vassago.tests/*.cs vassago.tests/vassago.tests.csproj
 	@echo tests.dll needed to build base vassago
+
 vassago/bin/$(configuration)/$(netframework)/vassago.dll: vassago/*.cs vassago/vassago.csproj
 	dotnet build --configuration $(configuration) vassago/vassago.csproj
 clean:

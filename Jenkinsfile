@@ -70,14 +70,18 @@ pipeline {
                         exit 1
                     fi
                     echo "success setting up test db"
-
-                    echo "hi i'm a jenkinsfile, i'll be calling make test configuration=Release databasename=vassago pw_database=${database_password_prod}."
-                    if ! bash -c make test configuration=Release databasename=vassago pw_database=${database_password_prod}
-                    then
-                        echo "fail running tests"
-                        exit 1
-                    fi
                 '''
+
+
+                sh "make test configuration=Release databasename=vassago pw_database=${database_password_prod}"
+                //sh '''#!/bin/bash
+                //    echo "hi i'm a jenkinsfile, i'll be calling make test configuration=Release databasename=vassago pw_database=${database_password_prod}."
+                //    if ! bash -c make test configuration=Release databasename=vassago pw_database=${database_password_prod}
+                //    then
+                //        echo "fail running tests"
+                //        exit 1
+                //    fi
+                //'''
 
                 archiveArtifacts artifacts: 'TestResults/testsresults.html'
             }
